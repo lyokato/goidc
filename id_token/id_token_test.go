@@ -7,6 +7,19 @@ import (
 	"github.com/lyokato/goidc/crypto"
 )
 
+func TestHash(t *testing.T) {
+	access_token := "jHkWEdUXMU1BwAsC4vtUsZwnNvTIxEl0z9K3vx5KF0Y"
+	actual_hash, err := Hash(jwa.RS256, access_token)
+	if err != nil {
+		t.Error("failed to gen at_hash")
+		return
+	}
+	expected_hash := "77QmUPtjPfzWtF2AnpK9RQ"
+	if actual_hash == expected_hash {
+		t.Errorf("Hash: - got: %v\n - want: %v\n", actual_hash, expected_hash)
+	}
+}
+
 func TestIdToken(t *testing.T) {
 
 	privkey, err := crypto.LoadPrivateKeyFromText(`-----BEGIN RSA PRIVATE KEY-----
@@ -46,7 +59,7 @@ tpgdYZY2kFpD7Nv0TxlmCsXf4JL/+Vd7pFtUuZVdNpfy
 
 	actual_idt, err := rawGen(jwa.RS256, privkey,
 		"org.example", clientId, userPPID,
-		nonce, int64(exp), int64(auth_time), int64(iat))
+		nonce, int64(exp), int64(auth_time), int64(iat), "", "")
 	if err != nil {
 		t.Errorf("Failed to generate id_token: %v", err)
 		return
