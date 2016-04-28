@@ -7,6 +7,11 @@ build:
     - setup-go-workspace
 
     - script:
+        name: go get
+        code: |
+          go get ./id_token
+
+    - script:
         name: go test
         code: |
           go test ./...
