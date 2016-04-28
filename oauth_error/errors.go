@@ -1,4 +1,4 @@
-package goidc
+package oauth_error
 
 import (
 	"encoding/json"
@@ -71,7 +71,7 @@ func (e *OAuthError) StatusCode() int {
 	}
 }
 
-func NewOAuthError(typeName string, description, uri string) *OAuthError {
+func NewOAuthError(typeName, description, uri string) *OAuthError {
 	return &OAuthError{typeName, description, uri}
 }
 

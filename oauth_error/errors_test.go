@@ -1,4 +1,4 @@
-package goidc
+package oauth_error
 
 import (
 	"net/http"
