@@ -27,7 +27,7 @@ func Hash(alg jwa.SignatureAlgorithm, token string) (string, error) {
 		data := sha512.Sum512([]byte(token))
 		return base64.StdEncoding.EncodeToString(data[:32]), nil
 	} else {
-		return "", errors.New("")
+		return "", errors.New("unsupported signature algorithm")
 	}
 }
 
