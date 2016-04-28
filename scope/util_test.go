@@ -20,4 +20,13 @@ func TestInclude(t *testing.T) {
 	if Include(origin, "unknown") {
 		t.Error("'unknown' should be found")
 	}
+
+	origin = "custom offline_access"
+	if Include(origin, OpenID) {
+		t.Error("'openid' shouldn't be found")
+	}
+
+	if !IncludeOfflineAccess(origin) {
+		t.Error("'offline_access' should be found")
+	}
 }
