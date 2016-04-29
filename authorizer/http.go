@@ -7,8 +7,6 @@ import (
 	"strconv"
 
 	"github.com/lyokato/goidc/scope"
-
-	"github.com/lyokato/goidc/flow"
 )
 
 func ConvertHTTPRequest(r *http.Request) (*Request, error) {
@@ -18,7 +16,7 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 		return nil, errors.New("missing 'response_type' parameter")
 	}
 
-	f, err := flow.JudgeFlowFromResponseType(rt)
+	f, err := JudgeFlowFromResponseType(rt)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +66,7 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 		return nil, errors.New("missing 'scope' parameter")
 	}
 
-	if f.Type == flow.FlowTypeBasic {
+	if f.Type == FlowTypeBasic {
 		if !scope.IncludeOfflineAccess(s) {
 			s = s + " offline_access"
 		}
@@ -79,7 +77,7 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 	}
 
 	n := r.FormValue("nonce")
-	if f.Type != flow.FlowTypeBasic {
+	if f.Type != FlowTypeBasic {
 		if scope.IncludeOpenID(s) && n == "" {
 			return nil, errors.New("'nonce' parameter is required on implicit/hybrid flow if it's for OpenID")
 		}

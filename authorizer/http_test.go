@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-
-	"github.com/lyokato/goidc/flow"
 )
 
 func TestParser(t *testing.T) {
@@ -30,7 +28,7 @@ func TestParser(t *testing.T) {
 		return
 	}
 
-	if ar.Flow.Type != flow.FlowTypeBasic {
+	if ar.Flow.Type != FlowTypeBasic {
 		t.Error("flow type should be basic")
 	}
 }
