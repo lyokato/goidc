@@ -7,16 +7,16 @@ import (
 )
 
 const (
-	FlowTypeBasic    = 0
-	FlowTypeImplicit = 1
-	FlowTypeHybrid   = 2
+	FlowTypeBasic    = "basic"
+	FlowTypeImplicit = "implicit"
+	FlowTypeHybrid   = "hybrid"
 )
 
 type (
 	Flow struct {
-		Type        int
-		NeedToken   bool
-		NeedIDToken bool
+		Type        string `json:"type"`
+		NeedToken   bool   `json:"need_token"`
+		NeedIDToken bool   `json:"need_id_token"`
 	}
 )
 
@@ -26,7 +26,7 @@ func JudgeFlowFromResponseType(responseType string) (*Flow, error) {
 	sorted := strings.Join(list, " ")
 	switch sorted {
 	case "code":
-		return &Flow{FlowTypeBasic, true, true}, nil
+		return &Flow{FlowTypeBasic, false, false}, nil
 	case "code id_token":
 		return &Flow{FlowTypeHybrid, false, true}, nil
 	case "code id_token token":
