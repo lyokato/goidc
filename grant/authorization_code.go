@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/lestrrat/go-jwx/jwa"
+	"github.com/lyokato/goidc/id_token"
+
 	"github.com/lyokato/goidc/scope"
 
 	oer "github.com/lyokato/goidc/oauth_error"
@@ -21,9 +24,6 @@ func AuthorizationCode() *GrantHandler {
 			if uri == "" {
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
 			}
-			if c.RedirectURI() != uri {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
-			}
 			code := r.FormValue("code")
 			if code == "" || uri == "" {
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
@@ -33,6 +33,9 @@ func AuthorizationCode() *GrantHandler {
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
 			}
 			if info.ClientId() != c.Id() {
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+			}
+			if info.RedirectURI() != uri {
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
 			}
 
@@ -80,16 +83,14 @@ func AuthorizationCode() *GrantHandler {
 			}
 
 			if scope.IncludeOpenID(scp) {
-				/*
-				   idt, err := id_token.Gen(c.KeyAlg(), key, sdi.Issure(),
-				   info.ClinetId(), info.Subject() info.Nonce(), sdi.IDTokenExpiresIn(), info.AuthorizedAt())
-				   if err != nil {
-				       res.IdToken = idt
-				   } else {
-				       // TODO fix error type
-				       return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
-				   }
-				*/
+				idt, err := id_token.Gen(jwa.SignatureAlgorithm(c.IdTokenAlg()), c.IdTokenKey(), sdi.Issure(),
+					info.ClientId(), info.Subject(), info.Nonce(), info.IDTokenExpiresIn(), info.AuthorizedAt())
+				if err != nil {
+					// TODO fix error type
+					return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				} else {
+					res.IdToken = idt
+				}
 			}
 			return res, nil
 		},

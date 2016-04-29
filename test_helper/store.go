@@ -2,6 +2,8 @@ package test_helper
 
 import (
 	"crypto/rsa"
+	"fmt"
+	"time"
 
 	"github.com/lyokato/goidc/crypto"
 	oer "github.com/lyokato/goidc/oauth_error"
@@ -18,11 +20,12 @@ type (
 	TestStore struct {
 		privKey        *rsa.PrivateKey
 		userIdPod      int64
+		infoIdPod      int64
 		users          map[int64]*TestUser
 		clients        map[string]*TestClient
 		infos          map[int64]*TestAuthInfo
-		accessTokenes  map[string]*sd.AccessToken
-		refreshTokenes map[string]*sd.RefreshToken
+		accessTokenes  map[string]*TestAccessToken
+		refreshTokenes map[string]*TestRefreshToken
 	}
 )
 
@@ -48,11 +51,12 @@ tpgdYZY2kFpD7Nv0TxlmCsXf4JL/+Vd7pFtUuZVdNpfy
 	return &TestStore{
 		privKey:        privKey,
 		userIdPod:      0,
+		infoIdPod:      0,
 		users:          make(map[int64]*TestUser, 0),
 		clients:        make(map[string]*TestClient, 0),
 		infos:          make(map[int64]*TestAuthInfo, 0),
-		accessTokenes:  make(map[string]*sd.AccessToken, 0),
-		refreshTokenes: make(map[string]*sd.RefreshToken, 0),
+		accessTokenes:  make(map[string]*TestAccessToken, 0),
+		refreshTokenes: make(map[string]*TestRefreshToken, 0),
 	}
 }
 
@@ -69,10 +73,47 @@ func (s *TestStore) CreateNewClient(id, secret, redirectURI string) *TestClient 
 	return c
 }
 
+func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, redirectURI, subject, scope string,
+	authroizedAt int64, code string, codeExpiresIn int64, codeVerifier, nonce string) *TestAuthInfo {
+	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
+	if !exists {
+		infoId := s.infoIdPod
+		i = &TestAuthInfo{
+			id:       infoId,
+			userId:   uid,
+			clientId: clientId,
+			Enabled:  true,
+		}
+		s.infos[infoId] = i
+		s.infoIdPod++
+	}
+	i.flowType = "basic"
+	i.subject = subject
+	i.scope = scope
+	i.authorizedAt = authroizedAt
+	i.code = code
+	i.codeExpiresIn = codeExpiresIn
+	i.codeVerifier = codeVerifier
+	i.nonce = nonce
+	i.redirectUri = redirectURI
+	i.subject = subject
+	return i
+}
+
+func (s *TestStore) findAuthInfoByUserAndClient(uid int64, clientId string) (*TestAuthInfo, bool) {
+	for _, i := range s.infos {
+		if i.UserId() == uid && i.ClientId() == clientId {
+			return i, true
+		}
+	}
+	return nil, false
+}
+
 func (s *TestStore) ClearAuthData() {
+	s.infoIdPod = 0
 	s.infos = make(map[int64]*TestAuthInfo, 0)
-	s.accessTokenes = make(map[string]*sd.AccessToken, 0)
-	s.refreshTokenes = make(map[string]*sd.RefreshToken, 0)
+	s.accessTokenes = make(map[string]*TestAccessToken, 0)
+	s.refreshTokenes = make(map[string]*TestRefreshToken, 0)
 }
 
 func (s *TestStore) ClearAll() {
@@ -136,11 +177,15 @@ func (s *TestStore) FindRefreshToken(token string) (sd.RefreshTokenInterface, *o
 }
 
 func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface) (sd.AccessTokenInterface, *oer.OAuthError) {
-	info.Id()
-	return nil, nil
+	value := fmt.Sprintf("ACCESS_TOKEN_%d", info.Id())
+	t := NewTestAccessToken(info.Id(), value, 60*60*24, time.Now().Unix())
+	s.accessTokenes[t.Token()] = t
+	return t, nil
 }
 
 func (s *TestStore) CreateRefreshToken(info sd.AuthInfoInterface) (sd.RefreshTokenInterface, *oer.OAuthError) {
-	info.Id()
-	return nil, nil
+	value := fmt.Sprintf("REFRESH_TOKEN_%d", info.Id())
+	t := NewTestRefreshToken(info.Id(), value, 60*60*24, time.Now().Unix())
+	s.refreshTokenes[t.Token()] = t
+	return t, nil
 }
