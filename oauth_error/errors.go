@@ -25,6 +25,17 @@ const (
 	// RFC6750
 	ErrInvalidToken      = "invalid_token"
 	ErrInsufficientScope = "insufficient_scope"
+
+	// OpenID Core 3.1.2.6 Authentication Error Response
+	ErrInteractionRequired      = "interaction_required"
+	ErrLoginRequired            = "login_required"
+	ErrAccountSelectionRequired = "account_selection_required"
+	ErrConsentRequired          = "consent_required"
+	ErrInvalidRequestURI        = "invalid_request_uri"
+	ErrInvalidRequestObject     = "invalid_request_object"
+	ErrRequestNotSupported      = "request_not_supported"
+	ErrRequestURINotSupported   = "request_uri_not_supported"
+	ErrRegistrationNotSupported = "registration_not_supported"
 )
 
 var errStatusCodeMap = map[string]int{
