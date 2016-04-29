@@ -1,7 +1,6 @@
 package id_token
 
 import (
-	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/base64"
@@ -31,7 +30,7 @@ func Hash(alg jwa.SignatureAlgorithm, token string) (string, error) {
 	}
 }
 
-func Gen(alg jwa.SignatureAlgorithm, key *rsa.PrivateKey,
+func Gen(alg jwa.SignatureAlgorithm, key interface{},
 	issure, clientId, subject, nonce string,
 	expiresIn, authTime int64) (string, error) {
 
@@ -44,7 +43,7 @@ func Gen(alg jwa.SignatureAlgorithm, key *rsa.PrivateKey,
 		"", "")
 }
 
-func GenForImplicit(alg jwa.SignatureAlgorithm, key *rsa.PrivateKey,
+func GenForImplicit(alg jwa.SignatureAlgorithm, key interface{},
 	issure, clientId, subject, nonce string,
 	expiresIn, authTime int64, accessToken string) (string, error) {
 
@@ -58,7 +57,7 @@ func GenForImplicit(alg jwa.SignatureAlgorithm, key *rsa.PrivateKey,
 	return rawGen(alg, key, issure, clientId, subject, nonce, exp, authTime, iat, atHash, "")
 }
 
-func GenForHybrid(alg jwa.SignatureAlgorithm, key *rsa.PrivateKey,
+func GenForHybrid(alg jwa.SignatureAlgorithm, key interface{},
 	issure, clientId, subject, nonce string,
 	expiresIn, authTime int64, accessToken, code string) (string, error) {
 
@@ -75,7 +74,7 @@ func GenForHybrid(alg jwa.SignatureAlgorithm, key *rsa.PrivateKey,
 	return rawGen(alg, key, issure, clientId, subject, nonce, exp, authTime, iat, atHash, cHash)
 }
 
-func rawGen(alg jwa.SignatureAlgorithm, key *rsa.PrivateKey,
+func rawGen(alg jwa.SignatureAlgorithm, key interface{},
 	issure, clientId, subject, nonce string,
 	expiredAt, authTime, issuedAt int64, atHash, cHash string) (string, error) {
 

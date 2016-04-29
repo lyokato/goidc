@@ -13,6 +13,8 @@ type (
 		Scope() string
 		AuthorizedAt() int64
 
+		IDTokenExpiresIn() int64
+
 		// Session
 		Code() string
 		CodeExpiresIn() int64
@@ -30,6 +32,8 @@ type (
 		subject     string
 		scope       string
 
+		idTokenExpiresIn int64
+
 		authorizedAt int64
 
 		code          string
@@ -45,6 +49,10 @@ func (i *AuthInfo) Id() int64 {
 
 func (i *AuthInfo) AuthorizedAt() int64 {
 	return i.authorizedAt
+}
+
+func (i *AuthInfo) IDTokenExpiresIn() int64 {
+	return i.idTokenExpiresIn
 }
 
 func (i *AuthInfo) FlowType() string {

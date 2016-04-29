@@ -26,6 +26,10 @@ func (i *TestAuthInfo) AuthorizedAt() int64 {
 	return i.authorizedAt
 }
 
+func (i *TestAuthInfo) IDTokenExpiresIn() int64 {
+	return int64(60 * 60 * 24 * 7)
+}
+
 func (i *TestAuthInfo) FlowType() string {
 	return i.flowType
 }
