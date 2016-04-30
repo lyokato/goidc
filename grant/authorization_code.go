@@ -13,9 +13,11 @@ import (
 	sd "github.com/lyokato/goidc/service_data"
 )
 
+const TypeAuthorizationCode = "authorization_code"
+
 func AuthorizationCode() *GrantHandler {
 	return &GrantHandler{
-		"authorization_code",
+		TypeAuthorizationCode,
 		func(r *http.Request, c sd.ClientInterface,
 			sdi sd.ServiceDataInterface) (*Response, *oer.OAuthError) {
 
@@ -62,30 +64,26 @@ func AuthorizationCode() *GrantHandler {
 				}
 			}
 
-			token, err := sdi.CreateAccessToken(info)
+			token, err := sdi.CreateAccessToken(info, true)
 			if err != nil {
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
-			res := NewResponse(token.Token(), token.ExpiresIn())
+			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())
 			scp := info.Scope()
 			if scp != "" {
 				res.Scope = scp
 			}
 
-			rt, err := sdi.CreateRefreshToken(info)
-			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
-			}
-			if rt != nil {
-				res.RefreshToken = rt.Token()
+			rt := token.RefreshToken()
+			if rt != "" {
+				res.RefreshToken = rt
 			}
 
 			if scope.IncludeOpenID(scp) {
 				idt, err := id_token.Gen(c.IdTokenAlg(), c.IdTokenKey(), c.IdTokenKeyId(), sdi.Issure(),
 					info.ClientId(), info.Subject(), info.Nonce(), info.IDTokenExpiresIn(), info.AuthorizedAt())
 				if err != nil {
-					// TODO fix error type
 					return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 				} else {
 					res.IdToken = idt

@@ -9,9 +9,11 @@ import (
 	oer "github.com/lyokato/goidc/oauth_error"
 )
 
+const TypeRefreshToken = "refresh_token"
+
 func RefreshToken() *GrantHandler {
 	return &GrantHandler{
-		"refresh_token",
+		TypeRefreshToken,
 		func(r *http.Request, c sd.ClientInterface,
 			sdi sd.ServiceDataInterface) (*Response, *oer.OAuthError) {
 
@@ -20,18 +22,18 @@ func RefreshToken() *GrantHandler {
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
-			old_rt, err := sdi.FindRefreshToken(rt)
+			old, err := sdi.FindAccessTokenByRefreshToken(rt)
 			if err != nil {
-				// Case not found, or internal server error
-				return nil, err
-			}
-
-			if old_rt.ExpiresIn()+old_rt.CreatedAt() < time.Now().Unix() {
-				// Expired RefreshToken
+				// not found or expire
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
-			info, err := sdi.FindAuthInfoById(old_rt.AuthId())
+			// check refresh-token's expiration
+			if old.RefreshTokenExpiresIn()+old.CreatedAt() < time.Now().Unix() {
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+			}
+
+			info, err := sdi.FindAuthInfoById(old.AuthId())
 			if err != nil {
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
@@ -42,25 +44,20 @@ func RefreshToken() *GrantHandler {
 			// OPTIONAL
 			// scope := r.FormValue("scope")
 
-			token, err := sdi.CreateAccessToken(info)
+			token, err := sdi.RefreshAccessToken(info, old, true)
 			if err != nil {
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
-			new_rt, err := sdi.CreateRefreshToken(info)
-			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
-			}
-
-			// TODO delete old RefreshToken?
-
-			res := NewResponse(token.Token(), token.ExpiresIn())
+			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())
 			scp := info.Scope()
 			if scp != "" {
 				res.Scope = scp
 			}
-			if new_rt != nil {
-				res.RefreshToken = new_rt.Token()
+
+			newRt := token.RefreshToken()
+			if newRt != "" {
+				res.RefreshToken = newRt
 			}
 			return res, nil
 		},

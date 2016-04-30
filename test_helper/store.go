@@ -18,14 +18,13 @@ type (
 	}
 
 	TestStore struct {
-		privKey        *rsa.PrivateKey
-		userIdPod      int64
-		infoIdPod      int64
-		users          map[int64]*TestUser
-		clients        map[string]*TestClient
-		infos          map[int64]*TestAuthInfo
-		accessTokenes  map[string]*TestAccessToken
-		refreshTokenes map[string]*TestRefreshToken
+		privKey       *rsa.PrivateKey
+		userIdPod     int64
+		infoIdPod     int64
+		users         map[int64]*TestUser
+		clients       map[string]*TestClient
+		infos         map[int64]*TestAuthInfo
+		accessTokenes map[string]*TestAccessToken
 	}
 )
 
@@ -49,14 +48,13 @@ tpgdYZY2kFpD7Nv0TxlmCsXf4JL/+Vd7pFtUuZVdNpfy
 	privKey.Precompute()
 
 	return &TestStore{
-		privKey:        privKey,
-		userIdPod:      0,
-		infoIdPod:      0,
-		users:          make(map[int64]*TestUser, 0),
-		clients:        make(map[string]*TestClient, 0),
-		infos:          make(map[int64]*TestAuthInfo, 0),
-		accessTokenes:  make(map[string]*TestAccessToken, 0),
-		refreshTokenes: make(map[string]*TestRefreshToken, 0),
+		privKey:       privKey,
+		userIdPod:     0,
+		infoIdPod:     0,
+		users:         make(map[int64]*TestUser, 0),
+		clients:       make(map[string]*TestClient, 0),
+		infos:         make(map[int64]*TestAuthInfo, 0),
+		accessTokenes: make(map[string]*TestAccessToken, 0),
 	}
 }
 
@@ -113,7 +111,6 @@ func (s *TestStore) ClearAuthData() {
 	s.infoIdPod = 0
 	s.infos = make(map[int64]*TestAuthInfo, 0)
 	s.accessTokenes = make(map[string]*TestAccessToken, 0)
-	s.refreshTokenes = make(map[string]*TestRefreshToken, 0)
 }
 
 func (s *TestStore) ClearAll() {
@@ -160,7 +157,7 @@ func (s *TestStore) FindAuthInfoById(id int64) (sd.AuthInfoInterface, *oer.OAuth
 	return i, nil
 }
 
-func (s *TestStore) FindAccessToken(token string) (sd.AccessTokenInterface, *oer.OAuthError) {
+func (s *TestStore) FindAccessTokenByAccessToken(token string) (sd.AccessTokenInterface, *oer.OAuthError) {
 	at, exists := s.accessTokenes[token]
 	if !exists {
 		return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
@@ -168,24 +165,28 @@ func (s *TestStore) FindAccessToken(token string) (sd.AccessTokenInterface, *oer
 	return at, nil
 }
 
-func (s *TestStore) FindRefreshToken(token string) (sd.RefreshTokenInterface, *oer.OAuthError) {
-	rt, exists := s.refreshTokenes[token]
-	if !exists {
-		return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+func (s *TestStore) FindAccessTokenByRefreshToken(token string) (sd.AccessTokenInterface, *oer.OAuthError) {
+	for _, at := range s.accessTokenes {
+		if at.RefreshToken() == token {
+			return at, nil
+		}
 	}
-	return rt, nil
+	return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 }
 
-func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface) (sd.AccessTokenInterface, *oer.OAuthError) {
-	value := fmt.Sprintf("ACCESS_TOKEN_%d", info.Id())
-	t := NewTestAccessToken(info.Id(), value, 60*60*24, time.Now().Unix())
-	s.accessTokenes[t.Token()] = t
+func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface, offlineAccess bool) (sd.AccessTokenInterface, *oer.OAuthError) {
+	avalue := fmt.Sprintf("ACCESS_TOKEN_%d", info.Id())
+	rvalue := fmt.Sprintf("REFRESH_TOKEN_%d", info.Id())
+	t := NewTestAccessToken(info.Id(), avalue, 60*60*24, time.Now().Unix(),
+		rvalue, 60*60*24*30, time.Now().Unix())
+	s.accessTokenes[t.AccessToken()] = t
 	return t, nil
 }
 
-func (s *TestStore) CreateRefreshToken(info sd.AuthInfoInterface) (sd.RefreshTokenInterface, *oer.OAuthError) {
-	value := fmt.Sprintf("REFRESH_TOKEN_%d", info.Id())
-	t := NewTestRefreshToken(info.Id(), value, 60*60*24, time.Now().Unix())
-	s.refreshTokenes[t.Token()] = t
-	return t, nil
+func (s *TestStore) RefreshAccessToken(info sd.AuthInfoInterface, old sd.AccessTokenInterface, offlineAccess bool) (sd.AccessTokenInterface, *oer.OAuthError) {
+	token, _ := s.accessTokenes[old.AccessToken()]
+	token.accessToken = token.accessToken + ":R"
+	token.accessTokenExpiresIn = 60 * 60 * 24
+	token.refreshedAt = time.Now().Unix()
+	return token, nil
 }
