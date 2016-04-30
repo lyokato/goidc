@@ -41,6 +41,10 @@ func (te *TokenEndpoint) Support(handler *grant.GrantHandler) {
 func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
 		gt := r.FormValue("grant_type")
 		if gt == "" {
 			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, ""))
