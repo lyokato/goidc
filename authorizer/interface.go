@@ -15,11 +15,6 @@ const (
 
 type (
 	Request struct {
-		/*
-			FlowType     string   `json:"flow_type"`
-			NeedToken    bool     `json:"need_token"`
-			NeedIDToken  bool     `json:"need_id_token"`
-		*/
 		Flow         *Flow  `json:"flow"`
 		ClientId     string `json:"client_id"`
 		Scope        string `json:"scope"`
