@@ -3,6 +3,7 @@ package goidc
 import (
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -82,7 +83,38 @@ func TestTokenEndpointAuthorizationCodeGrant01(t *testing.T) {
 	actual := result["access_token"].(string)
 	expected := "ACCESS_TOKEN_0"
 	if actual != expected {
-		t.Errorf("token:\n - got: %v\n - want: %v\n", actual, expected)
+		t.Errorf("access_token:\n - got: %v\n - want: %v\n", actual, expected)
 	}
-	//actual_expies_in := result["expires_in"].(int)
+
+	id_token_origin := result["id_token"].(string)
+	id_token_parts := strings.Split(id_token_origin, ".")
+	if len(id_token_parts) != 3 {
+		t.Error("id_token parts should be 3")
+		return
+	}
+	/*
+		id_token_header, _ := base64.StdEncoding.DecodeString(id_token_parts[0])
+		actual = string(id_token_header)
+		expected = "{\"alg\":\"RS256\",\"kid\":\"my_service_key_id\"}"
+
+		if actual != expected {
+			t.Errorf("id_token_header:\n - got: %s\n - want: %v\n", actual, expected)
+		}
+
+		id_token_body, _ := base64.StdEncoding.DecodeString(id_token_parts[1])
+		actual = string(id_token_body)
+		expected = ""
+
+		if actual != expected {
+			t.Errorf("id_token_body:\n - got: %s\n - want: %v\n", actual, expected)
+		}
+
+		id_token_sign, _ := base64.StdEncoding.DecodeString(id_token_parts[2])
+		actual = string(id_token_sign)
+		expected = ""
+
+		if actual != expected {
+			t.Errorf("id_token_sign:\n - got: %v\n - want: %v\n", actual, expected)
+		}
+	*/
 }

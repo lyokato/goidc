@@ -30,20 +30,20 @@ func Hash(alg jwa.SignatureAlgorithm, token string) (string, error) {
 	}
 }
 
-func Gen(alg jwa.SignatureAlgorithm, key interface{},
+func Gen(alg jwa.SignatureAlgorithm, key interface{}, keyId,
 	issure, clientId, subject, nonce string,
 	expiresIn, authTime int64) (string, error) {
 
 	exp := time.Now().Unix() + expiresIn
 	iat := time.Now().Unix()
 
-	return rawGen(alg, key,
+	return rawGen(alg, key, keyId,
 		issure, clientId, subject,
 		nonce, exp, authTime, iat,
 		"", "")
 }
 
-func GenForImplicit(alg jwa.SignatureAlgorithm, key interface{},
+func GenForImplicit(alg jwa.SignatureAlgorithm, key interface{}, keyId,
 	issure, clientId, subject, nonce string,
 	expiresIn, authTime int64, accessToken string) (string, error) {
 
@@ -54,10 +54,12 @@ func GenForImplicit(alg jwa.SignatureAlgorithm, key interface{},
 	if err != nil {
 		return "", err
 	}
-	return rawGen(alg, key, issure, clientId, subject, nonce, exp, authTime, iat, atHash, "")
+	return rawGen(alg, key, keyId,
+		issure, clientId, subject,
+		nonce, exp, authTime, iat, atHash, "")
 }
 
-func GenForHybrid(alg jwa.SignatureAlgorithm, key interface{},
+func GenForHybrid(alg jwa.SignatureAlgorithm, key interface{}, keyId,
 	issure, clientId, subject, nonce string,
 	expiresIn, authTime int64, accessToken, code string) (string, error) {
 
@@ -71,10 +73,12 @@ func GenForHybrid(alg jwa.SignatureAlgorithm, key interface{},
 	if err != nil {
 		return "", err
 	}
-	return rawGen(alg, key, issure, clientId, subject, nonce, exp, authTime, iat, atHash, cHash)
+	return rawGen(alg, key, keyId,
+		issure, clientId, subject,
+		nonce, exp, authTime, iat, atHash, cHash)
 }
 
-func rawGen(alg jwa.SignatureAlgorithm, key interface{},
+func rawGen(alg jwa.SignatureAlgorithm, key interface{}, keyId,
 	issure, clientId, subject, nonce string,
 	expiredAt, authTime, issuedAt int64, atHash, cHash string) (string, error) {
 
@@ -102,7 +106,11 @@ func rawGen(alg jwa.SignatureAlgorithm, key interface{},
 	if err != nil {
 		return "", err
 	}
-	token, err := jws.Sign(buf, alg, key)
+	header := jws.NewHeader()
+	if keyId != "" {
+		header.KeyID = keyId
+	}
+	token, err := jws.Sign(buf, alg, key, header)
 	if err != nil {
 		return "", err
 	}

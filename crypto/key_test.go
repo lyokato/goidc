@@ -1,6 +1,33 @@
 package crypto
 
-import "testing"
+import (
+	"crypto/rsa"
+	"testing"
+)
+
+func TestJWKPublicKey(t *testing.T) {
+	pk, err := LoadPublicKeyFromText(`-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCzFyUUfVGyMCbG7YIwgo4XdqEj
+hhgIZJ4Kr7VKwIc7F+x0DoBniO6uhU6HVxMPibxSDIGQIHoxP9HJPGF1XlEt7EMw
+ewb5Rcku33r+2QCETRmQMw68eZUZqdtgy1JFCFsFUcMwcVcfTqXU00UEevH9RFBH
+oqxJsRC0l1ybcs6o0QIDAQAB
+-----END PUBLIC KEY-----`)
+	if err != nil {
+		t.Error("LoadPublicKeyFromText should not fail with public key")
+	}
+
+	jwkBody, err := PublicKeysJWK(map[string]*rsa.PublicKey{
+		"my_key_version": pk,
+	})
+	if err != nil {
+		t.Errorf("failed to convert jwk")
+	}
+	actual := string(jwkBody)
+	expected := "{\"keys\":[{\"kid\":\"my_key_version\",\"kty\":\"RSA\",\"e\":\"AQAB\",\"n\":\"sxclFH1RsjAmxu2CMIKOF3ahI4YYCGSeCq-1SsCHOxfsdA6AZ4juroVOh1cTD4m8UgyBkCB6MT_RyTxhdV5RLexDMHsG-UXJLt96_tkAhE0ZkDMOvHmVGanbYMtSRQhbBVHDMHFXH06l1NNFBHrx_URQR6KsSbEQtJdcm3LOqNE\"}]}"
+	if actual != expected {
+		t.Errorf("JWK:\n - got: %v\n - want: %v\n", actual, expected)
+	}
+}
 
 func TestLoadPrivateKey(t *testing.T) {
 
@@ -93,7 +120,7 @@ ewb5Rcku33r+2QCETRmQMw68eZUZqdtgy1JFCFsFUcMwcVcfTqXU00UEevH9RFBH
 oqxJsRC0l1ybcs6o0QIDAQAB
 -----END PUBLIC KEY-----`)
 	if err != nil {
-		t.Error("LoadPublicKeyFromText should fail with private key")
+		t.Error("LoadPublicKeyFromText should not fail with public key")
 	}
 
 }

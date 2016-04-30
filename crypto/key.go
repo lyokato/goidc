@@ -3,11 +3,48 @@ package crypto
 import (
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"io/ioutil"
+
+	"github.com/lestrrat/go-jwx/jwk"
 )
+
+func PublicKeysJWK(keys map[string]*rsa.PublicKey) ([]byte, error) {
+	set := &jwk.Set{}
+	for kid, key := range keys {
+		rk, err := jwk.NewRsaPublicKey(key)
+		if err != nil {
+			return nil, err
+		}
+		rk.KeyID = kid
+		set.Keys = append(set.Keys, rk)
+	}
+	body, err := json.Marshal(set)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+func LoadPublicKeyFromJWK(jwkString, kid string) (*rsa.PublicKey, error) {
+	set, err := jwk.ParseString(jwkString)
+	if err != nil {
+		return nil, err
+	}
+	keys := set.LookupKeyID(kid)
+	if len(keys) == 0 {
+		return nil, fmt.Errorf("indicated key id not found")
+	} else {
+		pk, ok := keys[0].(*jwk.RsaPublicKey)
+		if !ok {
+			return nil, errors.New("indicated key is not a public key")
+		}
+		return pk.PublicKey()
+	}
+}
 
 func LoadPublicKeyFromFile(pemPath string) (*rsa.PublicKey, error) {
 	pem, err := ioutil.ReadFile(pemPath)
