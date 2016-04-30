@@ -48,4 +48,3 @@ g.POST("/token", gin.WrapF(endpoint.Handler(sdi)))
 ### ClientInterface
 ### AuthInfoInterface
 ### AccessTokenInterface
-### RefreshTokenInterface
