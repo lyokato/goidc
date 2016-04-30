@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/lestrrat/go-jwx/jwa"
 	"github.com/lyokato/goidc/id_token"
 
 	"github.com/lyokato/goidc/scope"
@@ -83,7 +82,7 @@ func AuthorizationCode() *GrantHandler {
 			}
 
 			if scope.IncludeOpenID(scp) {
-				idt, err := id_token.Gen(jwa.SignatureAlgorithm(c.IdTokenAlg()), c.IdTokenKey(), c.IdTokenKeyId(), sdi.Issure(),
+				idt, err := id_token.Gen(c.IdTokenAlg(), c.IdTokenKey(), c.IdTokenKeyId(), sdi.Issure(),
 					info.ClientId(), info.Subject(), info.Nonce(), info.IDTokenExpiresIn(), info.AuthorizedAt())
 				if err != nil {
 					// TODO fix error type

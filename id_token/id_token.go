@@ -4,25 +4,22 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
-	"github.com/lestrrat/go-jwx/jwa"
-	"github.com/lestrrat/go-jwx/jws"
-	"github.com/lestrrat/go-jwx/jwt"
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
-func Hash(alg jwa.SignatureAlgorithm, token string) (string, error) {
-	algStr := string(alg)
-	if strings.HasSuffix(algStr, "256") {
+func Hash(alg string, token string) (string, error) {
+	if strings.HasSuffix(alg, "256") {
 		data := sha256.Sum256([]byte(token))
 		return base64.StdEncoding.EncodeToString(data[:16]), nil
-	} else if strings.HasSuffix(algStr, "384") {
+	} else if strings.HasSuffix(alg, "384") {
 		data := sha512.Sum384([]byte(token))
 		return base64.StdEncoding.EncodeToString(data[:24]), nil
-	} else if strings.HasSuffix(algStr, "512") {
+	} else if strings.HasSuffix(alg, "512") {
 		data := sha512.Sum512([]byte(token))
 		return base64.StdEncoding.EncodeToString(data[:32]), nil
 	} else {
@@ -30,7 +27,7 @@ func Hash(alg jwa.SignatureAlgorithm, token string) (string, error) {
 	}
 }
 
-func Gen(alg jwa.SignatureAlgorithm, key interface{}, keyId,
+func Gen(alg string, key interface{}, keyId,
 	issure, clientId, subject, nonce string,
 	expiresIn, authTime int64) (string, error) {
 
@@ -43,7 +40,7 @@ func Gen(alg jwa.SignatureAlgorithm, key interface{}, keyId,
 		"", "")
 }
 
-func GenForImplicit(alg jwa.SignatureAlgorithm, key interface{}, keyId,
+func GenForImplicit(alg string, key interface{}, keyId,
 	issure, clientId, subject, nonce string,
 	expiresIn, authTime int64, accessToken string) (string, error) {
 
@@ -59,7 +56,7 @@ func GenForImplicit(alg jwa.SignatureAlgorithm, key interface{}, keyId,
 		nonce, exp, authTime, iat, atHash, "")
 }
 
-func GenForHybrid(alg jwa.SignatureAlgorithm, key interface{}, keyId,
+func GenForHybrid(alg string, key interface{}, keyId,
 	issure, clientId, subject, nonce string,
 	expiresIn, authTime int64, accessToken, code string) (string, error) {
 
@@ -78,41 +75,37 @@ func GenForHybrid(alg jwa.SignatureAlgorithm, key interface{}, keyId,
 		nonce, exp, authTime, iat, atHash, cHash)
 }
 
-func rawGen(alg jwa.SignatureAlgorithm, key interface{}, keyId,
+func rawGen(alg string, key interface{}, keyId,
 	issure, clientId, subject, nonce string,
 	expiredAt, authTime, issuedAt int64, atHash, cHash string) (string, error) {
 
-	c := jwt.NewClaimSet()
-	c.Set("iss", issure)
-	c.Set("aud", clientId)
-	c.Set("sub", subject)
-	c.Set("exp", expiredAt)
+	meth := jwt.GetSigningMethod(alg)
+	if meth == nil {
+		return "", fmt.Errorf("unknown jwt signing algorithm: %s", alg)
+	}
+
+	token := jwt.New(meth)
+	token.Claims["iss"] = issure
+	token.Claims["aud"] = clientId
+	token.Claims["sub"] = subject
+	token.Claims["exp"] = expiredAt
 	if nonce != "" {
-		c.Set("nonce", nonce)
+		token.Claims["nonce"] = nonce
 	}
 	if issuedAt >= 0 {
-		c.Set("iat", issuedAt)
+		token.Claims["iat"] = issuedAt
 	}
 	if authTime >= 0 {
-		c.Set("auth_time", authTime)
+		token.Claims["auth_time"] = authTime
 	}
 	if atHash != "" {
-		c.Set("at_hash", atHash)
+		token.Claims["at_hash"] = atHash
 	}
 	if cHash != "" {
-		c.Set("c_hash", cHash)
+		token.Claims["c_hash"] = cHash
 	}
-	buf, err := json.Marshal(c)
-	if err != nil {
-		return "", err
-	}
-	header := jws.NewHeader()
 	if keyId != "" {
-		header.KeyID = keyId
+		token.Header["kid"] = keyId
 	}
-	token, err := jws.Sign(buf, alg, key, header)
-	if err != nil {
-		return "", err
-	}
-	return string(token), nil
+	return token.SignedString(key)
 }
