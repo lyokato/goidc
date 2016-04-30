@@ -3,13 +3,12 @@ package id_token
 import (
 	"testing"
 
-	"github.com/lestrrat/go-jwx/jwa"
 	"github.com/lyokato/goidc/crypto"
 )
 
 func TestHash(t *testing.T) {
 	access_token := "jHkWEdUXMU1BwAsC4vtUsZwnNvTIxEl0z9K3vx5KF0Y"
-	actual_hash, err := Hash(jwa.RS256, access_token)
+	actual_hash, err := Hash("RS256", access_token)
 	if err != nil {
 		t.Error("failed to gen at_hash")
 		return
@@ -57,7 +56,7 @@ tpgdYZY2kFpD7Nv0TxlmCsXf4JL/+Vd7pFtUuZVdNpfy
 	iat := 1461848522
 	auth_time := 1461848462
 
-	actual_idt, err := rawGen(jwa.RS256, privkey, "",
+	actual_idt, err := rawGen("RS256", privkey, "my_key_id",
 		"org.example", clientId, userPPID,
 		nonce, int64(exp), int64(auth_time), int64(iat), "", "")
 	if err != nil {
@@ -65,7 +64,7 @@ tpgdYZY2kFpD7Nv0TxlmCsXf4JL/+Vd7pFtUuZVdNpfy
 		return
 	}
 
-	expected_idt := `eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOlsiMDAxIl0sImV4cCI6MTQ2MTkzNDkyMiwiaWF0IjoxNDYxODQ4NTIyLCJpc3MiOiJvcmcuZXhhbXBsZSIsInN1YiI6IjAwMSIsImF1dGhfdGltZSI6MTQ2MTg0ODQ2Miwibm9uY2UiOiIxMjhkZmE5YiJ9.Wnoe_HxqCw2rrsEkP9oUEMHu99JxoevOZncXdsi9sabrl_WDmASQG8mD7riPcKDB8uBE1U3sJ4C565JqatT0Yh77IZ-KXkc0yq94430OTotjePdjqsjnQkh_EWeOIeDvPy56k5rU-aP05ZX48uRo2uYP9AWL3qnPfkvYEb1Y770`
+	expected_idt := `eyJhbGciOiJSUzI1NiIsImtpZCI6Im15X2tleV9pZCIsInR5cCI6IkpXVCJ9.eyJhdWQiOiIwMDEiLCJhdXRoX3RpbWUiOjE0NjE4NDg0NjIsImV4cCI6MTQ2MTkzNDkyMiwiaWF0IjoxNDYxODQ4NTIyLCJpc3MiOiJvcmcuZXhhbXBsZSIsIm5vbmNlIjoiMTI4ZGZhOWIiLCJzdWIiOiIwMDEifQ.hWd3AWBfSRd2U4i5KTNg8ESkJeWT9bEI5B5xrICprOMe2R3EVcCSWoVOsLXHGDTQCDb3kxPIdfqiGvBMrh-_aekp7HzyG9oZmcKhFKRgZvYTeSoPtfPvLSTNjw39ySdJY1i9gAMXVC6R52hIwQ88nryWOcRG9GyS324LvMoBfr8`
 	if actual_idt != expected_idt {
 		t.Errorf("IDToken:\n - got: %v\n - want: %v\n", actual_idt, expected_idt)
 	}

@@ -3,11 +3,12 @@ package goidc
 import (
 	"net/http/httptest"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/lyokato/goidc/basic_auth"
+	"github.com/lyokato/goidc/crypto"
 	"github.com/lyokato/goidc/grant"
 	th "github.com/lyokato/goidc/test_helper"
 )
@@ -87,12 +88,33 @@ func TestTokenEndpointAuthorizationCodeGrant01(t *testing.T) {
 	}
 
 	id_token_origin := result["id_token"].(string)
-	id_token_parts := strings.Split(id_token_origin, ".")
-	if len(id_token_parts) != 3 {
-		t.Error("id_token parts should be 3")
+
+	idt, err := jwt.Parse(id_token_origin, func(token *jwt.Token) (interface{}, error) {
+		return crypto.LoadPublicKeyFromText(`-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCzFyUUfVGyMCbG7YIwgo4XdqEj
+hhgIZJ4Kr7VKwIc7F+x0DoBniO6uhU6HVxMPibxSDIGQIHoxP9HJPGF1XlEt7EMw
+ewb5Rcku33r+2QCETRmQMw68eZUZqdtgy1JFCFsFUcMwcVcfTqXU00UEevH9RFBH
+oqxJsRC0l1ybcs6o0QIDAQAB
+-----END PUBLIC KEY-----`)
+	})
+	if err != nil {
+		t.Errorf("failed to parse token %s", err)
 		return
 	}
+	if !idt.Valid {
+		t.Error("id_token is not valid")
+	}
+	actual = idt.Claims["aud"].(string)
+	expected = "client_id_01"
+	if actual != expected {
+		t.Errorf("aud:\n - got: %v\n - want: %v\n", actual, expected)
+	}
 	/*
+		id_token_parts := strings.Split(id_token_origin, ".")
+		if len(id_token_parts) != 3 {
+			t.Error("id_token parts should be 3")
+			return
+		}
 		id_token_header, _ := base64.StdEncoding.DecodeString(id_token_parts[0])
 		actual = string(id_token_header)
 		expected = "{\"alg\":\"RS256\",\"kid\":\"my_service_key_id\"}"
