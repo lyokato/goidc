@@ -9,7 +9,7 @@ build:
     - script:
         name: go get
         code: |
-          go get ./id_token
+          go get ./...
 
     - script:
         name: go test
