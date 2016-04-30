@@ -22,21 +22,21 @@ func AuthorizationCode() *GrantHandler {
 
 			uri := r.FormValue("redirect_uri")
 			if uri == "" {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 			code := r.FormValue("code")
 			if code == "" || uri == "" {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 			info, err := sdi.FindAuthInfoByCode(code)
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 			if info.ClientId() != c.Id() {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 			if info.RedirectURI() != uri {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
 			// RFC7636: OAuth PKCE Extension
@@ -45,27 +45,27 @@ func AuthorizationCode() *GrantHandler {
 				cm := r.FormValue("code_challenge_method")
 				if cm == "" {
 					return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
-						"missing 'code_challenge_method'", "")
+						"missing 'code_challenge_method'")
 				}
 				cc := r.FormValue("code_challenge")
 				if cc == "" {
 					return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
-						"missing 'code_challenge'", "")
+						"missing 'code_challenge'")
 				}
 				verifier, err := pkce.FindVerifierByMethod(cm)
 				if err != nil {
 					return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
-						fmt.Sprintf("unsupported code_challenge_method: %s", cm), "")
+						fmt.Sprintf("unsupported code_challenge_method: %s", cm))
 				}
 				if !verifier.Verify(cc, cv) {
 					return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
-						fmt.Sprintf("invalid code_challenge: %s", cc), "")
+						fmt.Sprintf("invalid code_challenge: %s", cc))
 				}
 			}
 
 			token, err := sdi.CreateAccessToken(info)
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
 			res := NewResponse(token.Token(), token.ExpiresIn())
@@ -76,7 +76,7 @@ func AuthorizationCode() *GrantHandler {
 
 			rt, err := sdi.CreateRefreshToken(info)
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 			if rt != nil {
 				res.RefreshToken = rt.Token()
@@ -87,7 +87,7 @@ func AuthorizationCode() *GrantHandler {
 					info.ClientId(), info.Subject(), info.Nonce(), info.IDTokenExpiresIn(), info.AuthorizedAt())
 				if err != nil {
 					// TODO fix error type
-					return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+					return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 				} else {
 					res.IdToken = idt
 				}

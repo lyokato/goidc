@@ -91,12 +91,16 @@ func (e *OAuthError) StatusCode() int {
 	}
 }
 
-func NewOAuthError(typeName, description, uri string) *OAuthError {
-	return &OAuthError{typeName, description, uri}
+func NewOAuthError(typeName, description string) *OAuthError {
+	return &OAuthError{typeName, description, ""}
 }
 
 func NewOAuthSimpleError(typeName string) *OAuthError {
 	return &OAuthError{typeName, "", ""}
+}
+
+func NewOAuthDetailedError(typeName, description, uri string) *OAuthError {
+	return &OAuthError{typeName, description, uri}
 }
 
 func (e *OAuthError) JSON() []byte {

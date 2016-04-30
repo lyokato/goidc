@@ -17,7 +17,7 @@ func RefreshToken() *GrantHandler {
 
 			rt := r.FormValue("refresh_token")
 			if rt == "" {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
 			old_rt, err := sdi.FindRefreshToken(rt)
@@ -28,15 +28,15 @@ func RefreshToken() *GrantHandler {
 
 			if old_rt.ExpiresIn()+old_rt.CreatedAt() < time.Now().Unix() {
 				// Expired RefreshToken
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
 			info, err := sdi.FindAuthInfoById(old_rt.AuthId())
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 			if info.ClientId() != c.Id() {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
 			// OPTIONAL
@@ -44,12 +44,12 @@ func RefreshToken() *GrantHandler {
 
 			token, err := sdi.CreateAccessToken(info)
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
 			new_rt, err := sdi.CreateRefreshToken(info)
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
 
 			// TODO delete old RefreshToken?

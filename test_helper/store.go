@@ -132,11 +132,11 @@ func (s *TestStore) FindValidClient(cid, sec, gt string) (sd.ClientInterface, *o
 	c, exists := s.clients[cid]
 	if !exists {
 		// not found
-		return nil, oer.NewOAuthError(oer.ErrInvalidClient, "", "")
+		return nil, oer.NewOAuthError(oer.ErrInvalidClient, "")
 	}
 	if c.Secret() == sec {
 		// secret mismatch
-		return nil, oer.NewOAuthError(oer.ErrInvalidClient, "", "")
+		return nil, oer.NewOAuthError(oer.ErrInvalidClient, "")
 	}
 	// TODO check if this client is allowed to use this grantType
 	return c, nil
@@ -149,13 +149,13 @@ func (s *TestStore) FindAuthInfoByCode(code string) (sd.AuthInfoInterface, *oer.
 		}
 	}
 	// TODO check error type
-	return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+	return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 }
 
 func (s *TestStore) FindAuthInfoById(id int64) (sd.AuthInfoInterface, *oer.OAuthError) {
 	i, exists := s.infos[id]
 	if !exists {
-		return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+		return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 	}
 	return i, nil
 }
@@ -163,7 +163,7 @@ func (s *TestStore) FindAuthInfoById(id int64) (sd.AuthInfoInterface, *oer.OAuth
 func (s *TestStore) FindAccessToken(token string) (sd.AccessTokenInterface, *oer.OAuthError) {
 	at, exists := s.accessTokenes[token]
 	if !exists {
-		return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+		return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 	}
 	return at, nil
 }
@@ -171,7 +171,7 @@ func (s *TestStore) FindAccessToken(token string) (sd.AccessTokenInterface, *oer
 func (s *TestStore) FindRefreshToken(token string) (sd.RefreshTokenInterface, *oer.OAuthError) {
 	rt, exists := s.refreshTokenes[token]
 	if !exists {
-		return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "", "")
+		return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 	}
 	return rt, nil
 }
