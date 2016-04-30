@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/google/go-querystring/query"
 )
 
 type OAuthErrorURIBuilder func(string) string
@@ -65,6 +67,13 @@ type OAuthError struct {
 	URI         string `json:"uri,omitempty"`
 }
 
+type OAuthErrorQuery struct {
+	Type        string `url:"error"`
+	Description string `url:"error_description,omitempty"`
+	URI         string `url:"uri,omitempty"`
+	State       string `url:"state,omitempty"`
+}
+
 func (e *OAuthError) Error() string {
 	if e.Description == "" {
 		return e.Type
@@ -112,4 +121,18 @@ func (e *OAuthError) Header(realm string) string {
 		params = append(params, fmt.Sprintf("error_uri=\"%s\"", e.URI))
 	}
 	return "Bearer " + strings.Join(params, ", ")
+}
+
+func (e *OAuthError) Query(state string) string {
+	v, err := query.Values(&OAuthErrorQuery{
+		Type:        e.Type,
+		Description: e.Description,
+		URI:         e.URI,
+		State:       state,
+	})
+	if err != nil {
+		// must not come here
+		panic(fmt.Sprintf("broken QueryString: %s", err))
+	}
+	return v.Encode()
 }
