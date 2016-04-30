@@ -40,7 +40,7 @@ func (m *Int64Matcher) Match(v interface{}) bool {
 	if value.Kind() != reflect.Float64 {
 		return false
 	}
-	int_value, _ := v.(int64)
+	int_value := int64(v.(float64))
 	return m.value == int_value
 }
 
@@ -53,7 +53,7 @@ func (m *Int64RangeMatcher) Match(v interface{}) bool {
 	if value.Kind() != reflect.Float64 {
 		return false
 	}
-	int_value, _ := v.(int64)
+	int_value := int64(v.(float64))
 	return m.from <= int_value && m.to >= int_value
 }
 
