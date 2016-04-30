@@ -43,7 +43,7 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		gt := r.FormValue("grant_type")
 		if gt == "" {
-			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, "", ""))
+			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, ""))
 			return
 		}
 		if h, exists := te.handlers[gt]; exists {
@@ -56,7 +56,7 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 					case oer.ErrServerError:
 						te.fail(w, err)
 					default:
-						te.fail(w, oer.NewOAuthError(oer.ErrServerError, "", ""))
+						te.fail(w, oer.NewOAuthError(oer.ErrServerError, ""))
 					}
 					return
 				}
@@ -69,11 +69,11 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 					return
 				}
 			} else {
-				te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, "", ""))
+				te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, ""))
 				return
 			}
 		} else {
-			te.fail(w, oer.NewOAuthError(oer.ErrUnsupportedGrantType, "", ""))
+			te.fail(w, oer.NewOAuthError(oer.ErrUnsupportedGrantType, ""))
 			return
 		}
 	}
