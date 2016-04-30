@@ -2,106 +2,17 @@ package test_helper
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"reflect"
-	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/lyokato/goidc/crypto"
 )
-
-type (
-	Matcher interface {
-		Match(v interface{}) bool
-		WantValue() string
-	}
-	Int64Matcher struct {
-		value int64
-	}
-	Int64RangeMatcher struct {
-		from int64
-		to   int64
-	}
-	StrMatcher struct {
-		value string
-	}
-	RegexMatcher struct {
-		origin string
-		value  *regexp.Regexp
-	}
-)
-
-func NewInt64Matcher(v int64) *Int64Matcher {
-	return &Int64Matcher{v}
-}
-
-func NewInt64RangeMatcher(from, to int64) *Int64RangeMatcher {
-	return &Int64RangeMatcher{from, to}
-}
-
-func (m *Int64Matcher) Match(v interface{}) bool {
-	value := reflect.ValueOf(v)
-	if value.Kind() != reflect.Float64 {
-		return false
-	}
-	int_value, _ := v.(int64)
-	return m.value == int_value
-}
-
-func (m *Int64Matcher) WantValue() string {
-	return fmt.Sprintf("%d", m.value)
-}
-
-func (m *Int64RangeMatcher) Match(v interface{}) bool {
-	value := reflect.ValueOf(v)
-	if value.Kind() != reflect.Float64 {
-		return false
-	}
-	int_value, _ := v.(int64)
-	return m.from <= int_value && m.to >= int_value
-}
-
-func (m *Int64RangeMatcher) WantValue() string {
-	return fmt.Sprintf("%d ~ %d", m.from, m.to)
-}
-
-func NewStrMatcher(v string) *StrMatcher {
-	return &StrMatcher{v}
-}
-
-func (m *StrMatcher) Match(v interface{}) bool {
-	value := reflect.ValueOf(v)
-	if value.Kind() != reflect.String {
-		return false
-	}
-	str, _ := v.(string)
-	return m.value == str
-}
-
-func (m *StrMatcher) WantValue() string {
-	return m.value
-}
-
-func NewRegexMatcher(v string) *RegexMatcher {
-	return &RegexMatcher{v, regexp.MustCompile(v)}
-}
-
-func (m *RegexMatcher) Match(v interface{}) bool {
-	value := reflect.ValueOf(v)
-	if value.Kind() != reflect.String {
-		return false
-	}
-	str, _ := v.(string)
-	return m.value.MatchString(str)
-}
-
-func (m *RegexMatcher) WantValue() string {
-	return m.origin
-}
 
 func GetFormValueRequestWithJSONResponse(t *testing.T, server *httptest.Server, values, requestHeaders map[string]string,
 	code int, responseHeaders map[string]Matcher) map[string]interface{} {
@@ -116,13 +27,54 @@ func TokenEndpointSuccessTest(t *testing.T, server *httptest.Server, values, req
 	for k, matcher := range responseValues {
 		rv, exists := result[k]
 		if !exists {
-			t.Errorf("Response<%s> not found: ", k)
+			t.Errorf("Response:%s not found: ", k)
 			continue
 		}
 		if !matcher.Match(rv) {
-			t.Errorf("Response<%s> isn't match\n - got: %v\n - want: %v\n", k, rv, matcher.WantValue())
+			t.Errorf("Response:%s isn't match\n - got: %v\n - want: %v\n", k, rv, matcher.WantValue())
 		}
 	}
+
+	if idTokenValues == nil {
+		return
+	}
+
+	idti, exists := result["id_token"]
+	if !exists {
+		t.Error("'id_token' not found")
+		return
+	}
+
+	idts, ok := idti.(string)
+	if !ok {
+		t.Error("'id_token' isn't string")
+		return
+	}
+
+	idt, err := jwt.Parse(idts, func(token *jwt.Token) (interface{}, error) {
+		return crypto.LoadPublicKeyFromText(`-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCzFyUUfVGyMCbG7YIwgo4XdqEj
+hhgIZJ4Kr7VKwIc7F+x0DoBniO6uhU6HVxMPibxSDIGQIHoxP9HJPGF1XlEt7EMw
+ewb5Rcku33r+2QCETRmQMw68eZUZqdtgy1JFCFsFUcMwcVcfTqXU00UEevH9RFBH
+oqxJsRC0l1ybcs6o0QIDAQAB
+-----END PUBLIC KEY-----`)
+	})
+	if err != nil {
+		t.Errorf("failed to parse token %s", err)
+		return
+	}
+
+	for k, matcher := range idTokenValues {
+		rv, exists := idt.Claims[k]
+		if !exists {
+			t.Errorf("IDToken:Calim:%s not found: ", k)
+			continue
+		}
+		if !matcher.Match(rv) {
+			t.Errorf("IDToken:Claim:%s isn't match\n - got: %v\n - want: %v\n", k, rv, matcher.WantValue())
+		}
+	}
+
 }
 
 func TokenEndpointErrorTest(t *testing.T, server *httptest.Server, values, requestHeaders map[string]string,
@@ -131,11 +83,11 @@ func TokenEndpointErrorTest(t *testing.T, server *httptest.Server, values, reque
 	for k, matcher := range errors {
 		rv, exists := result[k]
 		if !exists {
-			t.Errorf("ErrorResponse<%s> not found: ", k)
+			t.Errorf("ErrorResponse:%s not found: ", k)
 			continue
 		}
 		if !matcher.Match(rv) {
-			t.Errorf("ErrorResponse<%s> isn't match\n - got: %v\n - want: %v\n", k, rv, matcher.WantValue())
+			t.Errorf("ErrorResponse:%s isn't match\n - got: %v\n - want: %v\n", k, rv, matcher.WantValue())
 		}
 	}
 }
