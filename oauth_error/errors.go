@@ -86,6 +86,10 @@ func NewOAuthError(typeName, description, uri string) *OAuthError {
 	return &OAuthError{typeName, description, uri}
 }
 
+func NewOAuthSimpleError(typeName string) *OAuthError {
+	return &OAuthError{typeName, "", ""}
+}
+
 func (e *OAuthError) JSON() []byte {
 	body, err := json.Marshal(e)
 	if err != nil {

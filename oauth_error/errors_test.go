@@ -31,3 +31,12 @@ func TestErrorBasic(t *testing.T) {
 		t.Errorf("Header:\n - got: %v\n - want: %v\n", actual_json, expected_json)
 	}
 }
+
+func TestErrorSimple(t *testing.T) {
+	oe := NewOAuthSimpleError(ErrInvalidRequest)
+	actual_json := string(oe.JSON())
+	expected_json := "{\"error\":\"invalid_request\"}"
+	if actual_json != expected_json {
+		t.Errorf("Header:\n - got: %v\n - want: %v\n", actual_json, expected_json)
+	}
+}
