@@ -68,7 +68,7 @@ func (s *TestStore) CreateNewUser(name, pass string) *TestUser {
 }
 
 func (s *TestStore) CreateNewClient(id, secret, redirectURI string) *TestClient {
-	c := NewTestClient(id, secret, redirectURI, "RS256", s.privKey)
+	c := NewTestClient(id, secret, redirectURI, "RS256", s.privKey, "my_service_key_id")
 	s.clients[c.Id()] = c
 	return c
 }

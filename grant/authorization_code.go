@@ -83,7 +83,7 @@ func AuthorizationCode() *GrantHandler {
 			}
 
 			if scope.IncludeOpenID(scp) {
-				idt, err := id_token.Gen(jwa.SignatureAlgorithm(c.IdTokenAlg()), c.IdTokenKey(), sdi.Issure(),
+				idt, err := id_token.Gen(jwa.SignatureAlgorithm(c.IdTokenAlg()), c.IdTokenKey(), c.IdTokenKeyId(), sdi.Issure(),
 					info.ClientId(), info.Subject(), info.Nonce(), info.IDTokenExpiresIn(), info.AuthorizedAt())
 				if err != nil {
 					// TODO fix error type
