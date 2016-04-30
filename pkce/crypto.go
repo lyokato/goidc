@@ -18,11 +18,9 @@ func GenRandomCodeVerifier() string {
 }
 
 func EncodeBase64WithoutPadding(origin []byte) string {
-	encoded := base64.StdEncoding.EncodeToString(origin)
+	encoded := base64.URLEncoding.EncodeToString(origin)
 	parts := strings.Split(encoded, "=")
 	encoded = parts[0]
-	encoded = strings.Replace(encoded, "+", "-", -1)
-	encoded = strings.Replace(encoded, "/", "_", -1)
 	return encoded
 }
 
