@@ -1,6 +1,7 @@
 package goidc
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/lyokato/goidc/basic_auth"
@@ -24,7 +25,7 @@ func (te *TokenEndpoint) SetErrorURI(uri string) {
 	te.errorURIBuilder = func(_ string) string { return uri }
 }
 
-func (te *TokenEndpoint) SetErrorURIBulder(builder oer.OAuthErrorURIBuilder) {
+func (te *TokenEndpoint) SetErrorURIBuilder(builder oer.OAuthErrorURIBuilder) {
 	te.errorURIBuilder = builder
 }
 
@@ -47,7 +48,7 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 		}
 		gt := r.FormValue("grant_type")
 		if gt == "" {
-			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, ""))
+			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, "missing 'grant_type' parameter"))
 			return
 		}
 		if h, exists := te.handlers[gt]; exists {
@@ -77,7 +78,8 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 				return
 			}
 		} else {
-			te.fail(w, oer.NewOAuthError(oer.ErrUnsupportedGrantType, ""))
+			te.fail(w, oer.NewOAuthError(oer.ErrUnsupportedGrantType,
+				fmt.Sprintf("unsupported 'grant_type' parameter: '%s'", gt)))
 			return
 		}
 	}

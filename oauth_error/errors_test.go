@@ -65,19 +65,19 @@ func TestErrorDetailed(t *testing.T) {
 	}
 
 	actual_json := string(oe.JSON())
-	expected_json := "{\"error\":\"invalid_request\",\"error_description\":\"this client_id is disabled\",\"uri\":\"http://example.org/path/to/error/document\"}"
+	expected_json := "{\"error\":\"invalid_request\",\"error_description\":\"this client_id is disabled\",\"error_uri\":\"http://example.org/path/to/error/document\"}"
 	if actual_json != expected_json {
 		t.Errorf("Header:\n - got: %v\n - want: %v\n", actual_json, expected_json)
 	}
 
 	actual_query := oe.Query("e8a9bcdd")
-	expected_query := "error=invalid_request&error_description=this+client_id+is+disabled&state=e8a9bcdd&uri=http%3A%2F%2Fexample.org%2Fpath%2Fto%2Ferror%2Fdocument"
+	expected_query := "error=invalid_request&error_description=this+client_id+is+disabled&error_uri=http%3A%2F%2Fexample.org%2Fpath%2Fto%2Ferror%2Fdocument&state=e8a9bcdd"
 	if actual_query != expected_query {
 		t.Errorf("Query:\n - got: %v\n - want: %v\n", actual_query, expected_query)
 	}
 
 	actual_query = oe.Query("")
-	expected_query = "error=invalid_request&error_description=this+client_id+is+disabled&uri=http%3A%2F%2Fexample.org%2Fpath%2Fto%2Ferror%2Fdocument"
+	expected_query = "error=invalid_request&error_description=this+client_id+is+disabled&error_uri=http%3A%2F%2Fexample.org%2Fpath%2Fto%2Ferror%2Fdocument"
 	if actual_query != expected_query {
 		t.Errorf("Query:\n - got: %v\n - want: %v\n", actual_query, expected_query)
 	}
