@@ -9,7 +9,7 @@ import (
 	th "github.com/lyokato/goidc/test_helper"
 )
 
-func TestTokenEndpointClientCredentialInvalidRequest(t *testing.T) {
+func TestTokenEndpointClientCredential(t *testing.T) {
 	te := NewTokenEndpoint()
 	te.Support(grant.ClientCredentials())
 
