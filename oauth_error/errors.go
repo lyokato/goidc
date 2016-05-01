@@ -46,7 +46,7 @@ var errStatusCodeMap = map[string]int{
 	ErrInvalidGrant:            http.StatusBadRequest,
 	ErrInvalidRequest:          http.StatusBadRequest,
 	ErrInvalidScope:            http.StatusBadRequest,
-	ErrUnauthorizedClient:      http.StatusUnauthorized,
+	ErrUnauthorizedClient:      http.StatusBadRequest,
 	ErrUnsupportedGrantType:    http.StatusBadRequest,
 	ErrUnsupportedResponseType: http.StatusBadRequest,
 	ErrServerError:             http.StatusInternalServerError,
