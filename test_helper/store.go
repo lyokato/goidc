@@ -143,17 +143,12 @@ func (s *TestStore) FindClientUserId(cid, sec string) (int64, *oer.OAuthError) {
 	return -1, oer.NewOAuthError(oer.ErrInvalidClient, "")
 }
 
-func (s *TestStore) FindValidClient(cid, sec, gt string) (sd.ClientInterface, *oer.OAuthError) {
+func (s *TestStore) FindClientById(cid string) (sd.ClientInterface, *oer.OAuthError) {
 	c, exists := s.clients[cid]
 	if !exists {
 		// not found
 		return nil, oer.NewOAuthError(oer.ErrInvalidClient, "")
 	}
-	if c.Secret() == sec {
-		// secret mismatch
-		return nil, oer.NewOAuthError(oer.ErrInvalidClient, "")
-	}
-	// TODO check if this client is allowed to use this grantType
 	return c, nil
 }
 

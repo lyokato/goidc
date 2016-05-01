@@ -12,6 +12,7 @@ type (
 		IdTokenAlg() string
 		IdTokenKeyId() string
 		IdTokenKey() interface{}
+		CanUseGrantType(gt string) bool
 	}
 
 	AuthInfoInterface interface {
@@ -62,7 +63,7 @@ type (
 			( Required by All grant handlers )
 			search client by given cid(client id), and check if the sec(client secret) is matched for the client's one, and also check if it's allowed to use this grant type. If not, you should return error.
 		*/
-		FindValidClient(cid, sec, gt string) (ClientInterface, *oer.OAuthError)
+		FindClientById(clientId string) (ClientInterface, *oer.OAuthError)
 		FindAuthInfoByCode(code string) (AuthInfoInterface, *oer.OAuthError)
 		FindAuthInfoById(id int64) (AuthInfoInterface, *oer.OAuthError)
 		FindAccessTokenByAccessToken(token string) (AccessTokenInterface, *oer.OAuthError)
