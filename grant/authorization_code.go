@@ -64,7 +64,8 @@ func AuthorizationCode() *GrantHandler {
 				}
 			}
 
-			token, err := sdi.CreateAccessToken(info, true)
+			token, err := sdi.CreateAccessToken(info,
+				scope.IncludeOfflineAccess(info.Scope()))
 			if err != nil {
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
 			}
