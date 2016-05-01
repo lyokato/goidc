@@ -1,6 +1,7 @@
 package goidc
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
@@ -10,6 +11,34 @@ import (
 	"github.com/lyokato/goidc/grant"
 	th "github.com/lyokato/goidc/test_helper"
 )
+
+func TestTokenEndpointNonPostRequest(t *testing.T) {
+	te := NewTokenEndpoint()
+	te.Support(grant.AuthorizationCode())
+	sdi := th.NewTestStore()
+	ts := httptest.NewServer(te.Handler(sdi))
+	defer ts.Close()
+
+	var methods = []string{"GET", "HEAD", "PUT", "DELETE", "OPTIONS"}
+
+	c := http.DefaultClient
+	for _, method := range methods {
+		r, err := http.NewRequest(method, ts.URL, nil)
+		if err != nil {
+			t.Errorf("failed to build %s request: %s", method, err)
+			continue
+		}
+		resp, err := c.Do(r)
+		if err != nil {
+			t.Errorf("failed http %s reuqest: %s", method, err)
+			continue
+		}
+		if resp.StatusCode != http.StatusMethodNotAllowed {
+			t.Errorf("%s request returns status code, which is not 405 - Method not allowed", method)
+			continue
+		}
+	}
+}
 
 // TODO invalid grant
 // TODO invalid client
