@@ -15,33 +15,33 @@ func Password() *GrantHandler {
 		TypePassword,
 		func(r *http.Request, c sd.ClientInterface,
 			sdi sd.ServiceDataInterface) (*Response, *oer.OAuthError) {
-			// REQUIRED
 			username := r.FormValue("username")
 			if username == "" {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
+					"missing 'username' parameter")
 			}
-			// REQUIRED
 			password := r.FormValue("password")
 			if password == "" {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
+					"missing 'password' parameter")
 			}
 			// OPTIONAL
 			scp_req := r.FormValue("scope")
 
 			uid, err := sdi.FindUserId(username, password)
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 
 			info, err := sdi.CreateOrUpdateAuthInfoDirect(uid, c.Id(), scp_req)
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 
 			token, err := sdi.CreateAccessToken(info,
 				scope.IncludeOfflineAccess(info.Scope()))
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 			}
 
 			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())
