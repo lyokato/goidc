@@ -147,8 +147,8 @@ func TestTokenEndpointInvalidClient(t *testing.T) {
 	te.Support(grant.ClientCredentials())
 
 	sdi := th.NewTestStore()
-	sdi.CreateNewUser("user01", "pass01")
-	client := sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
+	u := sdi.CreateNewUser("user01", "pass01")
+	client := sdi.CreateNewClient(u.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType("authorization_code")
 
 	ts := httptest.NewServer(te.Handler(sdi))
@@ -200,8 +200,8 @@ func TestTokenEndpointUnauthorizedClient(t *testing.T) {
 	te.Support(grant.ClientCredentials())
 
 	sdi := th.NewTestStore()
-	sdi.CreateNewUser("user01", "pass01")
-	sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
+	u := sdi.CreateNewUser("user01", "pass01")
+	sdi.CreateNewClient(u.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()

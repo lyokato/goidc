@@ -3,6 +3,7 @@ package test_helper
 type (
 	TestClient struct {
 		id           string
+		ownerId      int64
 		secret       string
 		redirectURI  string
 		idTokenAlg   string
@@ -13,8 +14,9 @@ type (
 	}
 )
 
-func NewTestClient(id, secret, redirectURI, alg string, key interface{}, keyId string) *TestClient {
+func NewTestClient(ownerId int64, id, secret, redirectURI, alg string, key interface{}, keyId string) *TestClient {
 	return &TestClient{
+		ownerId:      ownerId,
 		id:           id,
 		secret:       secret,
 		redirectURI:  redirectURI,
@@ -37,6 +39,10 @@ func (c *TestClient) CanUseGrantType(gt string) bool {
 	} else {
 		return false
 	}
+}
+
+func (c *TestClient) OwnerId() int64 {
+	return c.ownerId
 }
 
 func (c *TestClient) Id() string {

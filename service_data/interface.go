@@ -73,9 +73,9 @@ type (
 
 		// for ClientCredential/Password Grant Handler
 		FindUserId(username, password string) (int64, *oer.OAuthError)
-		FindClientUserId(cid, sec string) (int64, *oer.OAuthError)
+		FindClientUserId(cid string) (int64, *oer.OAuthError)
 		CreateOrUpdateAuthInfo(uid int64, clientId, redirectURI, subject, scope string,
-			authroizedAt int64, code string, codeExpiresIn int64, codeVerifier, nonce string) (AuthInfoInterface, *oer.OAuthError)
+			code string, codeExpiresIn int64, codeVerifier, nonce string) (AuthInfoInterface, *oer.OAuthError)
 		CreateOrUpdateAuthInfoDirect(uid int64, clientId, scope string) (AuthInfoInterface, *oer.OAuthError)
 	}
 )
