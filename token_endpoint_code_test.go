@@ -11,7 +11,7 @@ import (
 	th "github.com/lyokato/goidc/test_helper"
 )
 
-func TestTokenEndpointAuthorizationCodeInvalidPKCE(t *testing.T) {
+func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 	te := NewTokenEndpoint()
 	te.Support(grant.AuthorizationCode())
 
