@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/lyokato/goidc/scope"
 	sd "github.com/lyokato/goidc/service_data"
 
 	oer "github.com/lyokato/goidc/oauth_error"
@@ -19,38 +20,38 @@ func RefreshToken() *GrantHandler {
 
 			rt := r.FormValue("refresh_token")
 			if rt == "" {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
+					"missing 'refresh_token' parameter")
 			}
 
 			old, err := sdi.FindAccessTokenByRefreshToken(rt)
 			if err != nil {
-				// not found or expire
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 
-			// check refresh-token's expiration
 			if old.RefreshTokenExpiresIn()+old.CreatedAt() < time.Now().Unix() {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
+					"expired 'refresh_token'")
 			}
 
 			info, err := sdi.FindAuthInfoById(old.AuthId())
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 			if info.ClientId() != c.Id() {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
-
-			// OPTIONAL
-			// scope := r.FormValue("scope")
+			scp := info.Scope()
+			if !scope.IncludeOfflineAccess(scp) {
+				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+			}
 
 			token, err := sdi.RefreshAccessToken(info, old, true)
 			if err != nil {
-				return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+				return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 			}
 
 			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())
-			scp := info.Scope()
 			if scp != "" {
 				res.Scope = scp
 			}

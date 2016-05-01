@@ -200,9 +200,13 @@ func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface, offlineAccess b
 }
 
 func (s *TestStore) RefreshAccessToken(info sd.AuthInfoInterface, old sd.AccessTokenInterface, offlineAccess bool) (sd.AccessTokenInterface, *oer.OAuthError) {
-	token, _ := s.accessTokenes[old.AccessToken()]
+	oldToken := old.AccessToken()
+	token, _ := s.accessTokenes[oldToken]
 	token.accessToken = token.accessToken + ":R"
 	token.accessTokenExpiresIn = 60 * 60 * 24
 	token.refreshedAt = time.Now().Unix()
+
+	delete(s.accessTokenes, oldToken)
+	s.accessTokenes[token.accessToken] = token
 	return token, nil
 }
