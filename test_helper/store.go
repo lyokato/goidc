@@ -71,8 +71,12 @@ func (s *TestStore) CreateNewClient(id, secret, redirectURI string) *TestClient 
 	return c
 }
 
+func (s *TestStore) CreateOrUpdateAuthInfoDirect(uid int64, clientId, scope string) (sd.AuthInfoInterface, *oer.OAuthError) {
+	return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+}
+
 func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, redirectURI, subject, scope string,
-	authroizedAt int64, code string, codeExpiresIn int64, codeVerifier, nonce string) *TestAuthInfo {
+	authroizedAt int64, code string, codeExpiresIn int64, codeVerifier, nonce string) (sd.AuthInfoInterface, *oer.OAuthError) {
 	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
 	if !exists {
 		infoId := s.infoIdPod
@@ -95,7 +99,7 @@ func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, redirectURI, sub
 	i.nonce = nonce
 	i.redirectUri = redirectURI
 	i.subject = subject
-	return i
+	return i, nil
 }
 
 func (s *TestStore) findAuthInfoByUserAndClient(uid int64, clientId string) (*TestAuthInfo, bool) {
@@ -123,6 +127,20 @@ func (s *TestStore) ClearAll() {
 // ServiceDataInterface
 func (s *TestStore) Issure() string {
 	return "example.org"
+}
+
+func (s *TestStore) FindUserId(username, password string) (int64, *oer.OAuthError) {
+	for _, u := range s.users {
+		if u.Username == username && u.Password == password {
+			return u.Id, nil
+		}
+	}
+	return -1, oer.NewOAuthError(oer.ErrInvalidClient, "")
+}
+
+func (s *TestStore) FindClientUserId(cid, sec string) (int64, *oer.OAuthError) {
+	// not supported yet
+	return -1, oer.NewOAuthError(oer.ErrInvalidClient, "")
 }
 
 func (s *TestStore) FindValidClient(cid, sec, gt string) (sd.ClientInterface, *oer.OAuthError) {

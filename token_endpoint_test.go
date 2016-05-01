@@ -17,6 +17,8 @@ func TestTokenEndpointAuthorizationCodeGrant00(t *testing.T) {
 
 	te := NewTokenEndpoint()
 	te.Support(grant.AuthorizationCode())
+	te.Support(grant.Password())
+	te.Support(grant.ClientCredentials())
 
 	sdi := th.NewTestStore()
 
