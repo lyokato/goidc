@@ -22,7 +22,7 @@ type TokenEndpoint struct {
 }
 
 func (te *TokenEndpoint) SetErrorURI(uri string) {
-	te.errorURIBuilder = func(_ string) string { return uri }
+	te.errorURIBuilder = func(_ oer.OAuthErrorType) string { return uri }
 }
 
 func (te *TokenEndpoint) SetErrorURIBuilder(builder oer.OAuthErrorURIBuilder) {

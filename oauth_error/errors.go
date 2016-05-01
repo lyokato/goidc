@@ -9,38 +9,37 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-type OAuthErrorURIBuilder func(string) string
+type OAuthErrorType int
+type OAuthErrorURIBuilder func(OAuthErrorType) string
 
 const (
 	// RFC6749
-	ErrAccessDenied            = "access_denied"
-	ErrInvalidClient           = "invalid_client"
-	ErrInvalidGrant            = "invalid_grant"
-	ErrInvalidRequest          = "invalid_request"
-	ErrInvalidScope            = "invalid_scope"
-	ErrUnauthorizedClient      = "unauthorized_client"
-	ErrUnsupportedGrantType    = "unsupported_grant_type"
-	ErrUnsupportedResponseType = "unsupported_response_type"
-	ErrServerError             = "server_error"
-	ErrTemporarilyUnavailable  = "temporarily_unavailable"
-
+	ErrAccessDenied OAuthErrorType = iota
+	ErrInvalidClient
+	ErrInvalidGrant
+	ErrInvalidRequest
+	ErrInvalidScope
+	ErrUnauthorizedClient
+	ErrUnsupportedGrantType
+	ErrUnsupportedResponseType
+	ErrServerError
+	ErrTemporarilyUnavailable
 	// RFC6750
-	ErrInvalidToken      = "invalid_token"
-	ErrInsufficientScope = "insufficient_scope"
-
+	ErrInvalidToken
+	ErrInsufficientScope
 	// OpenID Core 3.1.2.6 Authentication Error Response
-	ErrInteractionRequired      = "interaction_required"
-	ErrLoginRequired            = "login_required"
-	ErrAccountSelectionRequired = "account_selection_required"
-	ErrConsentRequired          = "consent_required"
-	ErrInvalidRequestURI        = "invalid_request_uri"
-	ErrInvalidRequestObject     = "invalid_request_object"
-	ErrRequestNotSupported      = "request_not_supported"
-	ErrRequestURINotSupported   = "request_uri_not_supported"
-	ErrRegistrationNotSupported = "registration_not_supported"
+	ErrInteractionRequired
+	ErrLoginRequired
+	ErrAccountSelectionRequired
+	ErrConsentRequired
+	ErrInvalidRequestURI
+	ErrInvalidRequestObject
+	ErrRequestNotSupported
+	ErrRequestURINotSupported
+	ErrRegistrationNotSupported
 )
 
-var errStatusCodeMap = map[string]int{
+var errStatusCodeMap = map[OAuthErrorType]int{
 	ErrAccessDenied:            http.StatusForbidden,
 	ErrInvalidClient:           http.StatusUnauthorized,
 	ErrInvalidGrant:            http.StatusBadRequest,
@@ -52,16 +51,64 @@ var errStatusCodeMap = map[string]int{
 	ErrServerError:             http.StatusInternalServerError,
 }
 
-/*
-type AuthorizationRequestError struct {
-	Type        string `json:"error"`
-	Description string `json:"error_description"`
-	URI         string `json:"uri"`
-	State       string `json:"state"`
+func (t OAuthErrorType) String() string {
+	switch t {
+	case ErrAccessDenied:
+		return "access_denied"
+	case ErrInvalidClient:
+		return "invalid_client"
+	case ErrInvalidGrant:
+		return "invalid_grant"
+	case ErrInvalidRequest:
+		return "invalid_request"
+	case ErrInvalidScope:
+		return "invalid_scope"
+	case ErrUnauthorizedClient:
+		return "unauthorized_client"
+	case ErrUnsupportedGrantType:
+		return "unsupported_grant_type"
+	case ErrUnsupportedResponseType:
+		return "unsupported_response_type"
+	case ErrServerError:
+		return "server_error"
+	case ErrTemporarilyUnavailable:
+		return "temporarily_unavailable"
+
+	case ErrInvalidToken:
+		return "invalid_token"
+	case ErrInsufficientScope:
+		return "insufficient_scope"
+
+	// OpenID Core 3.1.2.6 Authentication Error Response
+	case ErrInteractionRequired:
+		return "interaction_required"
+	case ErrLoginRequired:
+		return "login_required"
+	case ErrAccountSelectionRequired:
+		return "account_selection_required"
+	case ErrConsentRequired:
+		return "consent_required"
+	case ErrInvalidRequestURI:
+		return "invalid_request_uri"
+	case ErrInvalidRequestObject:
+		return "invalid_request_object"
+	case ErrRequestNotSupported:
+		return "request_not_supported"
+	case ErrRequestURINotSupported:
+		return "request_uri_not_supported"
+	case ErrRegistrationNotSupported:
+		return "registration_not_supported"
+	}
+	return ""
 }
-*/
 
 type OAuthError struct {
+	Type        OAuthErrorType
+	Description string
+	URI         string
+}
+
+type OAuthErrorJSON struct {
 	Type        string `json:"error"`
 	Description string `json:"error_description,omitempty"`
 	URI         string `json:"error_uri,omitempty"`
@@ -76,7 +123,7 @@ type OAuthErrorQuery struct {
 
 func (e *OAuthError) Error() string {
 	if e.Description == "" {
-		return e.Type
+		return e.Type.String()
 	} else {
 		return fmt.Sprintf("%s: %s", e.Type, e.Description)
 	}
@@ -91,20 +138,25 @@ func (e *OAuthError) StatusCode() int {
 	}
 }
 
-func NewOAuthError(typeName, description string) *OAuthError {
+func NewOAuthError(typeName OAuthErrorType, description string) *OAuthError {
 	return &OAuthError{typeName, description, ""}
 }
 
-func NewOAuthSimpleError(typeName string) *OAuthError {
+func NewOAuthSimpleError(typeName OAuthErrorType) *OAuthError {
 	return &OAuthError{typeName, "", ""}
 }
 
-func NewOAuthDetailedError(typeName, description, uri string) *OAuthError {
+func NewOAuthDetailedError(typeName OAuthErrorType, description, uri string) *OAuthError {
 	return &OAuthError{typeName, description, uri}
 }
 
 func (e *OAuthError) JSON() []byte {
-	body, err := json.Marshal(e)
+	j := &OAuthErrorJSON{
+		Type:        e.Type.String(),
+		Description: e.Description,
+		URI:         e.URI,
+	}
+	body, err := json.Marshal(j)
 	if err != nil {
 		// must not come here
 		panic(fmt.Sprintf("broken JSON: %s", err))
@@ -117,7 +169,7 @@ func (e *OAuthError) Header(realm string) string {
 	if realm != "" {
 		params = append(params, fmt.Sprintf("realm=\"%s\"", realm))
 	}
-	params = append(params, fmt.Sprintf("error=\"%s\"", e.Type))
+	params = append(params, fmt.Sprintf("error=\"%s\"", e.Type.String()))
 	if e.Description != "" {
 		params = append(params, fmt.Sprintf("error_description=\"%s\"", e.Description))
 	}
@@ -129,7 +181,7 @@ func (e *OAuthError) Header(realm string) string {
 
 func (e *OAuthError) Query(state string) string {
 	v, err := query.Values(&OAuthErrorQuery{
-		Type:        e.Type,
+		Type:        e.Type.String(),
 		Description: e.Description,
 		URI:         e.URI,
 		State:       state,

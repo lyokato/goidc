@@ -8,6 +8,7 @@ import (
 
 	"github.com/lyokato/goidc/basic_auth"
 	"github.com/lyokato/goidc/grant"
+	oer "github.com/lyokato/goidc/oauth_error"
 	th "github.com/lyokato/goidc/test_helper"
 )
 
@@ -68,7 +69,7 @@ func TestTokenEndpointErrorURIBuilder(t *testing.T) {
 			"error_uri":         th.NewStrMatcher("http://example.org/error"),
 		})
 
-	te.SetErrorURIBuilder(func(errorType string) string {
+	te.SetErrorURIBuilder(func(errorType oer.OAuthErrorType) string {
 		return fmt.Sprintf("http://example.org/error#%s", errorType)
 	})
 
