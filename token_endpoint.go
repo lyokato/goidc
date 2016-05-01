@@ -53,16 +53,17 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 		}
 		if h, exists := te.handlers[gt]; exists {
 			if cid, sec, exists := basic_auth.FindClientCredential(r); exists {
-				client, err := sdi.FindValidClient(cid, sec, gt)
+				client, err := sdi.FindClientById(cid)
 				if err != nil {
-					switch err.Type {
-					case oer.ErrUnauthorizedClient:
-						te.fail(w, err)
-					case oer.ErrServerError:
-						te.fail(w, err)
-					default:
-						te.fail(w, oer.NewOAuthError(oer.ErrServerError, ""))
-					}
+					te.fail(w, err)
+					return
+				}
+				if client.Secret() != sec {
+					te.fail(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+					return
+				}
+				if !client.CanUseGrantType(gt) {
+					te.fail(w, oer.NewOAuthSimpleError(oer.ErrUnauthorizedClient))
 					return
 				}
 				res, err := h(r, client, sdi)

@@ -140,9 +140,7 @@ func TestTokenEndpointInvalidGrantType(t *testing.T) {
 		})
 }
 
-// TODO invalid grant
-// TODO invalid client
-func TestTokenEndpointAuthorizationCodeGrant00(t *testing.T) {
+func TestTokenEndpointInvalidClient(t *testing.T) {
 
 	te := NewTokenEndpoint()
 	te.Support(grant.AuthorizationCode())
@@ -150,6 +148,61 @@ func TestTokenEndpointAuthorizationCodeGrant00(t *testing.T) {
 	te.Support(grant.ClientCredentials())
 
 	sdi := th.NewTestStore()
+	sdi.CreateNewUser("user01", "pass01")
+	client := sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
+	client.AllowToUseGrantType("authorization_code")
+
+	ts := httptest.NewServer(te.Handler(sdi))
+	defer ts.Close()
+
+	th.TokenEndpointErrorTest(t, ts,
+		map[string]string{
+			"grant_type":    "authorization_code",
+			"client_id":     "client_id_000",
+			"client_secret": "client_secret_000",
+		},
+		map[string]string{
+			"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+		},
+		401,
+		map[string]th.Matcher{
+			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":        th.NewStrMatcher("no-cache"),
+			"Cache-Control": th.NewStrMatcher("no-store"),
+		},
+		map[string]th.Matcher{
+			"error": th.NewStrMatcher("invalid_client"),
+		})
+
+	th.TokenEndpointErrorTest(t, ts,
+		map[string]string{
+			"grant_type": "authorization_code",
+		},
+		map[string]string{
+			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
+			"Authorization": basic_auth.Header("client_id_000", "client_secret_000"),
+		},
+		401,
+		map[string]th.Matcher{
+			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":        th.NewStrMatcher("no-cache"),
+			"Cache-Control": th.NewStrMatcher("no-store"),
+		},
+		map[string]th.Matcher{
+			"error": th.NewStrMatcher("invalid_client"),
+		})
+}
+
+func TestTokenEndpointUnauthorizedClient(t *testing.T) {
+
+	te := NewTokenEndpoint()
+	te.Support(grant.AuthorizationCode())
+	te.Support(grant.Password())
+	te.Support(grant.ClientCredentials())
+
+	sdi := th.NewTestStore()
+	sdi.CreateNewUser("user01", "pass01")
+	sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -160,27 +213,28 @@ func TestTokenEndpointAuthorizationCodeGrant00(t *testing.T) {
 		},
 		map[string]string{
 			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
-			"Authorization": basic_auth.Header("client_id_000", "client_secret_000"),
+			"Authorization": basic_auth.Header("client_id_01", "client_secret_01"),
 		},
-		500,
+		401,
 		map[string]th.Matcher{
 			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
 			"Pragma":        th.NewStrMatcher("no-cache"),
 			"Cache-Control": th.NewStrMatcher("no-store"),
 		},
 		map[string]th.Matcher{
-			"error": th.NewStrMatcher("server_error"),
+			"error": th.NewStrMatcher("unauthorized_client"),
 		})
 }
 
-func TestTokenEndpointAuthorizationCodeGrant01(t *testing.T) {
+func TestTokenEndpointAuthorizationCode(t *testing.T) {
 
 	te := NewTokenEndpoint()
 	te.Support(grant.AuthorizationCode())
 
 	sdi := th.NewTestStore()
 	user := sdi.CreateNewUser("user01", "pass01")
-	client := sdi.CreateNewClient("client_id_01", "clinet_secret_01", "http://example.org/callback")
+	client := sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
+	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
 		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile offline_access",
@@ -198,6 +252,34 @@ func TestTokenEndpointAuthorizationCodeGrant01(t *testing.T) {
 		map[string]string{
 			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
 			"Authorization": basic_auth.Header("client_id_01", "client_secret_01"),
+		},
+		200,
+		map[string]th.Matcher{
+			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":        th.NewStrMatcher("no-cache"),
+			"Cache-Control": th.NewStrMatcher("no-store"),
+		},
+		map[string]th.Matcher{
+			"access_token":  th.NewStrMatcher("ACCESS_TOKEN_0"),
+			"refresh_token": th.NewStrMatcher("REFRESH_TOKEN_0"),
+			"expires_in":    th.NewInt64Matcher(60 * 60 * 24),
+		},
+		map[string]th.Matcher{
+			"iss": th.NewStrMatcher("example.org"),
+			"sub": th.NewStrMatcher("0"),
+			"aud": th.NewStrMatcher("client_id_01"),
+		})
+
+	th.TokenEndpointSuccessTest(t, ts,
+		map[string]string{
+			"grant_type":    "authorization_code",
+			"code":          "code_value",
+			"redirect_uri":  "http://example.org/callback",
+			"client_id":     "client_id_01",
+			"client_secret": "client_secret_01",
+		},
+		map[string]string{
+			"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
 		},
 		200,
 		map[string]th.Matcher{

@@ -42,7 +42,7 @@ const (
 
 var errStatusCodeMap = map[string]int{
 	ErrAccessDenied:            http.StatusForbidden,
-	ErrInvalidClient:           http.StatusBadRequest,
+	ErrInvalidClient:           http.StatusUnauthorized,
 	ErrInvalidGrant:            http.StatusBadRequest,
 	ErrInvalidRequest:          http.StatusBadRequest,
 	ErrInvalidScope:            http.StatusBadRequest,

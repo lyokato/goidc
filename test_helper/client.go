@@ -8,6 +8,7 @@ type (
 		idTokenAlg   string
 		idTokenKeyId string
 		idTokenKey   interface{}
+		grantTypes   map[string]bool
 		Enabled      bool
 	}
 )
@@ -20,7 +21,21 @@ func NewTestClient(id, secret, redirectURI, alg string, key interface{}, keyId s
 		idTokenAlg:   alg,
 		idTokenKey:   key,
 		idTokenKeyId: keyId,
+		grantTypes:   make(map[string]bool, 0),
 		Enabled:      true,
+	}
+}
+
+func (c *TestClient) AllowToUseGrantType(gt string) {
+	c.grantTypes[gt] = true
+}
+
+func (c *TestClient) CanUseGrantType(gt string) bool {
+	allowed, exists := c.grantTypes[gt]
+	if exists {
+		return allowed
+	} else {
+		return false
 	}
 }
 
