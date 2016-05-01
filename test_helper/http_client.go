@@ -26,12 +26,19 @@ func TokenEndpointSuccessTest(t *testing.T, server *httptest.Server, values, req
 
 	for k, matcher := range responseValues {
 		rv, exists := result[k]
-		if !exists {
-			t.Errorf("Response:%s not found: ", k)
-			continue
-		}
-		if !matcher.Match(rv) {
-			t.Errorf("Response:%s isn't match\n - got: %v\n - want: %v\n", k, rv, matcher.WantValue())
+		if matcher.RequireAbsent() {
+			if exists {
+				t.Errorf("Response:%s should be absent: ", k)
+				continue
+			}
+		} else {
+			if !exists {
+				t.Errorf("Response:%s not found: ", k)
+				continue
+			}
+			if !matcher.Match(rv) {
+				t.Errorf("Response:%s isn't match\n - got: %v\n - want: %v\n", k, rv, matcher.WantValue())
+			}
 		}
 	}
 
