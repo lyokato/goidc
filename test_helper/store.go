@@ -158,15 +158,6 @@ func (s *TestStore) FindUserId(username, password string) (int64, *oer.OAuthErro
 	return -1, oer.NewOAuthError(oer.ErrInvalidClient, "")
 }
 
-func (s *TestStore) FindClientUserId(cid string) (int64, *oer.OAuthError) {
-	c, exists := s.clients[cid]
-	if !exists {
-		// not found
-		return -1, oer.NewOAuthError(oer.ErrInvalidClient, "")
-	}
-	return c.OwnerId(), nil
-}
-
 func (s *TestStore) FindClientById(cid string) (sd.ClientInterface, *oer.OAuthError) {
 	c, exists := s.clients[cid]
 	if !exists {

@@ -41,7 +41,7 @@ func (c *TestClient) CanUseGrantType(gt string) bool {
 	}
 }
 
-func (c *TestClient) OwnerId() int64 {
+func (c *TestClient) OwnerUserId() int64 {
 	return c.ownerId
 }
 

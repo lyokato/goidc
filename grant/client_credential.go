@@ -16,25 +16,21 @@ func ClientCredentials() *GrantHandler {
 		func(r *http.Request, c sd.ClientInterface,
 			sdi sd.ServiceDataInterface) (*Response, *oer.OAuthError) {
 
-			uid, err := sdi.FindClientUserId(c.Id())
-			if err != nil {
-				// server error?
-				println("find client user id")
-				return nil, err
+			uid := c.OwnerUserId()
+			if uid < 0 {
+				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 
 			scp_req := r.FormValue("scope")
 
 			info, err := sdi.CreateOrUpdateAuthInfoDirect(uid, c.Id(), scp_req)
 			if err != nil {
-				println("create or update auth info")
 				return nil, err
 			}
 
 			token, err := sdi.CreateAccessToken(info,
 				scope.IncludeOfflineAccess(info.Scope()))
 			if err != nil {
-				println("create access token")
 				return nil, err
 			}
 
