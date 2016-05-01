@@ -190,6 +190,9 @@ func (s *TestStore) FindAccessTokenByRefreshToken(token string) (sd.AccessTokenI
 func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface, offlineAccess bool) (sd.AccessTokenInterface, *oer.OAuthError) {
 	avalue := fmt.Sprintf("ACCESS_TOKEN_%d", info.Id())
 	rvalue := fmt.Sprintf("REFRESH_TOKEN_%d", info.Id())
+	if !offlineAccess {
+		rvalue = ""
+	}
 	t := NewTestAccessToken(info.Id(), avalue, 60*60*24, time.Now().Unix(),
 		rvalue, 60*60*24*30, time.Now().Unix())
 	s.accessTokenes[t.AccessToken()] = t

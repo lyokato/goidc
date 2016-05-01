@@ -8,8 +8,11 @@ import (
 
 type (
 	Matcher interface {
+		RequireAbsent() bool
 		Match(v interface{}) bool
 		WantValue() string
+	}
+	AbsentMatcher struct {
 	}
 	Int64Matcher struct {
 		value int64
@@ -26,6 +29,22 @@ type (
 		value  *regexp.Regexp
 	}
 )
+
+func NewAbsentMatcher() *AbsentMatcher {
+	return &AbsentMatcher{}
+}
+
+func (m *AbsentMatcher) Match(v interface{}) bool {
+	return false
+}
+
+func (m *AbsentMatcher) WantValue() string {
+	return "nil"
+}
+
+func (m *AbsentMatcher) RequireAbsent() bool {
+	return true
+}
 
 func NewInt64Matcher(v int64) *Int64Matcher {
 	return &Int64Matcher{v}
@@ -46,6 +65,14 @@ func (m *Int64Matcher) Match(v interface{}) bool {
 
 func (m *Int64Matcher) WantValue() string {
 	return fmt.Sprintf("%d", m.value)
+}
+
+func (m *Int64Matcher) RequireAbsent() bool {
+	return false
+}
+
+func (m *Int64RangeMatcher) RequireAbsent() bool {
+	return false
 }
 
 func (m *Int64RangeMatcher) Match(v interface{}) bool {
@@ -78,8 +105,16 @@ func (m *StrMatcher) WantValue() string {
 	return m.value
 }
 
+func (m *StrMatcher) RequireAbsent() bool {
+	return false
+}
+
 func NewRegexMatcher(v string) *RegexMatcher {
 	return &RegexMatcher{v, regexp.MustCompile(v)}
+}
+
+func (m *RegexMatcher) RequireAbsent() bool {
+	return false
 }
 
 func (m *RegexMatcher) Match(v interface{}) bool {
