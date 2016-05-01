@@ -40,6 +40,53 @@ func TestTokenEndpointNonPostRequest(t *testing.T) {
 	}
 }
 
+func TestTokenEndpointInvalidGrantType(t *testing.T) {
+
+	te := NewTokenEndpoint()
+	te.Support(grant.AuthorizationCode())
+
+	sdi := th.NewTestStore()
+
+	ts := httptest.NewServer(te.Handler(sdi))
+	defer ts.Close()
+
+	th.TokenEndpointErrorTest(t, ts,
+		map[string]string{},
+		map[string]string{
+			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
+			"Authorization": basic_auth.Header("client_id_000", "client_secret_000"),
+		},
+		400,
+		map[string]th.Matcher{
+			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":        th.NewStrMatcher("no-cache"),
+			"Cache-Control": th.NewStrMatcher("no-store"),
+		},
+		map[string]th.Matcher{
+			"error":             th.NewStrMatcher("invalid_request"),
+			"error_description": th.NewStrMatcher("missing 'grant_type' parameter"),
+		})
+
+	th.TokenEndpointErrorTest(t, ts,
+		map[string]string{
+			"grant_type": "refresh_token",
+		},
+		map[string]string{
+			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
+			"Authorization": basic_auth.Header("client_id_000", "client_secret_000"),
+		},
+		400,
+		map[string]th.Matcher{
+			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":        th.NewStrMatcher("no-cache"),
+			"Cache-Control": th.NewStrMatcher("no-store"),
+		},
+		map[string]th.Matcher{
+			"error":             th.NewStrMatcher("unsupported_grant_type"),
+			"error_description": th.NewStrMatcher("unsupported 'grant_type' parameter: 'refresh_token'"),
+		})
+}
+
 // TODO invalid grant
 // TODO invalid client
 func TestTokenEndpointAuthorizationCodeGrant00(t *testing.T) {
