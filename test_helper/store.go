@@ -65,18 +65,39 @@ func (s *TestStore) CreateNewUser(name, pass string) *TestUser {
 	return u
 }
 
-func (s *TestStore) CreateNewClient(id, secret, redirectURI string) *TestClient {
-	c := NewTestClient(id, secret, redirectURI, "RS256", s.privKey, "my_service_key_id")
+func (s *TestStore) CreateNewClient(ownerId int64, id, secret, redirectURI string) *TestClient {
+	c := NewTestClient(ownerId, id, secret, redirectURI, "RS256", s.privKey, "my_service_key_id")
 	s.clients[c.Id()] = c
 	return c
 }
 
 func (s *TestStore) CreateOrUpdateAuthInfoDirect(uid int64, clientId, scope string) (sd.AuthInfoInterface, *oer.OAuthError) {
-	return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
+	if !exists {
+		infoId := s.infoIdPod
+		i = &TestAuthInfo{
+			id:       infoId,
+			userId:   uid,
+			clientId: clientId,
+			Enabled:  true,
+		}
+		s.infos[infoId] = i
+		s.infoIdPod++
+	}
+	i.flowType = "direct"
+	i.subject = fmt.Sprintf("%d", uid)
+	i.scope = scope
+	i.authorizedAt = time.Now().Unix()
+	i.code = ""
+	i.codeExpiresIn = 0
+	i.codeVerifier = ""
+	i.nonce = ""
+	i.redirectUri = ""
+	return i, nil
 }
 
 func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, redirectURI, subject, scope string,
-	authroizedAt int64, code string, codeExpiresIn int64, codeVerifier, nonce string) (sd.AuthInfoInterface, *oer.OAuthError) {
+	code string, codeExpiresIn int64, codeVerifier, nonce string) (sd.AuthInfoInterface, *oer.OAuthError) {
 	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
 	if !exists {
 		infoId := s.infoIdPod
@@ -92,13 +113,12 @@ func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, redirectURI, sub
 	i.flowType = "basic"
 	i.subject = subject
 	i.scope = scope
-	i.authorizedAt = authroizedAt
+	i.authorizedAt = time.Now().Unix()
 	i.code = code
 	i.codeExpiresIn = codeExpiresIn
 	i.codeVerifier = codeVerifier
 	i.nonce = nonce
 	i.redirectUri = redirectURI
-	i.subject = subject
 	return i, nil
 }
 
@@ -138,9 +158,13 @@ func (s *TestStore) FindUserId(username, password string) (int64, *oer.OAuthErro
 	return -1, oer.NewOAuthError(oer.ErrInvalidClient, "")
 }
 
-func (s *TestStore) FindClientUserId(cid, sec string) (int64, *oer.OAuthError) {
-	// not supported yet
-	return -1, oer.NewOAuthError(oer.ErrInvalidClient, "")
+func (s *TestStore) FindClientUserId(cid string) (int64, *oer.OAuthError) {
+	c, exists := s.clients[cid]
+	if !exists {
+		// not found
+		return -1, oer.NewOAuthError(oer.ErrInvalidClient, "")
+	}
+	return c.OwnerId(), nil
 }
 
 func (s *TestStore) FindClientById(cid string) (sd.ClientInterface, *oer.OAuthError) {

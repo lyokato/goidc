@@ -4,7 +4,6 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/lyokato/goidc/basic_auth"
 	"github.com/lyokato/goidc/grant"
@@ -17,13 +16,13 @@ func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 
 	sdi := th.NewTestStore()
 	user := sdi.CreateNewUser("user01", "pass01")
-	client := sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
+	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	code_verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
 		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile offline_access",
-		time.Now().Unix(), "code_value", int64(60*60*24), code_verifier, "07dfa90f")
+		"code_value", int64(60*60*24), code_verifier, "07dfa90f")
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -189,12 +188,12 @@ func TestTokenEndpointAuthorizationCodeInvalidRequest(t *testing.T) {
 
 	sdi := th.NewTestStore()
 	user := sdi.CreateNewUser("user01", "pass01")
-	client := sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
+	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
 		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile offline_access",
-		time.Now().Unix(), "code_value", int64(60*60*24), "", "07dfa90f")
+		"code_value", int64(60*60*24), "", "07dfa90f")
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -293,12 +292,12 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 
 	sdi := th.NewTestStore()
 	user := sdi.CreateNewUser("user01", "pass01")
-	client := sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
+	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
 		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile offline_access",
-		time.Now().Unix(), "code_value", int64(60*60*24), "", "07dfa90f")
+		"code_value", int64(60*60*24), "", "07dfa90f")
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -365,12 +364,12 @@ func TestTokenEndpointAuthorizationCodeWithoutOfflineAccess(t *testing.T) {
 
 	sdi := th.NewTestStore()
 	user := sdi.CreateNewUser("user01", "pass01")
-	client := sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
+	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
 		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile",
-		time.Now().Unix(), "code_value", int64(60*60*24), "", "07dfa90f")
+		"code_value", int64(60*60*24), "", "07dfa90f")
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -409,12 +408,12 @@ func TestTokenEndpointAuthorizationCodeWithoutOpenID(t *testing.T) {
 
 	sdi := th.NewTestStore()
 	user := sdi.CreateNewUser("user01", "pass01")
-	client := sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
+	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
 		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "profile offline_access",
-		time.Now().Unix(), "code_value", int64(60*60*24), "", "07dfa90f")
+		"code_value", int64(60*60*24), "", "07dfa90f")
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
