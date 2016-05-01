@@ -61,11 +61,11 @@ func AuthorizationCode() *GrantHandler {
 				verifier, err := pkce.FindVerifierByMethod(cm)
 				if err != nil {
 					return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
-						fmt.Sprintf("unsupported code_challenge_method: %s", cm))
+						fmt.Sprintf("unsupported 'code_challenge_method': '%s'", cm))
 				}
 				if !verifier.Verify(cc, cv) {
 					return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
-						fmt.Sprintf("invalid code_challenge: %s", cc))
+						fmt.Sprintf("invalid 'code_challenge': '%s'", cc))
 				}
 			}
 
