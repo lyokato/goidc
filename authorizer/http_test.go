@@ -19,7 +19,7 @@ func TestParser(t *testing.T) {
 
 	hr, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		t.Errorf("failed to build http reuqest: %s", err)
+		t.Errorf("failed to build http request: %s", err)
 	}
 
 	ar, err := ConvertHTTPRequest(hr)

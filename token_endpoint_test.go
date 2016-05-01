@@ -31,7 +31,7 @@ func TestTokenEndpointNonPostRequest(t *testing.T) {
 		}
 		resp, err := c.Do(r)
 		if err != nil {
-			t.Errorf("failed http %s reuqest: %s", method, err)
+			t.Errorf("failed http %s request: %s", method, err)
 			continue
 		}
 		if resp.StatusCode != http.StatusMethodNotAllowed {
@@ -215,7 +215,7 @@ func TestTokenEndpointUnauthorizedClient(t *testing.T) {
 			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
 			"Authorization": basic_auth.Header("client_id_01", "client_secret_01"),
 		},
-		401,
+		400,
 		map[string]th.Matcher{
 			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
 			"Pragma":        th.NewStrMatcher("no-cache"),
@@ -223,6 +223,109 @@ func TestTokenEndpointUnauthorizedClient(t *testing.T) {
 		},
 		map[string]th.Matcher{
 			"error": th.NewStrMatcher("unauthorized_client"),
+		})
+}
+
+func TestTokenEndpointAuthorizationCodeInvalidRequest(t *testing.T) {
+	te := NewTokenEndpoint()
+	te.Support(grant.AuthorizationCode())
+
+	sdi := th.NewTestStore()
+	user := sdi.CreateNewUser("user01", "pass01")
+	client := sdi.CreateNewClient("client_id_01", "client_secret_01", "http://example.org/callback")
+	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
+
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
+		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile offline_access",
+		time.Now().Unix(), "code_value", int64(60*60*24), "", "07dfa90f")
+
+	ts := httptest.NewServer(te.Handler(sdi))
+	defer ts.Close()
+
+	// MISSING REDIRECT_URI
+	th.TokenEndpointErrorTest(t, ts,
+		map[string]string{
+			"grant_type": "authorization_code",
+			"code":       "code_value",
+			//"redirect_uri": "http://example.org/callback",
+		},
+		map[string]string{
+			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
+			"Authorization": basic_auth.Header("client_id_01", "client_secret_01"),
+		},
+		400,
+		map[string]th.Matcher{
+			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":        th.NewStrMatcher("no-cache"),
+			"Cache-Control": th.NewStrMatcher("no-store"),
+		},
+		map[string]th.Matcher{
+			"error":             th.NewStrMatcher("invalid_request"),
+			"error_description": th.NewStrMatcher("missing 'redirect_uri' parameter"),
+		})
+
+	// INVALID REDIRECT_URI
+	th.TokenEndpointErrorTest(t, ts,
+		map[string]string{
+			"grant_type":   "authorization_code",
+			"code":         "code_value",
+			"redirect_uri": "http://example.org/invalid",
+		},
+		map[string]string{
+			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
+			"Authorization": basic_auth.Header("client_id_01", "client_secret_01"),
+		},
+		400,
+		map[string]th.Matcher{
+			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":        th.NewStrMatcher("no-cache"),
+			"Cache-Control": th.NewStrMatcher("no-store"),
+		},
+		map[string]th.Matcher{
+			"error": th.NewStrMatcher("invalid_grant"),
+		})
+
+	// MISSING CODE
+	th.TokenEndpointErrorTest(t, ts,
+		map[string]string{
+			"grant_type": "authorization_code",
+			//"code":       "code_value",
+			"redirect_uri": "http://example.org/callback",
+		},
+		map[string]string{
+			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
+			"Authorization": basic_auth.Header("client_id_01", "client_secret_01"),
+		},
+		400,
+		map[string]th.Matcher{
+			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":        th.NewStrMatcher("no-cache"),
+			"Cache-Control": th.NewStrMatcher("no-store"),
+		},
+		map[string]th.Matcher{
+			"error":             th.NewStrMatcher("invalid_request"),
+			"error_description": th.NewStrMatcher("missing 'code' parameter"),
+		})
+
+	// INVALID CODE
+	th.TokenEndpointErrorTest(t, ts,
+		map[string]string{
+			"grant_type":   "authorization_code",
+			"code":         "invalid_code_value",
+			"redirect_uri": "http://example.org/callback",
+		},
+		map[string]string{
+			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
+			"Authorization": basic_auth.Header("client_id_01", "client_secret_01"),
+		},
+		400,
+		map[string]th.Matcher{
+			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":        th.NewStrMatcher("no-cache"),
+			"Cache-Control": th.NewStrMatcher("no-store"),
+		},
+		map[string]th.Matcher{
+			"error": th.NewStrMatcher("invalid_grant"),
 		})
 }
 
