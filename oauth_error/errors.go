@@ -64,13 +64,13 @@ type AuthorizationRequestError struct {
 type OAuthError struct {
 	Type        string `json:"error"`
 	Description string `json:"error_description,omitempty"`
-	URI         string `json:"uri,omitempty"`
+	URI         string `json:"error_uri,omitempty"`
 }
 
 type OAuthErrorQuery struct {
 	Type        string `url:"error"`
 	Description string `url:"error_description,omitempty"`
-	URI         string `url:"uri,omitempty"`
+	URI         string `url:"error_uri,omitempty"`
 	State       string `url:"state,omitempty"`
 }
 

@@ -25,7 +25,7 @@ func (te *TokenEndpoint) SetErrorURI(uri string) {
 	te.errorURIBuilder = func(_ string) string { return uri }
 }
 
-func (te *TokenEndpoint) SetErrorURIBulder(builder oer.OAuthErrorURIBuilder) {
+func (te *TokenEndpoint) SetErrorURIBuilder(builder oer.OAuthErrorURIBuilder) {
 	te.errorURIBuilder = builder
 }
 
