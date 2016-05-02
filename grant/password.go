@@ -35,13 +35,21 @@ func Password() *GrantHandler {
 
 			info, err := sdi.CreateOrUpdateAuthInfoDirect(uid, c.Id(), scp_req)
 			if err != nil {
-				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				if err.Type() == sd.ErrFailed {
+					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 
 			token, err := sdi.CreateAccessToken(info,
 				scope.IncludeOfflineAccess(info.Scope()))
 			if err != nil {
-				return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				if err.Type() == sd.ErrFailed {
+					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 
 			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())

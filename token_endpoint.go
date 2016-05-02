@@ -49,7 +49,8 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 		}
 		gt := r.FormValue("grant_type")
 		if gt == "" {
-			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, "missing 'grant_type' parameter"))
+			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest,
+				"missing 'grant_type' parameter"))
 			return
 		}
 		h, exists := te.handlers[gt]
@@ -65,33 +66,38 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 		}
 		client, err := sdi.FindClientById(cid)
 		if err != nil {
-			if inHeader {
-				te.failWithAuthHeader(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+			if err.Type() == sd.ErrFailed {
+				te.failByInvalidClientError(w, inHeader)
+				return
 			} else {
-				te.fail(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
+				return
 			}
-			return
 		}
 		if client.Secret() != sec {
-			if inHeader {
-				te.failWithAuthHeader(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
-			} else {
-				te.fail(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
-			}
+			te.failByInvalidClientError(w, inHeader)
 			return
 		}
 		if !client.CanUseGrantType(gt) {
 			te.fail(w, oer.NewOAuthSimpleError(oer.ErrUnauthorizedClient))
 			return
 		}
-		res, err := h(r, client, sdi)
-		if err != nil {
-			te.fail(w, err)
+		res, oerr := h(r, client, sdi)
+		if oerr != nil {
+			te.fail(w, oerr)
 			return
 		} else {
 			te.success(w, res)
 			return
 		}
+	}
+}
+
+func (te *TokenEndpoint) failByInvalidClientError(w http.ResponseWriter, inHeader bool) {
+	if inHeader {
+		te.failWithAuthHeader(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+	} else {
+		te.fail(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
 	}
 }
 
