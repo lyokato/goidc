@@ -41,7 +41,7 @@ const (
 
 var errStatusCodeMap = map[OAuthErrorType]int{
 	ErrAccessDenied:            http.StatusForbidden,
-	ErrInvalidClient:           http.StatusUnauthorized,
+	ErrInvalidClient:           http.StatusBadRequest,
 	ErrInvalidGrant:            http.StatusBadRequest,
 	ErrInvalidRequest:          http.StatusBadRequest,
 	ErrInvalidScope:            http.StatusBadRequest,

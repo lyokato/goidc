@@ -11,7 +11,7 @@ import (
 )
 
 func TestTokenEndpointRefreshTokenInvalidRequest(t *testing.T) {
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 	te.Support(grant.RefreshToken())
 

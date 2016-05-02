@@ -11,7 +11,7 @@ import (
 )
 
 func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 
 	sdi := th.NewTestStore()
@@ -183,7 +183,7 @@ func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 }
 
 func TestTokenEndpointAuthorizationCodeInvalidRequest(t *testing.T) {
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 
 	sdi := th.NewTestStore()
@@ -287,7 +287,7 @@ func TestTokenEndpointAuthorizationCodeInvalidRequest(t *testing.T) {
 
 func TestTokenEndpointAuthorizationCode(t *testing.T) {
 
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 
 	sdi := th.NewTestStore()
@@ -359,7 +359,7 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 }
 
 func TestTokenEndpointAuthorizationCodeWithoutOfflineAccess(t *testing.T) {
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 
 	sdi := th.NewTestStore()
@@ -403,7 +403,7 @@ func TestTokenEndpointAuthorizationCodeWithoutOfflineAccess(t *testing.T) {
 }
 
 func TestTokenEndpointAuthorizationCodeWithoutOpenID(t *testing.T) {
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 
 	sdi := th.NewTestStore()

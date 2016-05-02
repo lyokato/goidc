@@ -10,7 +10,7 @@ import (
 )
 
 func TestTokenEndpointPassword(t *testing.T) {
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.Password())
 
 	sdi := th.NewTestStore()
@@ -71,7 +71,7 @@ func TestTokenEndpointPassword(t *testing.T) {
 }
 
 func TestTokenEndpointPasswordInvalidRequest(t *testing.T) {
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.Password())
 
 	sdi := th.NewTestStore()

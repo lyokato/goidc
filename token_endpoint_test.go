@@ -13,7 +13,7 @@ import (
 )
 
 func TestTokenEndpointNonPostRequest(t *testing.T) {
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 	sdi := th.NewTestStore()
 	ts := httptest.NewServer(te.Handler(sdi))
@@ -41,8 +41,7 @@ func TestTokenEndpointNonPostRequest(t *testing.T) {
 }
 
 func TestTokenEndpointErrorURIBuilder(t *testing.T) {
-
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 
 	sdi := th.NewTestStore()
@@ -93,8 +92,7 @@ func TestTokenEndpointErrorURIBuilder(t *testing.T) {
 }
 
 func TestTokenEndpointInvalidGrantType(t *testing.T) {
-
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 
 	sdi := th.NewTestStore()
@@ -140,8 +138,7 @@ func TestTokenEndpointInvalidGrantType(t *testing.T) {
 }
 
 func TestTokenEndpointInvalidClient(t *testing.T) {
-
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 	te.Support(grant.Password())
 	te.Support(grant.ClientCredentials())
@@ -154,6 +151,26 @@ func TestTokenEndpointInvalidClient(t *testing.T) {
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
 
+	// Not include client credential
+	th.TokenEndpointErrorTest(t, ts,
+		map[string]string{
+			"grant_type": "authorization_code",
+		},
+		map[string]string{
+			"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+		},
+		401,
+		map[string]th.Matcher{
+			"Content-Type":     th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":           th.NewStrMatcher("no-cache"),
+			"Cache-Control":    th.NewStrMatcher("no-store"),
+			"WWW-Authenticate": th.NewStrMatcher("Basic realm=\"api.example.org\""),
+		},
+		map[string]th.Matcher{
+			"error": th.NewStrMatcher("invalid_client"),
+		})
+
+	// invalid, included in query
 	th.TokenEndpointErrorTest(t, ts,
 		map[string]string{
 			"grant_type":    "authorization_code",
@@ -163,7 +180,7 @@ func TestTokenEndpointInvalidClient(t *testing.T) {
 		map[string]string{
 			"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
 		},
-		401,
+		400,
 		map[string]th.Matcher{
 			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
 			"Pragma":        th.NewStrMatcher("no-cache"),
@@ -173,6 +190,7 @@ func TestTokenEndpointInvalidClient(t *testing.T) {
 			"error": th.NewStrMatcher("invalid_client"),
 		})
 
+	// invalid, included in header
 	th.TokenEndpointErrorTest(t, ts,
 		map[string]string{
 			"grant_type": "authorization_code",
@@ -183,9 +201,10 @@ func TestTokenEndpointInvalidClient(t *testing.T) {
 		},
 		401,
 		map[string]th.Matcher{
-			"Content-Type":  th.NewStrMatcher("application/json; charset=UTF-8"),
-			"Pragma":        th.NewStrMatcher("no-cache"),
-			"Cache-Control": th.NewStrMatcher("no-store"),
+			"Content-Type":     th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":           th.NewStrMatcher("no-cache"),
+			"Cache-Control":    th.NewStrMatcher("no-store"),
+			"WWW-Authenticate": th.NewStrMatcher("Basic realm=\"api.example.org\""),
 		},
 		map[string]th.Matcher{
 			"error": th.NewStrMatcher("invalid_client"),
@@ -193,8 +212,7 @@ func TestTokenEndpointInvalidClient(t *testing.T) {
 }
 
 func TestTokenEndpointUnauthorizedClient(t *testing.T) {
-
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
 	te.Support(grant.Password())
 	te.Support(grant.ClientCredentials())
