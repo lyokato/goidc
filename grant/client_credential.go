@@ -30,6 +30,10 @@ func ClientCredentials() *GrantHandler {
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
+			} else {
+				if info == nil {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 
 			token, err := sdi.CreateAccessToken(info,
@@ -38,6 +42,10 @@ func ClientCredentials() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
+			} else {
+				if token == nil {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}

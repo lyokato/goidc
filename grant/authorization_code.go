@@ -38,6 +38,10 @@ func AuthorizationCode() *GrantHandler {
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
+			} else {
+				if info == nil {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 			if info.ClientId() != c.Id() {
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -77,6 +81,10 @@ func AuthorizationCode() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
+			} else {
+				if token == nil {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
