@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/lyokato/goidc/basic_auth"
 	"github.com/lyokato/goidc/grant"
 	oer "github.com/lyokato/goidc/oauth_error"
 	sd "github.com/lyokato/goidc/service_data"
@@ -17,6 +16,7 @@ var defaultResponseHeaders = map[string]string{
 }
 
 type TokenEndpoint struct {
+	realm           string
 	handlers        map[string]grant.GrantHandlerFunc
 	errorURIBuilder oer.OAuthErrorURIBuilder
 }
@@ -29,8 +29,9 @@ func (te *TokenEndpoint) SetErrorURIBuilder(builder oer.OAuthErrorURIBuilder) {
 	te.errorURIBuilder = builder
 }
 
-func NewTokenEndpoint() *TokenEndpoint {
+func NewTokenEndpoint(realm string) *TokenEndpoint {
 	return &TokenEndpoint{
+		realm:    realm,
 		handlers: make(map[string]grant.GrantHandlerFunc),
 	}
 }
@@ -57,18 +58,26 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 				fmt.Sprintf("unsupported 'grant_type' parameter: '%s'", gt)))
 			return
 		}
-		cid, sec, exists := basic_auth.FindClientCredential(r)
+		cid, sec, inHeader, exists := te.findClientCredential(r)
 		if !exists {
-			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, ""))
+			te.failWithAuthHeader(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
 			return
 		}
 		client, err := sdi.FindClientById(cid)
 		if err != nil {
-			te.fail(w, err)
+			if inHeader {
+				te.failWithAuthHeader(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+			} else {
+				te.fail(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+			}
 			return
 		}
 		if client.Secret() != sec {
-			te.fail(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+			if inHeader {
+				te.failWithAuthHeader(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+			} else {
+				te.fail(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+			}
 			return
 		}
 		if !client.CanUseGrantType(gt) {
@@ -86,6 +95,20 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 	}
 }
 
+func (te *TokenEndpoint) findClientCredential(r *http.Request) (string, string, bool, bool) {
+	cid, sec, exists := r.BasicAuth()
+	if exists {
+		return cid, sec, true, true
+	}
+	cid = r.FormValue("client_id")
+	sec = r.FormValue("client_secret")
+	if cid != "" && sec != "" {
+		return cid, sec, false, true
+	} else {
+		return "", "", false, false
+	}
+}
+
 func setCommonResponseHeader(w http.ResponseWriter) {
 	for k, v := range defaultResponseHeaders {
 		w.Header().Set(k, v)
@@ -96,6 +119,16 @@ func (te *TokenEndpoint) success(w http.ResponseWriter, res *grant.Response) {
 	setCommonResponseHeader(w)
 	w.WriteHeader(http.StatusOK)
 	w.Write(res.JSON())
+}
+
+func (te *TokenEndpoint) failWithAuthHeader(w http.ResponseWriter, err *oer.OAuthError) {
+	w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=\"%s\"", te.realm))
+	setCommonResponseHeader(w)
+	if err.URI == "" && te.errorURIBuilder != nil {
+		err.URI = te.errorURIBuilder(err.Type)
+	}
+	w.WriteHeader(http.StatusUnauthorized)
+	w.Write(err.JSON())
 }
 
 func (te *TokenEndpoint) fail(w http.ResponseWriter, err *oer.OAuthError) {

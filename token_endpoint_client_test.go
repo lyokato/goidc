@@ -10,7 +10,7 @@ import (
 )
 
 func TestTokenEndpointClientCredential(t *testing.T) {
-	te := NewTokenEndpoint()
+	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.ClientCredentials())
 
 	sdi := th.NewTestStore()

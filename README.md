@@ -17,7 +17,8 @@ import (
 )
 
 func main() {
-    endpoint := goidc.NewTokenEndpoint()
+    realm := "api.example.org"
+    endpoint := goidc.NewTokenEndpoint(realm)
     endpoint.Support(grant.AuthorizationCode())
     endpoint.Support(grant.RefreshToken())
 
