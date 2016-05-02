@@ -5,8 +5,7 @@ type ErrorType int
 const (
 	ErrUnsupported ErrorType = iota
 	ErrServerError
-	ErrNotFound
-	ErrConditionMismatch
+	ErrFailed
 )
 
 type Error struct {

@@ -66,8 +66,13 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 		}
 		client, err := sdi.FindClientById(cid)
 		if err != nil {
-			te.failByInvalidClientError(w, inHeader)
-			return
+			if err.Type() == sd.ErrFailed {
+				te.failByInvalidClientError(w, inHeader)
+				return
+			} else {
+				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
+				return
+			}
 		}
 		if client.Secret() != sec {
 			te.failByInvalidClientError(w, inHeader)
@@ -77,9 +82,9 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 			te.fail(w, oer.NewOAuthSimpleError(oer.ErrUnauthorizedClient))
 			return
 		}
-		res, err := h(r, client, sdi)
-		if err != nil {
-			te.fail(w, err)
+		res, oerr := h(r, client, sdi)
+		if oerr != nil {
+			te.fail(w, oerr)
 			return
 		} else {
 			te.success(w, res)

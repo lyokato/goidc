@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/lyokato/goidc/crypto"
-	oer "github.com/lyokato/goidc/oauth_error"
 	sd "github.com/lyokato/goidc/service_data"
 )
 
@@ -71,7 +70,7 @@ func (s *TestStore) CreateNewClient(ownerId int64, id, secret, redirectURI strin
 	return c
 }
 
-func (s *TestStore) CreateOrUpdateAuthInfoDirect(uid int64, clientId, scope string) (sd.AuthInfoInterface, *oer.OAuthError) {
+func (s *TestStore) CreateOrUpdateAuthInfoDirect(uid int64, clientId, scope string) (sd.AuthInfoInterface, *sd.Error) {
 	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
 	if !exists {
 		infoId := s.infoIdPod
@@ -97,7 +96,7 @@ func (s *TestStore) CreateOrUpdateAuthInfoDirect(uid int64, clientId, scope stri
 }
 
 func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, redirectURI, subject, scope string,
-	code string, codeExpiresIn int64, codeVerifier, nonce string) (sd.AuthInfoInterface, *oer.OAuthError) {
+	code string, codeExpiresIn int64, codeVerifier, nonce string) (sd.AuthInfoInterface, *sd.Error) {
 	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
 	if !exists {
 		infoId := s.infoIdPod
@@ -149,60 +148,60 @@ func (s *TestStore) Issure() string {
 	return "example.org"
 }
 
-func (s *TestStore) FindUserId(username, password string) (int64, *oer.OAuthError) {
+func (s *TestStore) FindUserId(username, password string) (int64, *sd.Error) {
 	for _, u := range s.users {
 		if u.Username == username && u.Password == password {
 			return u.Id, nil
 		}
 	}
-	return -1, oer.NewOAuthError(oer.ErrInvalidClient, "")
+	return -1, sd.NewError(sd.ErrFailed)
 }
 
-func (s *TestStore) FindClientById(cid string) (sd.ClientInterface, *oer.OAuthError) {
+func (s *TestStore) FindClientById(cid string) (sd.ClientInterface, *sd.Error) {
 	c, exists := s.clients[cid]
 	if !exists {
 		// not found
-		return nil, oer.NewOAuthError(oer.ErrInvalidClient, "")
+		return nil, sd.NewError(sd.ErrFailed)
 	}
 	return c, nil
 }
 
-func (s *TestStore) FindAuthInfoByCode(code string) (sd.AuthInfoInterface, *oer.OAuthError) {
+func (s *TestStore) FindAuthInfoByCode(code string) (sd.AuthInfoInterface, *sd.Error) {
 	for _, i := range s.infos {
 		if i.Code() == code {
 			return i, nil
 		}
 	}
 	// TODO check error type
-	return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+	return nil, sd.NewError(sd.ErrFailed)
 }
 
-func (s *TestStore) FindAuthInfoById(id int64) (sd.AuthInfoInterface, *oer.OAuthError) {
+func (s *TestStore) FindAuthInfoById(id int64) (sd.AuthInfoInterface, *sd.Error) {
 	i, exists := s.infos[id]
 	if !exists {
-		return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+		return nil, sd.NewError(sd.ErrFailed)
 	}
 	return i, nil
 }
 
-func (s *TestStore) FindAccessTokenByAccessToken(token string) (sd.AccessTokenInterface, *oer.OAuthError) {
+func (s *TestStore) FindAccessTokenByAccessToken(token string) (sd.AccessTokenInterface, *sd.Error) {
 	at, exists := s.accessTokenes[token]
 	if !exists {
-		return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+		return nil, sd.NewError(sd.ErrFailed)
 	}
 	return at, nil
 }
 
-func (s *TestStore) FindAccessTokenByRefreshToken(token string) (sd.AccessTokenInterface, *oer.OAuthError) {
+func (s *TestStore) FindAccessTokenByRefreshToken(token string) (sd.AccessTokenInterface, *sd.Error) {
 	for _, at := range s.accessTokenes {
 		if at.RefreshToken() == token {
 			return at, nil
 		}
 	}
-	return nil, oer.NewOAuthError(oer.ErrInvalidRequest, "")
+	return nil, sd.NewError(sd.ErrFailed)
 }
 
-func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface, offlineAccess bool) (sd.AccessTokenInterface, *oer.OAuthError) {
+func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface, offlineAccess bool) (sd.AccessTokenInterface, *sd.Error) {
 	avalue := fmt.Sprintf("ACCESS_TOKEN_%d", info.Id())
 	rvalue := fmt.Sprintf("REFRESH_TOKEN_%d", info.Id())
 	if !offlineAccess {
@@ -214,7 +213,7 @@ func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface, offlineAccess b
 	return t, nil
 }
 
-func (s *TestStore) RefreshAccessToken(info sd.AuthInfoInterface, old sd.AccessTokenInterface, offlineAccess bool) (sd.AccessTokenInterface, *oer.OAuthError) {
+func (s *TestStore) RefreshAccessToken(info sd.AuthInfoInterface, old sd.AccessTokenInterface, offlineAccess bool) (sd.AccessTokenInterface, *sd.Error) {
 	oldToken := old.AccessToken()
 	token, _ := s.accessTokenes[oldToken]
 	token.accessToken = token.accessToken + ":R"

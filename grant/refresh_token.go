@@ -26,7 +26,11 @@ func RefreshToken() *GrantHandler {
 
 			old, err := sdi.FindAccessTokenByRefreshToken(rt)
 			if err != nil {
-				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				if err.Type() == sd.ErrFailed {
+					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 
 			if old.RefreshTokenExpiresIn()+old.CreatedAt() < time.Now().Unix() {
@@ -36,7 +40,11 @@ func RefreshToken() *GrantHandler {
 
 			info, err := sdi.FindAuthInfoById(old.AuthId())
 			if err != nil {
-				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				if err.Type() == sd.ErrFailed {
+					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 			if info.ClientId() != c.Id() {
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -48,7 +56,11 @@ func RefreshToken() *GrantHandler {
 
 			token, err := sdi.RefreshAccessToken(info, old, true)
 			if err != nil {
-				return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				if err.Type() == sd.ErrFailed {
+					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 
 			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())

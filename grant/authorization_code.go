@@ -33,9 +33,11 @@ func AuthorizationCode() *GrantHandler {
 			}
 			info, err := sdi.FindAuthInfoByCode(code)
 			if err != nil {
-				// TODO code was valid or not?
-				// if code is invalid should return "invalid_grant"
-				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				if err.Type() == sd.ErrFailed {
+					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 			if info.ClientId() != c.Id() {
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -72,7 +74,11 @@ func AuthorizationCode() *GrantHandler {
 			token, err := sdi.CreateAccessToken(info,
 				scope.IncludeOfflineAccess(info.Scope()))
 			if err != nil {
-				return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				if err.Type() == sd.ErrFailed {
+					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 
 			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())
