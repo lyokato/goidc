@@ -31,6 +31,10 @@ func RefreshToken() *GrantHandler {
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
+			} else {
+				if old == nil {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 
 			if old.RefreshTokenExpiresIn()+old.CreatedAt() < time.Now().Unix() {
@@ -43,6 +47,10 @@ func RefreshToken() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
+			} else {
+				if info == nil {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
@@ -59,6 +67,10 @@ func RefreshToken() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
+			} else {
+				if token == nil {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}

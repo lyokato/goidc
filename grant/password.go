@@ -30,7 +30,11 @@ func Password() *GrantHandler {
 
 			uid, err := sdi.FindUserId(username, password)
 			if err != nil {
-				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				if err.Type() == sd.ErrFailed {
+					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
 			}
 
 			info, err := sdi.CreateOrUpdateAuthInfoDirect(uid, c.Id(), scp_req)
@@ -38,6 +42,10 @@ func Password() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
+			} else {
+				if info == nil {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
@@ -48,6 +56,10 @@ func Password() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else {
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
+			} else {
+				if token == nil {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
