@@ -51,36 +51,36 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, "missing 'grant_type' parameter"))
 			return
 		}
-		if h, exists := te.handlers[gt]; exists {
-			if cid, sec, exists := basic_auth.FindClientCredential(r); exists {
-				client, err := sdi.FindClientById(cid)
-				if err != nil {
-					te.fail(w, err)
-					return
-				}
-				if client.Secret() != sec {
-					te.fail(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
-					return
-				}
-				if !client.CanUseGrantType(gt) {
-					te.fail(w, oer.NewOAuthSimpleError(oer.ErrUnauthorizedClient))
-					return
-				}
-				res, err := h(r, client, sdi)
-				if err != nil {
-					te.fail(w, err)
-					return
-				} else {
-					te.success(w, res)
-					return
-				}
-			} else {
-				te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, ""))
-				return
-			}
-		} else {
+		h, exists := te.handlers[gt]
+		if !exists {
 			te.fail(w, oer.NewOAuthError(oer.ErrUnsupportedGrantType,
 				fmt.Sprintf("unsupported 'grant_type' parameter: '%s'", gt)))
+			return
+		}
+		cid, sec, exists := basic_auth.FindClientCredential(r)
+		if !exists {
+			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest, ""))
+			return
+		}
+		client, err := sdi.FindClientById(cid)
+		if err != nil {
+			te.fail(w, err)
+			return
+		}
+		if client.Secret() != sec {
+			te.fail(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+			return
+		}
+		if !client.CanUseGrantType(gt) {
+			te.fail(w, oer.NewOAuthSimpleError(oer.ErrUnauthorizedClient))
+			return
+		}
+		res, err := h(r, client, sdi)
+		if err != nil {
+			te.fail(w, err)
+			return
+		} else {
+			te.success(w, res)
 			return
 		}
 	}
