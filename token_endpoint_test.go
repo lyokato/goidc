@@ -209,6 +209,26 @@ func TestTokenEndpointInvalidClient(t *testing.T) {
 		map[string]th.Matcher{
 			"error": th.NewStrMatcher("invalid_client"),
 		})
+
+	// client_id is valid, but password isn't
+	th.TokenEndpointErrorTest(t, ts,
+		map[string]string{
+			"grant_type": "authorization_code",
+		},
+		map[string]string{
+			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
+			"Authorization": basic_auth.Header("client_id_01", "client_secret_000"),
+		},
+		401,
+		map[string]th.Matcher{
+			"Content-Type":     th.NewStrMatcher("application/json; charset=UTF-8"),
+			"Pragma":           th.NewStrMatcher("no-cache"),
+			"Cache-Control":    th.NewStrMatcher("no-store"),
+			"WWW-Authenticate": th.NewStrMatcher("Basic realm=\"api.example.org\""),
+		},
+		map[string]th.Matcher{
+			"error": th.NewStrMatcher("invalid_client"),
+		})
 }
 
 func TestTokenEndpointUnauthorizedClient(t *testing.T) {
