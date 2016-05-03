@@ -25,7 +25,7 @@ func testProtectedResourceHandler(w http.ResponseWriter, r *http.Request) {
 	body, _ := json.Marshal(struct {
 		ClientId string `json:"client_id"`
 		Scope    string `json:"scope"`
-		UserId   int64  `json:"user_id"`
+		UserId   string `json:"user_id"`
 	}{
 		r.Header.Get("REMOTE_USER"),
 		r.Header.Get("X_OAUTH_CLIENT_ID"),
