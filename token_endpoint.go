@@ -97,12 +97,16 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 		}
 		if client.Secret() != sec {
 			te.logger.Info(log.TokenEndpointLog(gt, log.ClientAuthenticationFailed,
-				map[string]string{"client_id": cid}, "'client_secret' mismatch."))
+				map[string]string{
+					"client_id":       cid,
+					"remote_addr":     r.Header.Get("REMOTE_ADDR"),
+					"x-forwarded-for": r.Header.Get("X-FORWARDED-FOR"),
+				}, "'client_secret' mismatch."))
 			te.failByInvalidClientError(w, inHeader)
 			return
 		}
 		if !client.CanUseGrantType(gt) {
-			te.logger.Info(log.TokenEndpointLog(gt, log.ClientAuthenticationFailed,
+			te.logger.Info(log.TokenEndpointLog(gt, log.UnauthorizedGrantType,
 				map[string]string{"client_id": cid}, "unauthorized 'grant_type'."))
 			te.fail(w, oer.NewOAuthSimpleError(oer.ErrUnauthorizedClient))
 			return
