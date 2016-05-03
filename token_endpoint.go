@@ -23,6 +23,10 @@ type TokenEndpoint struct {
 	errorURIBuilder oer.OAuthErrorURIBuilder
 }
 
+func (te *TokenEndpoint) SetLogger(l log.Logger) {
+	te.logger = l
+}
+
 func (te *TokenEndpoint) SetErrorURI(uri string) {
 	te.errorURIBuilder = func(_ oer.OAuthErrorType) string { return uri }
 }
