@@ -37,7 +37,7 @@ func AuthorizationCode() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
+					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
 						map[string]string{"method": "FindAuthInfoByCode"},
 						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -46,7 +46,7 @@ func AuthorizationCode() *GrantHandler {
 				}
 			} else {
 				if info == nil {
-					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
+					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
 						map[string]string{"method": "FindAuthInfoByCode"},
 						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -95,7 +95,7 @@ func AuthorizationCode() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
+					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
 						map[string]string{"method": "CreateAccessToken"},
 						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -104,7 +104,7 @@ func AuthorizationCode() *GrantHandler {
 				}
 			} else {
 				if token == nil {
-					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
+					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
 						map[string]string{"method": "CreateAccessToken"},
 						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
