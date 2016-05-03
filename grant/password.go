@@ -34,8 +34,9 @@ func Password() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-						TypePassword, "FindUserId")
+					logger.Warn(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
+						map[string]string{"method": "FindUserId"},
+						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -47,16 +48,18 @@ func Password() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-						TypePassword, "CreateOrUpdateAuthInfoDirect")
+					logger.Warn(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
+						map[string]string{"method": "CreateOrUpdateAuthInfoDirect"},
+						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if info == nil {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
-						TypePassword, "CreateOrUpdateAuthInfoDirect")
+					logger.Warn(log.TokenEndpointLog(TypePassword, log.InterfaceError,
+						map[string]string{"method": "CreateOrUpdateAuthInfoDirect"},
+						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
@@ -67,16 +70,18 @@ func Password() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-						TypePassword, "CreateAccessToken")
+					logger.Warn(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
+						map[string]string{"method": "CreateAccessToken"},
+						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if token == nil {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
-						TypePassword, "CreateAccessToken")
+					logger.Warn(log.TokenEndpointLog(TypePassword, log.InterfaceError,
+						map[string]string{"method": "CreateAccessToken"},
+						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}

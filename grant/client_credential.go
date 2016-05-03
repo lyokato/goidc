@@ -29,16 +29,18 @@ func ClientCredentials() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-						TypeClientCredentials, "CreateOrUpdateAuthInfoDirect")
+					logger.Warn(log.TokenEndpointLog(TypeClientCredentials, log.InterfaceUnsupported,
+						map[string]string{"method": "CreateOrUpdateAuthInfoDirect"},
+						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if info == nil {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
-						TypeClientCredentials, "CreateOrUpdateAuthInfoDirect")
+					logger.Warn(log.TokenEndpointLog(TypeClientCredentials, log.InterfaceError,
+						map[string]string{"method": "CreateOrUpdateAuthInfoDirect"},
+						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
@@ -49,16 +51,18 @@ func ClientCredentials() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-						TypeClientCredentials, "CreateAccessToken")
+					logger.Warn(log.TokenEndpointLog(TypeClientCredentials, log.InterfaceUnsupported,
+						map[string]string{"method": "CreateAccessToken"},
+						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if token == nil {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
-						TypeClientCredentials, "CreateAccessToken")
+					logger.Warn(log.TokenEndpointLog(TypeClientCredentials, log.InterfaceError,
+						map[string]string{"method": "CreateAccessToken"},
+						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}

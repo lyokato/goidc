@@ -77,8 +77,8 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 				te.failByInvalidClientError(w, inHeader)
 				return
 			} else if err.Type() == sd.ErrUnsupported {
-				te.logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-					gt, "FindClientById")
+				te.logger.Warn(log.TokenEndpointLog(gt, log.InterfaceUnsupported,
+					map[string]string{"method": "FindClientById"}, "the method returns 'unsupported' error."))
 				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
 				return
 			} else {
@@ -87,21 +87,21 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 			}
 		} else {
 			if client == nil {
-				te.logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
-					gt, "FindClientById")
+				te.logger.Warn(log.TokenEndpointLog(gt, log.InterfaceError,
+					map[string]string{"method": "FindClientById"}, "the method returns (nil, nil)."))
 				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
 				return
 			}
 		}
 		if client.Secret() != sec {
-			te.logger.Infof("[goidc.TokenEndpoint:%s] <ClientAuthenticationFailed:%s>: 'client_secret' mismatch.",
-				gt, cid)
+			te.logger.Info(log.TokenEndpointLog(gt, log.ClientAuthenticationFailed,
+				map[string]string{"client_id": cid}, "'client_secret' mismatch."))
 			te.failByInvalidClientError(w, inHeader)
 			return
 		}
 		if !client.CanUseGrantType(gt) {
-			te.logger.Infof("[goidc.TokenEndpoint:%s] <ClientAuthenticationFailed:%s>: unauthorized 'grant_type'",
-				gt, cid)
+			te.logger.Info(log.TokenEndpointLog(gt, log.ClientAuthenticationFailed,
+				map[string]string{"client_id": cid}, "unauthorized 'grant_type'."))
 			te.fail(w, oer.NewOAuthSimpleError(oer.ErrUnauthorizedClient))
 			return
 		}
