@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/lyokato/goidc/grant"
+	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
 	sd "github.com/lyokato/goidc/service_data"
 )
@@ -17,6 +18,7 @@ var defaultResponseHeaders = map[string]string{
 
 type TokenEndpoint struct {
 	realm           string
+	logger          log.Logger
 	handlers        map[string]grant.GrantHandlerFunc
 	errorURIBuilder oer.OAuthErrorURIBuilder
 }
@@ -32,6 +34,7 @@ func (te *TokenEndpoint) SetErrorURIBuilder(builder oer.OAuthErrorURIBuilder) {
 func NewTokenEndpoint(realm string) *TokenEndpoint {
 	return &TokenEndpoint{
 		realm:    realm,
+		logger:   log.NewDefaultLogger(),
 		handlers: make(map[string]grant.GrantHandlerFunc),
 	}
 }
@@ -69,25 +72,36 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 			if err.Type() == sd.ErrFailed {
 				te.failByInvalidClientError(w, inHeader)
 				return
+			} else if err.Type() == sd.ErrUnsupported {
+				te.logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
+					gt, "FindClientById")
+				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
+				return
 			} else {
 				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
 				return
 			}
 		} else {
 			if client == nil {
+				te.logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
+					gt, "FindClientById")
 				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
 				return
 			}
 		}
 		if client.Secret() != sec {
+			te.logger.Infof("[goidc.TokenEndpoint:%s] <ClientAuthenticationFailed:%s>: 'client_secret' mismatch.",
+				gt, cid)
 			te.failByInvalidClientError(w, inHeader)
 			return
 		}
 		if !client.CanUseGrantType(gt) {
+			te.logger.Infof("[goidc.TokenEndpoint:%s] <ClientAuthenticationFailed:%s>: unauthorized 'grant_type'",
+				gt, cid)
 			te.fail(w, oer.NewOAuthSimpleError(oer.ErrUnauthorizedClient))
 			return
 		}
-		res, oerr := h(r, client, sdi)
+		res, oerr := h(r, client, sdi, te.logger)
 		if oerr != nil {
 			te.fail(w, oerr)
 			return

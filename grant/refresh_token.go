@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/lyokato/goidc/log"
 	"github.com/lyokato/goidc/scope"
 	sd "github.com/lyokato/goidc/service_data"
 
@@ -16,7 +17,7 @@ func RefreshToken() *GrantHandler {
 	return &GrantHandler{
 		TypeRefreshToken,
 		func(r *http.Request, c sd.ClientInterface,
-			sdi sd.ServiceDataInterface) (*Response, *oer.OAuthError) {
+			sdi sd.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			rt := r.FormValue("refresh_token")
 			if rt == "" {
@@ -28,16 +29,24 @@ func RefreshToken() *GrantHandler {
 			if err != nil {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else if err.Type() == sd.ErrUnsupported {
+					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
+						TypeRefreshToken, "FindAccessTokenByRefreshToken")
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if old == nil {
+					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
+						TypeRefreshToken, "FindAccessTokenByRefreshToken")
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 
 			if old.RefreshTokenExpiresIn()+old.CreatedAt() < time.Now().Unix() {
+				logger.Infof("[goidc.TokenEndpoint:%s] <RefreshTokenCondiitonMismatch:%s>: expired.",
+					TypeAuthorizationCode, c.Id())
 				return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
 					"expired 'refresh_token'")
 			}
@@ -46,19 +55,29 @@ func RefreshToken() *GrantHandler {
 			if err != nil {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else if err.Type() == sd.ErrUnsupported {
+					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
+						TypeRefreshToken, "FindAuthInfoById")
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if info == nil {
+					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
+						TypeRefreshToken, "FindAuthInfoById")
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 			if info.ClientId() != c.Id() {
+				logger.Infof("[goidc.TokenEndpoint:%s] <AuthInfoConditionMismatch:%s>: 'client_id' mismatch.",
+					TypeRefreshToken, c.Id())
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 			scp := info.Scope()
 			if !scope.IncludeOfflineAccess(scp) {
+				logger.Infof("[goidc.TokenEndpoint:%s] <ScopeConditionMismatch:%s>: 'offline_access' not found.",
+					TypeRefreshToken, c.Id())
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 
@@ -66,11 +85,17 @@ func RefreshToken() *GrantHandler {
 			if err != nil {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else if err.Type() == sd.ErrUnsupported {
+					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
+						TypeRefreshToken, "RefreshAccessToken")
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if token == nil {
+					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
+						TypeRefreshToken, "RefreshAccessToken")
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
