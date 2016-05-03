@@ -5,10 +5,10 @@ import (
 	"strconv"
 )
 
-type TokenEndpointLogEvent int
+type LogEvent int
 
 const (
-	ClientAuthenticationFailed TokenEndpointLogEvent = iota
+	AuthenticationFailed LogEvent = iota
 	UnauthorizedGrantType
 	AuthInfoConditionMismatch
 	ScopeConditionMismatch
@@ -17,10 +17,10 @@ const (
 	InterfaceError
 )
 
-func (e TokenEndpointLogEvent) String() string {
+func (e LogEvent) String() string {
 	switch e {
-	case ClientAuthenticationFailed:
-		return "ClientAuthenticationFailed"
+	case AuthenticationFailed:
+		return "AuthenticationFailed"
 	case UnauthorizedGrantType:
 		return "UnauthorizedGrantType"
 	case ScopeConditionMismatch:
@@ -38,17 +38,17 @@ func (e TokenEndpointLogEvent) String() string {
 	}
 }
 
-func TokenEndpointLog(grantType string, ev TokenEndpointLogEvent,
+func TokenEndpointLog(grantType string, ev LogEvent,
 	params map[string]string, msg string) string {
 	return EndpointLog("TokenEndpoint", grantType, ev, params, msg)
 }
 
-func ProtectedResourceLog(path string, ev TokenEndpointLogEvent,
+func ProtectedResourceLog(path string, ev LogEvent,
 	params map[string]string, msg string) string {
 	return EndpointLog("ProtectedResource", path, ev, params, msg)
 }
 
-func EndpointLog(endpoint, category string, ev TokenEndpointLogEvent,
+func EndpointLog(endpoint, category string, ev LogEvent,
 	params map[string]string, msg string) string {
 	attributes := ""
 	if params != nil {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/google/go-querystring/query"
@@ -167,14 +168,14 @@ func (e *OAuthError) JSON() []byte {
 func (e *OAuthError) Header(realm string) string {
 	params := make([]string, 0)
 	if realm != "" {
-		params = append(params, fmt.Sprintf("realm=\"%s\"", realm))
+		params = append(params, fmt.Sprintf("realm=%s", strconv.Quote(realm)))
 	}
-	params = append(params, fmt.Sprintf("error=\"%s\"", e.Type.String()))
+	params = append(params, fmt.Sprintf("error=%s", strconv.Quote(e.Type.String())))
 	if e.Description != "" {
-		params = append(params, fmt.Sprintf("error_description=\"%s\"", e.Description))
+		params = append(params, fmt.Sprintf("error_description=%s", strconv.Quote(e.Description)))
 	}
 	if e.URI != "" {
-		params = append(params, fmt.Sprintf("error_uri=\"%s\"", e.URI))
+		params = append(params, fmt.Sprintf("error_uri=%s", strconv.Quote(e.URI)))
 	}
 	return "Bearer " + strings.Join(params, ", ")
 }
