@@ -91,6 +91,12 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	at, err := sdi.FindAccessTokenByAccessToken(rt)
 	if err != nil {
 		if err.Type() == sd.ErrFailed {
+			rp.logger.Info(log.TokenEndpointLog(r.URL.Path, log.AuthenticationFailed,
+				map[string]string{
+					"access_token":    rt,
+					"remote_addr":     r.Header.Get("REMOTE_ADDR"),
+					"x-forwarded-for": r.Header.Get("X-FORWARDED-FOR"),
+				}, "'access_token' not found."))
 			rp.unauthorize(w, oer.NewOAuthSimpleError(oer.ErrInvalidToken))
 			return false
 		} else if err.Type() == sd.ErrUnsupported {

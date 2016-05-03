@@ -96,7 +96,7 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 			}
 		}
 		if client.Secret() != sec {
-			te.logger.Info(log.TokenEndpointLog(gt, log.ClientAuthenticationFailed,
+			te.logger.Info(log.TokenEndpointLog(gt, log.AuthenticationFailed,
 				map[string]string{
 					"client_id":       cid,
 					"remote_addr":     r.Header.Get("REMOTE_ADDR"),
