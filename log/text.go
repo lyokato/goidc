@@ -34,11 +34,21 @@ func (e TokenEndpointLogEvent) String() string {
 
 func TokenEndpointLog(grantType string, ev TokenEndpointLogEvent,
 	params map[string]string, msg string) string {
+	return EndpointLog("TokenEndpoint", grantType, ev, params, msg)
+}
+
+func ProtectedResourceLog(path string, ev TokenEndpointLogEvent,
+	params map[string]string, msg string) string {
+	return EndpointLog("ProtectedResource", path, ev, params, msg)
+}
+
+func EndpointLog(endpoint, grantType string, ev TokenEndpointLogEvent,
+	params map[string]string, msg string) string {
 	attributes := ""
 	if params != nil {
 		for k, v := range params {
 			attributes = attributes + fmt.Sprintf(" %s='%s'", k, v)
 		}
 	}
-	return fmt.Sprintf("[goidc.TokenEndpoint:%s] <%s%s>: %s", grantType, ev.String(), attributes, msg)
+	return fmt.Sprintf("[goidc.%s:%s] <%s%s>: %s", endpoint, grantType, ev.String(), attributes, msg)
 }
