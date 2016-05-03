@@ -37,27 +37,29 @@ func AuthorizationCode() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-						TypeAuthorizationCode, "FindAuthInfoByCode")
+					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
+						map[string]string{"method": "FindAuthInfoByCode"},
+						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if info == nil {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
-						TypeAuthorizationCode, "FindAuthInfoByCode")
+					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
+						map[string]string{"method": "FindAuthInfoByCode"},
+						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 			if info.ClientId() != c.Id() {
-				logger.Infof("[goidc.TokenEndpoint:%s] <AuthInfoConditionMismatch:%s>: 'client_id' mismatch.",
-					TypeAuthorizationCode, c.Id())
+				logger.Info(log.TokenEndpointLog(TypeAuthorizationCode, log.AuthInfoConditionMismatch,
+					map[string]string{"client_id": c.Id()}, "'client_id' mismatch"))
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 			if info.RedirectURI() != uri {
-				logger.Infof("[goidc.TokenEndpoint:%s] <AuthInfoConditionMismatch:%s>: 'redirect_uri' mismatch.",
-					TypeAuthorizationCode, c.Id())
+				logger.Info(log.TokenEndpointLog(TypeAuthorizationCode, log.AuthInfoConditionMismatch,
+					map[string]string{"client_id": c.Id()}, "'redirect_uri' mismatch"))
 				return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
 					fmt.Sprintf("indicated 'redirect_uri' (%s) is not allowed for this client", uri))
 			}
@@ -93,16 +95,18 @@ func AuthorizationCode() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-						TypeAuthorizationCode, "CreateAccessToken")
+					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
+						map[string]string{"method": "CreateAccessToken"},
+						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if token == nil {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
-						TypeAuthorizationCode, "CreateAccessToken")
+					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
+						map[string]string{"method": "CreateAccessToken"},
+						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}

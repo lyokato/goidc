@@ -30,23 +30,26 @@ func RefreshToken() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-						TypeRefreshToken, "FindAccessTokenByRefreshToken")
+					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceUnsupported,
+						map[string]string{"method": "FindAccessTokenByRefreshToken"},
+						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if old == nil {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
-						TypeRefreshToken, "FindAccessTokenByRefreshToken")
+					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceError,
+						map[string]string{"method": "FindAccessTokenByRefreshToken"},
+						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 
 			if old.RefreshTokenExpiresIn()+old.CreatedAt() < time.Now().Unix() {
-				logger.Infof("[goidc.TokenEndpoint:%s] <RefreshTokenCondiitonMismatch:%s>: expired.",
-					TypeAuthorizationCode, c.Id())
+				logger.Info(log.TokenEndpointLog(TypeRefreshToken, log.RefreshTokenConditionMismatch,
+					map[string]string{"client_id": c.Id()},
+					"expired refresh_token"))
 				return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
 					"expired 'refresh_token'")
 			}
@@ -56,28 +59,30 @@ func RefreshToken() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-						TypeRefreshToken, "FindAuthInfoById")
+					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceUnsupported,
+						map[string]string{"method": "FindAuthInfoById"},
+						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if info == nil {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
-						TypeRefreshToken, "FindAuthInfoById")
+					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceError,
+						map[string]string{"method": "FindAuthInfoById"},
+						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 			if info.ClientId() != c.Id() {
-				logger.Infof("[goidc.TokenEndpoint:%s] <AuthInfoConditionMismatch:%s>: 'client_id' mismatch.",
-					TypeRefreshToken, c.Id())
+				logger.Info(log.TokenEndpointLog(TypeRefreshToken, log.AuthInfoConditionMismatch,
+					map[string]string{"client_id": c.Id()}, "'client_id' mismatch"))
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 			scp := info.Scope()
 			if !scope.IncludeOfflineAccess(scp) {
-				logger.Infof("[goidc.TokenEndpoint:%s] <ScopeConditionMismatch:%s>: 'offline_access' not found.",
-					TypeRefreshToken, c.Id())
+				logger.Info(log.TokenEndpointLog(TypeRefreshToken, log.ScopeConditionMismatch,
+					map[string]string{"client_id": c.Id()}, "'offline_access' not found"))
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 
@@ -86,16 +91,18 @@ func RefreshToken() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
-						TypeRefreshToken, "RefreshAccessToken")
+					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceUnsupported,
+						map[string]string{"method": "RefreshAccessToken"},
+						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if token == nil {
-					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
-						TypeRefreshToken, "RefreshAccessToken")
+					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceError,
+						map[string]string{"method": "RefreshAccessToken"},
+						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
