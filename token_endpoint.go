@@ -77,7 +77,7 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 				te.failByInvalidClientError(w, inHeader)
 				return
 			} else if err.Type() == sd.ErrUnsupported {
-				te.logger.Warn(log.TokenEndpointLog(gt, log.InterfaceUnsupported,
+				te.logger.Error(log.TokenEndpointLog(gt, log.InterfaceUnsupported,
 					map[string]string{"method": "FindClientById"},
 					"the method returns 'unsupported' error."))
 				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
@@ -88,7 +88,7 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 			}
 		} else {
 			if client == nil {
-				te.logger.Warn(log.TokenEndpointLog(gt, log.InterfaceError,
+				te.logger.Error(log.TokenEndpointLog(gt, log.InterfaceError,
 					map[string]string{"method": "FindClientById"},
 					"the method returns (nil, nil)."))
 				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))

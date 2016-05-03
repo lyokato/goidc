@@ -30,7 +30,7 @@ func RefreshToken() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceUnsupported,
+					logger.Error(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceUnsupported,
 						map[string]string{"method": "FindAccessTokenByRefreshToken"},
 						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -39,7 +39,7 @@ func RefreshToken() *GrantHandler {
 				}
 			} else {
 				if old == nil {
-					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceError,
+					logger.Error(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceError,
 						map[string]string{"method": "FindAccessTokenByRefreshToken"},
 						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -59,7 +59,7 @@ func RefreshToken() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceUnsupported,
+					logger.Error(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceUnsupported,
 						map[string]string{"method": "FindAuthInfoById"},
 						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -68,7 +68,7 @@ func RefreshToken() *GrantHandler {
 				}
 			} else {
 				if info == nil {
-					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceError,
+					logger.Error(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceError,
 						map[string]string{"method": "FindAuthInfoById"},
 						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -91,7 +91,7 @@ func RefreshToken() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceUnsupported,
+					logger.Error(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceUnsupported,
 						map[string]string{"method": "RefreshAccessToken"},
 						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -100,7 +100,7 @@ func RefreshToken() *GrantHandler {
 				}
 			} else {
 				if token == nil {
-					logger.Warn(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceError,
+					logger.Error(log.TokenEndpointLog(TypeRefreshToken, log.InterfaceError,
 						map[string]string{"method": "RefreshAccessToken"},
 						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)

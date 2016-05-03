@@ -34,7 +34,7 @@ func Password() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warn(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
+					logger.Error(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
 						map[string]string{"method": "FindUserId"},
 						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -43,13 +43,13 @@ func Password() *GrantHandler {
 				}
 			}
 
-			info, err := sdi.CreateOrUpdateAuthInfoDirect(uid, c.Id(), scp_req)
+			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.Id(), scp_req, nil)
 			if err != nil {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warn(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
-						map[string]string{"method": "CreateOrUpdateAuthInfoDirect"},
+					logger.Error(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
+						map[string]string{"method": "CreateOrUpdateAuthInfo"},
 						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
@@ -57,8 +57,8 @@ func Password() *GrantHandler {
 				}
 			} else {
 				if info == nil {
-					logger.Warn(log.TokenEndpointLog(TypePassword, log.InterfaceError,
-						map[string]string{"method": "CreateOrUpdateAuthInfoDirect"},
+					logger.Error(log.TokenEndpointLog(TypePassword, log.InterfaceError,
+						map[string]string{"method": "CreateOrUpdateAuthInfo"},
 						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
@@ -70,7 +70,7 @@ func Password() *GrantHandler {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Warn(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
+					logger.Error(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
 						map[string]string{"method": "CreateAccessToken"},
 						"the method returns 'unsupported' error."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -79,7 +79,7 @@ func Password() *GrantHandler {
 				}
 			} else {
 				if token == nil {
-					logger.Warn(log.TokenEndpointLog(TypePassword, log.InterfaceError,
+					logger.Error(log.TokenEndpointLog(TypePassword, log.InterfaceError,
 						map[string]string{"method": "CreateAccessToken"},
 						"the method returns (nil, nil)."))
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)

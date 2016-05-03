@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	sd "github.com/lyokato/goidc/service_data"
@@ -41,10 +40,7 @@ func TestResourceProtector(t *testing.T) {
 	sdi := th.NewTestStore()
 	user := sdi.CreateNewUser("user01", "pass01")
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
-	code_verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-	ai, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
-		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile offline_access",
-		"code_value", int64(60*60*24), code_verifier, "07dfa90f")
+	ai, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile offline_access", nil)
 	token, _ := sdi.CreateAccessToken(ai, true)
 
 	rp := NewResourceProtector("api.example.org")

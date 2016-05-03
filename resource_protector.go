@@ -94,7 +94,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 			rp.unauthorize(w, oer.NewOAuthSimpleError(oer.ErrInvalidToken))
 			return false
 		} else if err.Type() == sd.ErrUnsupported {
-			rp.logger.Warn(log.ProtectedResourceLog(r.URL.Path,
+			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path,
 				log.InterfaceUnsupported,
 				map[string]string{"method": "FindAccessTokenByAccessToken"},
 				"the method returns 'unsupported' error."))
@@ -106,7 +106,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		}
 	} else {
 		if at == nil {
-			rp.logger.Warn(log.ProtectedResourceLog(r.URL.Path, log.InterfaceError,
+			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path, log.InterfaceError,
 				map[string]string{"method": "FindAccessTokenByAccessToken"},
 				"the method returns (nil, nil)."))
 			w.WriteHeader(http.StatusInternalServerError)
@@ -126,7 +126,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 			rp.unauthorize(w, oer.NewOAuthSimpleError(oer.ErrInvalidToken))
 			return false
 		} else if err.Type() == sd.ErrUnsupported {
-			rp.logger.Warn(log.ProtectedResourceLog(r.URL.Path, log.InterfaceUnsupported,
+			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path, log.InterfaceUnsupported,
 				map[string]string{"method": "FindAuthInfoById"},
 				"the method returns 'unsupported' error."))
 			w.WriteHeader(http.StatusInternalServerError)
@@ -137,7 +137,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		}
 	} else {
 		if at == nil {
-			rp.logger.Warn(log.ProtectedResourceLog(r.URL.Path, log.InterfaceError,
+			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path, log.InterfaceError,
 				map[string]string{"method": "FindClientById"},
 				"the method returns (nil, nil)."))
 			w.WriteHeader(http.StatusInternalServerError)

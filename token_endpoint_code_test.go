@@ -2,11 +2,11 @@ package goidc
 
 import (
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	"github.com/lyokato/goidc/basic_auth"
 	"github.com/lyokato/goidc/grant"
+	sd "github.com/lyokato/goidc/service_data"
 	th "github.com/lyokato/goidc/test_helper"
 )
 
@@ -20,9 +20,15 @@ func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	code_verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
-		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile offline_access",
-		"code_value", int64(60*60*24), code_verifier, "07dfa90f")
+
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile offline_access",
+		&sd.AuthSession{
+			RedirectURI:   "http://example.org/callback",
+			Code:          "code_value",
+			CodeVerifier:  code_verifier,
+			CodeExpiresIn: int64(60 * 60 * 24),
+			Nonce:         "07dfa90f",
+		})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -191,9 +197,14 @@ func TestTokenEndpointAuthorizationCodeInvalidRequest(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
-		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile offline_access",
-		"code_value", int64(60*60*24), "", "07dfa90f")
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile offline_access",
+		&sd.AuthSession{
+			RedirectURI:   "http://example.org/callback",
+			Code:          "code_value",
+			CodeVerifier:  "",
+			CodeExpiresIn: int64(60 * 60 * 24),
+			Nonce:         "07dfa90f",
+		})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -295,9 +306,14 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
-		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile offline_access",
-		"code_value", int64(60*60*24), "", "07dfa90f")
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile offline_access",
+		&sd.AuthSession{
+			RedirectURI:   "http://example.org/callback",
+			Code:          "code_value",
+			CodeVerifier:  "",
+			CodeExpiresIn: int64(60 * 60 * 24),
+			Nonce:         "07dfa90f",
+		})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -367,9 +383,14 @@ func TestTokenEndpointAuthorizationCodeWithoutOfflineAccess(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
-		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile",
-		"code_value", int64(60*60*24), "", "07dfa90f")
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile",
+		&sd.AuthSession{
+			RedirectURI:   "http://example.org/callback",
+			Code:          "code_value",
+			CodeVerifier:  "",
+			CodeExpiresIn: int64(60 * 60 * 24),
+			Nonce:         "07dfa90f",
+		})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -411,9 +432,14 @@ func TestTokenEndpointAuthorizationCodeWithoutOpenID(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
-		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "profile offline_access",
-		"code_value", int64(60*60*24), "", "07dfa90f")
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "profile offline_access",
+		&sd.AuthSession{
+			RedirectURI:   "http://example.org/callback",
+			Code:          "code_value",
+			CodeVerifier:  "",
+			CodeExpiresIn: int64(60 * 60 * 24),
+			Nonce:         "07dfa90f",
+		})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()

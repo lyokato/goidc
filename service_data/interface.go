@@ -46,6 +46,14 @@ type (
 		CreatedAt() int64
 	}
 
+	AuthSession struct {
+		RedirectURI   string
+		Code          string
+		CodeExpiresIn int64
+		CodeVerifier  string
+		Nonce         string
+	}
+
 	ServiceDataInterface interface {
 		/*
 			Issure:
@@ -70,8 +78,6 @@ type (
 
 		// for ClientCredential/Password Grant Handler
 		FindUserId(username, password string) (int64, *Error)
-		CreateOrUpdateAuthInfo(uid int64, clientId, redirectURI, subject, scope string,
-			code string, codeExpiresIn int64, codeVerifier, nonce string) (AuthInfoInterface, *Error)
-		CreateOrUpdateAuthInfoDirect(uid int64, clientId, scope string) (AuthInfoInterface, *Error)
+		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *AuthSession) (AuthInfoInterface, *Error)
 	}
 )
