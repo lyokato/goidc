@@ -8,6 +8,7 @@ import (
 
 	"github.com/lyokato/goidc/scope"
 
+	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
 	"github.com/lyokato/goidc/pkce"
 	sd "github.com/lyokato/goidc/service_data"
@@ -19,7 +20,7 @@ func AuthorizationCode() *GrantHandler {
 	return &GrantHandler{
 		TypeAuthorizationCode,
 		func(r *http.Request, c sd.ClientInterface,
-			sdi sd.ServiceDataInterface) (*Response, *oer.OAuthError) {
+			sdi sd.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			uri := r.FormValue("redirect_uri")
 			if uri == "" {
@@ -35,19 +36,30 @@ func AuthorizationCode() *GrantHandler {
 			if err != nil {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else if err.Type() == sd.ErrUnsupported {
+					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
+						TypeAuthorizationCode, "FindAuthInfoByCode")
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if info == nil {
+					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
+						TypeAuthorizationCode, "FindAuthInfoByCode")
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 			if info.ClientId() != c.Id() {
+				logger.Infof("[goidc.TokenEndpoint:%s] <AuthInfoConditionMismatch:%s>: 'client_id' mismatch.",
+					TypeAuthorizationCode, c.Id())
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 			if info.RedirectURI() != uri {
-				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				logger.Infof("[goidc.TokenEndpoint:%s] <AuthInfoConditionMismatch:%s>: 'redirect_uri' mismatch.",
+					TypeAuthorizationCode, c.Id())
+				return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
+					fmt.Sprintf("indicated 'redirect_uri' (%s) is not allowed for this client", uri))
 			}
 
 			// RFC7636: OAuth PKCE Extension
@@ -80,11 +92,17 @@ func AuthorizationCode() *GrantHandler {
 			if err != nil {
 				if err.Type() == sd.ErrFailed {
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+				} else if err.Type() == sd.ErrUnsupported {
+					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceUnsupported:%s>: the method returns 'unsupported' error.",
+						TypeAuthorizationCode, "CreateAccessToken")
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if token == nil {
+					logger.Warnf("[goidc.TokenEndpoint:%s] <ServerError:InterfaceError:%s>: the method returns (nil, nil).",
+						TypeAuthorizationCode, "CreateAccessToken")
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
