@@ -26,9 +26,9 @@ func testProtectedResourceHandler(w http.ResponseWriter, r *http.Request) {
 		Scope    string `json:"scope"`
 		UserId   string `json:"user_id"`
 	}{
-		r.Header.Get("REMOTE_USER"),
 		r.Header.Get("X_OAUTH_CLIENT_ID"),
 		r.Header.Get("X_OAUTH_SCOPE"),
+		r.Header.Get("REMOTE_USER"),
 	})
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -47,20 +47,30 @@ func TestResourceProtector(t *testing.T) {
 	ts := httptest.NewServer(testProtectedResourceMiddleware(
 		rp, sdi, http.HandlerFunc(testProtectedResourceHandler)))
 	defer ts.Close()
-	c := http.DefaultClient
-	r, err := http.NewRequest("POST", ts.URL, nil)
-	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken()))
-	if err != nil {
-		t.Errorf("failed to build request: %s", err)
-		return
-	}
-	resp, err := c.Do(r)
-	if err != nil {
-		t.Errorf("failed http request: %s", err)
-		return
-	}
 
-	if resp.StatusCode != 200 {
-		t.Errorf("Status code - expect:%d, got:%d", 200, resp.StatusCode)
-	}
+	th.ProtectedResourceSuccessTest(t, ts, "POST",
+		map[string]string{},
+		map[string]string{
+			"Content-Type":  "application/x-www-form-urlencoded; charset=UTF-8",
+			"Authorization": fmt.Sprintf("Bearer %s", token.AccessToken()),
+		},
+		200,
+		map[string]th.Matcher{
+			"Content-Type": th.NewStrMatcher("application/json"),
+		},
+		map[string]th.Matcher{
+			"client_id": th.NewStrMatcher("client_id_01"),
+			"scope":     th.NewStrMatcher("openid profile offline_access"),
+			"user_id":   th.NewStrMatcher("0"),
+		})
+
+	th.ProtectedResourceErrorTest(t, ts, "POST",
+		map[string]string{},
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", "invalid token"),
+		},
+		401,
+		map[string]th.Matcher{
+			"WWW-Authenticate": th.NewStrMatcher("Bearer realm=\"api.example.org\", error=\"invalid_token\""),
+		})
 }

@@ -164,4 +164,5 @@ func (rp *ResourceProtector) unauthorize(w http.ResponseWriter, err *oer.OAuthEr
 	}
 	w.Header().Set("WWW-Authenticate", err.Header(rp.realm))
 	w.WriteHeader(http.StatusUnauthorized)
+	w.Write(nil)
 }

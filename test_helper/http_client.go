@@ -2,6 +2,7 @@ package test_helper
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -17,6 +18,90 @@ import (
 func GetFormValueRequestWithJSONResponse(t *testing.T, server *httptest.Server, values, requestHeaders map[string]string,
 	code int, responseHeaders map[string]Matcher) map[string]interface{} {
 	return FormValueRequestWithJSONResponse(t, server, "GET", values, requestHeaders, code, responseHeaders)
+}
+
+func ProtectedResourceSuccessTest(t *testing.T, server *httptest.Server, method string, values, requestHeaders map[string]string, code int, responseHeaders, responseValues map[string]Matcher) {
+	result := FormValueRequestWithJSONResponse(t, server, method, values, requestHeaders, code, responseHeaders)
+	for k, matcher := range responseValues {
+		rv, exists := result[k]
+		if matcher.RequireAbsent() {
+			if exists {
+				t.Errorf("Response:%s should be absent: ", k)
+				continue
+			}
+		} else {
+			if !exists {
+				t.Errorf("Response:%s not found: ", k)
+				continue
+			}
+			if !matcher.Match(rv) {
+				t.Errorf("Response:%s isn't match\n - got: %v\n - want: %v\n", k, rv, matcher.WantValue())
+			}
+		}
+	}
+}
+
+func ProtectedResourceErrorTest(t *testing.T, server *httptest.Server, method string, values, requestHeaders map[string]string, code int, responseHeaders map[string]Matcher) {
+
+	params := url.Values{}
+	for k, v := range values {
+		params.Add(k, v)
+	}
+
+	var reader io.Reader
+	if method == "POST" {
+		reader = strings.NewReader(params.Encode())
+	}
+
+	url := server.URL
+	if method == "GET" {
+		url = server.URL + "?" + params.Encode()
+	}
+
+	r, err := http.NewRequest(method, url, reader)
+	if err != nil {
+		t.Errorf("failed to build request: %v", err)
+		return
+	}
+
+	if requestHeaders != nil {
+		for k, v := range requestHeaders {
+			r.Header.Set(k, v)
+		}
+	}
+
+	c := http.DefaultClient
+	resp, err := c.Do(r)
+	if err != nil {
+		t.Errorf("failed http request: %v", err)
+		return
+	}
+
+	if resp.StatusCode != code {
+		t.Errorf("Status code - expect:%d, got:%d", code, resp.StatusCode)
+	}
+
+	fmt.Printf("%v\n", resp.Header)
+	if responseHeaders != nil {
+		for k, matcher := range responseHeaders {
+			rv := resp.Header.Get(k)
+			if matcher.RequireAbsent() {
+				if rv != "" {
+					t.Errorf("ResponseHeader:%s should be absent: ", k)
+					continue
+				}
+			} else {
+				if rv == "" {
+					t.Errorf("ResponseHeader:%s not found: ", k)
+					continue
+				}
+				if !matcher.Match(rv) {
+					t.Errorf("ResponseHeader:%s isn't match\n - got: %v\n - want: %v\n", k, rv, matcher.WantValue())
+				}
+			}
+		}
+	}
+
 }
 
 func TokenEndpointSuccessTest(t *testing.T, server *httptest.Server, values, requestHeaders map[string]string,
