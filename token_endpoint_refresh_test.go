@@ -2,11 +2,11 @@ package goidc
 
 import (
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	"github.com/lyokato/goidc/basic_auth"
 	"github.com/lyokato/goidc/grant"
+	sd "github.com/lyokato/goidc/service_data"
 	th "github.com/lyokato/goidc/test_helper"
 )
 
@@ -21,9 +21,14 @@ func TestTokenEndpointRefreshTokenInvalidRequest(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 	client.AllowToUseGrantType(grant.TypeRefreshToken)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(),
-		"http://example.org/callback", strconv.FormatInt(user.Id, 10), "openid profile offline_access",
-		"code_value", int64(60*60*24), "", "07dfa90f")
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile offline_access",
+		&sd.AuthSession{
+			RedirectURI:   "http://example.org/callback",
+			Code:          "code_value",
+			CodeVerifier:  "",
+			CodeExpiresIn: int64(60 * 60 * 24),
+			Nonce:         "07dfa90f",
+		})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()

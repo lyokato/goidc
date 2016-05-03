@@ -70,7 +70,9 @@ func (s *TestStore) CreateNewClient(ownerId int64, id, secret, redirectURI strin
 	return c
 }
 
-func (s *TestStore) CreateOrUpdateAuthInfoDirect(uid int64, clientId, scope string) (sd.AuthInfoInterface, *sd.Error) {
+func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string,
+	session *sd.AuthSession) (sd.AuthInfoInterface, *sd.Error) {
+
 	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
 	if !exists {
 		infoId := s.infoIdPod
@@ -83,41 +85,24 @@ func (s *TestStore) CreateOrUpdateAuthInfoDirect(uid int64, clientId, scope stri
 		s.infos[infoId] = i
 		s.infoIdPod++
 	}
-	i.flowType = "direct"
 	i.subject = fmt.Sprintf("%d", uid)
 	i.scope = scope
 	i.authorizedAt = time.Now().Unix()
-	i.code = ""
-	i.codeExpiresIn = 0
-	i.codeVerifier = ""
-	i.nonce = ""
-	i.redirectUri = ""
-	return i, nil
-}
-
-func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, redirectURI, subject, scope string,
-	code string, codeExpiresIn int64, codeVerifier, nonce string) (sd.AuthInfoInterface, *sd.Error) {
-	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
-	if !exists {
-		infoId := s.infoIdPod
-		i = &TestAuthInfo{
-			id:       infoId,
-			userId:   uid,
-			clientId: clientId,
-			Enabled:  true,
-		}
-		s.infos[infoId] = i
-		s.infoIdPod++
+	if session != nil {
+		i.flowType = "basic"
+		i.code = session.Code
+		i.codeExpiresIn = session.CodeExpiresIn
+		i.codeVerifier = session.CodeVerifier
+		i.nonce = session.Nonce
+		i.redirectUri = session.RedirectURI
+	} else {
+		i.flowType = "direct"
+		i.code = ""
+		i.codeExpiresIn = 0
+		i.codeVerifier = ""
+		i.nonce = ""
+		i.redirectUri = ""
 	}
-	i.flowType = "basic"
-	i.subject = subject
-	i.scope = scope
-	i.authorizedAt = time.Now().Unix()
-	i.code = code
-	i.codeExpiresIn = codeExpiresIn
-	i.codeVerifier = codeVerifier
-	i.nonce = nonce
-	i.redirectUri = redirectURI
 	return i, nil
 }
 
