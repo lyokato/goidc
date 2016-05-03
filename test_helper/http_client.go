@@ -2,7 +2,6 @@ package test_helper
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -81,7 +80,6 @@ func ProtectedResourceErrorTest(t *testing.T, server *httptest.Server, method st
 		t.Errorf("Status code - expect:%d, got:%d", code, resp.StatusCode)
 	}
 
-	fmt.Printf("%v\n", resp.Header)
 	if responseHeaders != nil {
 		for k, matcher := range responseHeaders {
 			rv := resp.Header.Get(k)

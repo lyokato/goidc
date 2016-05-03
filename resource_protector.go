@@ -91,7 +91,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	at, err := sdi.FindAccessTokenByAccessToken(rt)
 	if err != nil {
 		if err.Type() == sd.ErrFailed {
-			rp.logger.Info(log.TokenEndpointLog(r.URL.Path, log.AuthenticationFailed,
+			rp.logger.Info(log.ProtectedResourceLog(r.URL.Path, log.AuthenticationFailed,
 				map[string]string{
 					"access_token":    rt,
 					"remote_addr":     r.Header.Get("REMOTE_ADDR"),
