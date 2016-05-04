@@ -88,7 +88,7 @@ func (rp *ResourceProtector) ValidateWithScopes(w http.ResponseWriter, r *http.R
 	}
 
 	if scopes, exists := scopeMap[r.URL.Path]; exists {
-		s := r.Header.Get("X_OAUTH_SCOPE")
+		s := r.Header.Get("X-OAUTH-SCOPE")
 		ok, not_found := scope.IncludeAll(s, scopes)
 		if ok {
 			return true
@@ -177,8 +177,8 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	}
 
 	r.Header.Set("REMOTE_USER", fmt.Sprintf("%d", info.UserId()))
-	r.Header.Set("X_OAUTH_CLIENT_ID", info.ClientId())
-	r.Header.Set("X_OAUTH_SCOPE", info.Scope())
+	r.Header.Set("X-OAUTH-CLIENT-ID", info.ClientId())
+	r.Header.Set("X-OAUTH-SCOPE", info.Scope())
 
 	return true
 }
