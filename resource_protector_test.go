@@ -66,6 +66,14 @@ func TestResourceProtector(t *testing.T) {
 
 	th.ProtectedResourceErrorTest(t, ts, "POST",
 		map[string]string{},
+		map[string]string{},
+		400,
+		map[string]th.Matcher{
+			"WWW-Authenticate": th.NewStrMatcher("Bearer realm=\"api.example.org\", error=\"invalid_request\""),
+		})
+
+	th.ProtectedResourceErrorTest(t, ts, "POST",
+		map[string]string{},
 		map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", "invalid token"),
 		},

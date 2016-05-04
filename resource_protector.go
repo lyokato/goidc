@@ -3,11 +3,13 @@ package goidc
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
+	"github.com/lyokato/goidc/scope"
 	sd "github.com/lyokato/goidc/service_data"
 )
 
@@ -75,6 +77,29 @@ func (rp *ResourceProtector) findTokenFromHeader(r *http.Request) string {
 		return r.FormValue("access_token")
 	default:
 		return ""
+	}
+}
+
+func (rp *ResourceProtector) ValidateWithScopes(w http.ResponseWriter, r *http.Request,
+	sdi sd.ServiceDataInterface, scopeMap map[string][]string) bool {
+
+	if !rp.Validate(w, r, sdi) {
+		return false
+	}
+
+	if scopes, exists := scopeMap[r.URL.Path]; exists {
+		s := r.Header.Get("X_OAUTH_SCOPE")
+		ok, not_found := scope.IncludeAll(s, scopes)
+		if ok {
+			return true
+		} else {
+			rp.unauthorize(w, oer.NewOAuthError(oer.ErrInsufficientScope,
+				fmt.Sprintf("this endpoint requires %s scope, but the access_token was't issued for.",
+					strconv.Quote(not_found))))
+			return false
+		}
+	} else {
+		return true
 	}
 }
 
@@ -163,6 +188,5 @@ func (rp *ResourceProtector) unauthorize(w http.ResponseWriter, err *oer.OAuthEr
 		err.URI = rp.errorURIBuilder(err.Type)
 	}
 	w.Header().Set("WWW-Authenticate", err.Header(rp.realm))
-	w.WriteHeader(http.StatusUnauthorized)
-	w.Write(nil)
+	w.WriteHeader(err.StatusCode())
 }
