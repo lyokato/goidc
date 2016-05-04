@@ -26,7 +26,7 @@ func main() {
 
     http.HandleFunc("/token", endpoint.Handler(sdi))
     http.ListenAndServe(":8080", nil)
- }
+}
 ```
 
 1. Prepare **TokenEndpoint** with **NewTokenEndpoint** method
@@ -51,6 +51,87 @@ g.POST("/token", gin.WrapF(endpoint.Handler(sdi)))
 ### AccessTokenInterface
 
 ## ProtectedResource Endpoint
+
+goidc provids ResourceProtector which supports
+to check AccessToken validity on your API.
+
+it has **Validate** method
+
+Build a middleware according to your favorite Web Application Framework,
+and in which, call **ResourceProtector**'s **Validate** method, like this.
+
+```go
+package main
+
+import (
+    "github.com/lyokato/goidc"
+    "github.com/lyokato/goidc/grant"
+    "github.com/gin-gonic/gin"
+)
+
+func main() {
+    realm := "api.example.org"
+    rp := goidc.NewResourceProtector(realm)
+
+    sdi := my_service_data_interface.New()
+
+    r := gin.Default()  
+
+    r.Use(func(c *gin.Context){
+
+        if rp.Validate(c.Writer, c.Request, sdi) {
+            c.Next()
+        }
+    })
+
+    r.GET("/user_info", my_controller.GetUserInfo)
+    r.Run()
+}
+```
+
+**my_controller** package example
+
+```go
+package my_controller
+
+func GetUserInfo(c *gin.Context) {
+
+  client_id := c.Request.Header("X-OAUTH-CLIENT-ID")
+  scopes := c.Request.Header("X-OAUTH-SCOPE")
+
+  uid_string := c.Request.Header("REMOTE_USER")
+  user_id, err := strconv.Atoi(uid_string)
+
+  ...
+}
+```
+
+As you see, if validation is succeeded,
+ResourceProtector put three values into HTTP header
+
+- REMOTE_ADDR: user_id associated with the access_token
+- X-OAUTH-CLIENT-ID: client_id associated with the access_token
+- X-OAUTH-SCOPE: scope value associated with the access_token
+
+### SCOPE VALIDATION
+
+However, in this flow, ResourceProtector put the scope into header,
+but not to confirm this scope matches the condition to access associated API endpoint(path).
+You need to check it in your handler.
+
+If you hope farther automated validation, There is **ValidateWithScopes** methods.
+
+```go
+pathScopeMap := map[string][]string {
+  "/user_info", []string{"profile", "email"},
+  "/picture", []string{"picture"},
+}
+
+if rp.ValidateWithScopes(c.Writer, c.Request, sdi, pathScopeMap) {
+    c.Next()
+}
+
+```
 
 ## JWK Endpoint
 
@@ -82,7 +163,7 @@ oqxJsRC0l1ybcs6o0QIDAQAB
 
     http.HandleFunc("/cert", je.Handler())
     http.ListenAndServe(":8080", nil)
- }
+}
 ```
 
 
