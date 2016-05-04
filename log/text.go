@@ -20,19 +20,19 @@ const (
 func (e LogEvent) String() string {
 	switch e {
 	case AuthenticationFailed:
-		return "AuthenticationFailed"
+		return "authentication_failed"
 	case UnauthorizedGrantType:
-		return "UnauthorizedGrantType"
+		return "unauthorized_grant_type"
 	case ScopeConditionMismatch:
-		return "ScopeConditionMismatch"
+		return "scope_condition_mismatch"
 	case RefreshTokenConditionMismatch:
-		return "RefreshTokenConditionMismatch"
+		return "refresh_token_condition_mismatch"
 	case AuthInfoConditionMismatch:
-		return "AuthInfoConditionMismatch"
+		return "auth_info_condition_mismatch"
 	case InterfaceUnsupported:
-		return "InterfaceUnsupported"
+		return "interface_unsupported"
 	case InterfaceError:
-		return "InterfaceError"
+		return "interface_error"
 	default:
 		return ""
 	}
