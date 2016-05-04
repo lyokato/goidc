@@ -22,7 +22,7 @@ func PublicKeysJWK(keys map[string]*rsa.PublicKey) ([]byte, error) {
 		rk.KeyID = kid
 		set.Keys = append(set.Keys, rk)
 	}
-	body, err := json.Marshal(set)
+	body, err := json.MarshalIndent(set, "", "    ")
 	if err != nil {
 		return nil, err
 	}
