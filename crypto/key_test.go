@@ -23,7 +23,16 @@ oqxJsRC0l1ybcs6o0QIDAQAB
 		t.Errorf("failed to convert jwk")
 	}
 	actual := string(jwkBody)
-	expected := "{\"keys\":[{\"kid\":\"my_key_version\",\"kty\":\"RSA\",\"e\":\"AQAB\",\"n\":\"sxclFH1RsjAmxu2CMIKOF3ahI4YYCGSeCq-1SsCHOxfsdA6AZ4juroVOh1cTD4m8UgyBkCB6MT_RyTxhdV5RLexDMHsG-UXJLt96_tkAhE0ZkDMOvHmVGanbYMtSRQhbBVHDMHFXH06l1NNFBHrx_URQR6KsSbEQtJdcm3LOqNE\"}]}"
+	expected := `{
+    "keys": [
+        {
+            "kid": "my_key_version",
+            "kty": "RSA",
+            "e": "AQAB",
+            "n": "sxclFH1RsjAmxu2CMIKOF3ahI4YYCGSeCq-1SsCHOxfsdA6AZ4juroVOh1cTD4m8UgyBkCB6MT_RyTxhdV5RLexDMHsG-UXJLt96_tkAhE0ZkDMOvHmVGanbYMtSRQhbBVHDMHFXH06l1NNFBHrx_URQR6KsSbEQtJdcm3LOqNE"
+        }
+    ]
+}`
 	if actual != expected {
 		t.Errorf("JWK:\n - got: %v\n - want: %v\n", actual, expected)
 	}
