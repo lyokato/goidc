@@ -3,13 +3,14 @@ package service_data
 type (
 	ClientInterface interface {
 		Id() string
-		Secret() string
-		RedirectURI() string
 		OwnerUserId() int64
 		IdTokenAlg() string
 		IdTokenKeyId() string
 		IdTokenKey() interface{}
+		MatchSecret(secret string) bool
 		CanUseGrantType(gt string) bool
+		CanUseScope(scope string) bool
+		CanUseRedirectURI(uri string) bool
 	}
 
 	AuthInfoInterface interface {

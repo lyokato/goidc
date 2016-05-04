@@ -95,7 +95,7 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 				return
 			}
 		}
-		if client.Secret() != sec {
+		if !client.MatchSecret(sec) {
 			te.logger.Info(log.TokenEndpointLog(gt, log.AuthenticationFailed,
 				map[string]string{
 					"client_id":       cid,

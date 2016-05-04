@@ -41,6 +41,14 @@ func (c *TestClient) CanUseGrantType(gt string) bool {
 	}
 }
 
+func (c *TestClient) CanUseRedirectURI(url string) bool {
+	return (c.redirectURI == url)
+}
+
+func (c *TestClient) CanUseScope(scope string) bool {
+	return true
+}
+
 func (c *TestClient) OwnerUserId() int64 {
 	return c.ownerId
 }
@@ -49,12 +57,8 @@ func (c *TestClient) Id() string {
 	return c.id
 }
 
-func (c *TestClient) Secret() string {
-	return c.secret
-}
-
-func (c *TestClient) RedirectURI() string {
-	return c.redirectURI
+func (c *TestClient) MatchSecret(secret string) bool {
+	return c.secret == secret
 }
 
 func (c *TestClient) IdTokenAlg() string {

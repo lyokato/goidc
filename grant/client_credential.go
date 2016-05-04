@@ -23,6 +23,12 @@ func ClientCredentials() *GrantHandler {
 			}
 
 			scp_req := r.FormValue("scope")
+			if scp_req != "" && !c.CanUseScope(scp_req) {
+				logger.Info(log.TokenEndpointLog(TypeClientCredentials, log.InvalidScope,
+					map[string]string{"scope": scp_req, "client_id": c.Id()},
+					"requested scope is not allowed to this client"))
+				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidScope)
+			}
 
 			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.Id(), scp_req, nil)
 			if err != nil {

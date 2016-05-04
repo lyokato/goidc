@@ -15,6 +15,7 @@ const (
 	RefreshTokenConditionMismatch
 	InterfaceUnsupported
 	InterfaceError
+	InvalidScope
 )
 
 func (e LogEvent) String() string {
@@ -33,6 +34,8 @@ func (e LogEvent) String() string {
 		return "interface_unsupported"
 	case InterfaceError:
 		return "interface_error"
+	case InvalidScope:
+		return "invalid_scope"
 	default:
 		return ""
 	}

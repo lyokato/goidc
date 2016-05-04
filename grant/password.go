@@ -26,8 +26,14 @@ func Password() *GrantHandler {
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
 					"missing 'password' parameter")
 			}
-			// OPTIONAL
+
 			scp_req := r.FormValue("scope")
+			if scp_req != "" && !c.CanUseScope(scp_req) {
+				logger.Info(log.TokenEndpointLog(TypePassword, log.InvalidScope,
+					map[string]string{"scope": scp_req, "client_id": c.Id()},
+					"requested scope is not allowed to this client"))
+				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidScope)
+			}
 
 			uid, err := sdi.FindUserId(username, password)
 			if err != nil {
