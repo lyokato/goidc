@@ -55,7 +55,7 @@ func NewDefaultLogger() *defaultLogger {
 		colorMap: map[LogLevel]TextColor{
 			LogLevelDebug: White,
 			LogLevelInfo:  Green,
-			LogLevelWarn:  Blue,
+			LogLevelWarn:  Magenta,
 			LogLevelError: Yellow,
 			LogLevelFatal: Red,
 		},
