@@ -1,8 +1,8 @@
 package log
 
 import (
+	"encoding/json"
 	"fmt"
-	"strconv"
 )
 
 type LogEvent int
@@ -40,22 +40,17 @@ func (e LogEvent) String() string {
 
 func TokenEndpointLog(grantType string, ev LogEvent,
 	params map[string]string, msg string) string {
-	return EndpointLog("TokenEndpoint", grantType, ev, params, msg)
+	return EndpointLog("token_endpoint", grantType, ev, params, msg)
 }
 
 func ProtectedResourceLog(path string, ev LogEvent,
 	params map[string]string, msg string) string {
-	return EndpointLog("ProtectedResource", path, ev, params, msg)
+	return EndpointLog("protected_resource", path, ev, params, msg)
 }
 
-func EndpointLog(endpoint, category string, ev LogEvent,
+func EndpointLog(endpoint, realm string, ev LogEvent,
 	params map[string]string, msg string) string {
-	attributes := ""
-	if params != nil {
-		for k, v := range params {
-			attributes = attributes + fmt.Sprintf(" %s=%s", k, strconv.Quote(v))
-		}
-	}
-	return fmt.Sprintf("[goidc.%s:%s] <%s%s>: %s", endpoint,
-		paint(category, Blue), paint(ev.String(), Cyan), attributes, msg)
+	attributes, _ := json.Marshal(params)
+	return fmt.Sprintf("[goidc:%s:%s:%s] %s %s", endpoint,
+		lightPaint(realm, Blue), paint(ev.String(), Cyan), msg, lightPaint(string(attributes), Red))
 }

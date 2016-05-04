@@ -20,3 +20,7 @@ const escape = "\x1b"
 func paint(txt string, color TextColor) string {
 	return fmt.Sprintf("%s[%dm%s%s[m", escape, color, txt, escape)
 }
+
+func lightPaint(txt string, color TextColor) string {
+	return fmt.Sprintf("%s[1;%dm%s%s[m", escape, color, txt, escape)
+}
