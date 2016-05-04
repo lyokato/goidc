@@ -51,74 +51,164 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
+			te.logger.Debug(log.TokenEndpointLog("common", log.InvalidHTTPMethod,
+				map[string]string{"http_method": r.Method},
+				"http method is not POST"))
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
 		gt := r.FormValue("grant_type")
 		if gt == "" {
+			te.logger.Debug(log.TokenEndpointLog("common", log.MissingParam,
+				map[string]string{"param": "grant_type"},
+				"'grant_type' not found"))
 			te.fail(w, oer.NewOAuthError(oer.ErrInvalidRequest,
 				"missing 'grant_type' parameter"))
 			return
 		}
 		h, exists := te.handlers[gt]
 		if !exists {
+			te.logger.Debug(log.TokenEndpointLog("common", log.UnsupportedGrantType,
+				map[string]string{"grant_type": gt},
+				"unsupported 'grant_type'"))
 			te.fail(w, oer.NewOAuthError(oer.ErrUnsupportedGrantType,
 				fmt.Sprintf("unsupported 'grant_type' parameter: '%s'", gt)))
 			return
 		}
 		cid, sec, inHeader, exists := te.findClientCredential(r)
-		if !exists {
-			te.failWithAuthHeader(w, oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+		if exists {
+			client, ok := te.validateClientBySecret(w, r,
+				sdi, gt, cid, sec, inHeader)
+			if ok {
+				te.executeGrantHandler(w, r, sdi, client, gt, h)
+			}
 			return
 		}
-		client, err := sdi.FindClientById(cid)
+		ca, exists := te.findClientAssertion(r)
+		if exists {
+			client, ok := te.validateClientByAssertion(w, r,
+				sdi, gt, ca)
+			if ok {
+				te.executeGrantHandler(w, r, sdi, client, gt, h)
+			}
+			return
+		}
+
+		te.logger.Debug(log.TokenEndpointLog(gt, log.NoCredential,
+			map[string]string{"grant_type": gt},
+			"credential information not found."))
+
+		te.failWithAuthHeader(w,
+			oer.NewOAuthSimpleError(oer.ErrInvalidClient))
+		return
+
+	}
+}
+
+func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
+	r *http.Request, sdi sd.ServiceDataInterface,
+	gt, ca string) (sd.ClientInterface, bool) {
+	/*
+
+		var client ClientInterface
+		finished := false
+
+		token, err := jwt.Parse(ca, func(token *jwt.Token) (interface{}, error) {
+
+			aud := token.Claimes["aud"].(string)
+			if sdi.Issure() != aud {
+				// Invalid audience
+				// te.fail()
+				finished = true
+				return nil, fmt.Errorf("")
+			}
+			clientService := token.Claimes["iss"].(string)
+			cid := token.Claimes["sub"].(string)
+			client, err := sdi.FindClientById(cid)
+
+			kid := token.Header["kid"].(string)
+			alg := token.Header["alg"].(string)
+		})
+
 		if err != nil {
-			if err.Type() == sd.ErrFailed {
-				te.failByInvalidClientError(w, inHeader)
-				return
-			} else if err.Type() == sd.ErrUnsupported {
-				te.logger.Error(log.TokenEndpointLog(gt, log.InterfaceUnsupported,
-					map[string]string{"method": "FindClientById"},
-					"the method returns 'unsupported' error."))
-				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
-				return
-			} else {
-				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
-				return
+			if !finished {
+				te.fail()
 			}
-		} else {
-			if client == nil {
-				te.logger.Error(log.TokenEndpointLog(gt, log.InterfaceError,
-					map[string]string{"method": "FindClientById"},
-					"the method returns (nil, nil)."))
-				te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
-				return
-			}
+			return nil, false
 		}
-		if !client.MatchSecret(sec) {
-			te.logger.Info(log.TokenEndpointLog(gt, log.AuthenticationFailed,
-				map[string]string{
-					"client_id":       cid,
-					"remote_addr":     r.Header.Get("REMOTE_ADDR"),
-					"x-forwarded-for": r.Header.Get("X-FORWARDED-FOR"),
-				}, "'client_secret' mismatch."))
+
+		return client, false
+	*/
+	return nil, false
+}
+
+func (te *TokenEndpoint) validateClientBySecret(w http.ResponseWriter,
+	r *http.Request, sdi sd.ServiceDataInterface, gt, cid, sec string,
+	inHeader bool) (sd.ClientInterface, bool) {
+
+	client, err := sdi.FindClientById(cid)
+	if err != nil {
+		if err.Type() == sd.ErrFailed {
+			te.logger.Debug(log.TokenEndpointLog(gt, log.NoEnabledClient,
+				map[string]string{"method": "FindClientById", "client_id": cid},
+				"client not found."))
 			te.failByInvalidClientError(w, inHeader)
-			return
-		}
-		if !client.CanUseGrantType(gt) {
-			te.logger.Info(log.TokenEndpointLog(gt, log.UnauthorizedGrantType,
-				map[string]string{"client_id": cid}, "unauthorized 'grant_type'."))
-			te.fail(w, oer.NewOAuthSimpleError(oer.ErrUnauthorizedClient))
-			return
-		}
-		res, oerr := h(r, client, sdi, te.logger)
-		if oerr != nil {
-			te.fail(w, oerr)
-			return
+			return nil, false
+		} else if err.Type() == sd.ErrUnsupported {
+			te.logger.Error(log.TokenEndpointLog(gt, log.InterfaceUnsupported,
+				map[string]string{"method": "FindClientById"},
+				"the method returns 'unsupported' error."))
+			te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
+			return nil, false
 		} else {
-			te.success(w, res)
-			return
+			te.logger.Warn(log.TokenEndpointLog(gt, log.InterfaceServerError,
+				map[string]string{"method": "FindClientById", "client_id": cid},
+				"interface returned ServerError"))
+			te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
+			return nil, false
 		}
+	} else {
+		if client == nil {
+			te.logger.Error(log.TokenEndpointLog(gt, log.InterfaceError,
+				map[string]string{"method": "FindClientById", "client_id": cid},
+				"the method returns (nil, nil)."))
+			te.fail(w, oer.NewOAuthSimpleError(oer.ErrServerError))
+			return nil, false
+		}
+	}
+	if !client.MatchSecret(sec) {
+		te.logger.Info(log.TokenEndpointLog(gt, log.AuthenticationFailed,
+			map[string]string{
+				"client_id":       cid,
+				"remote_addr":     r.Header.Get("REMOTE_ADDR"),
+				"x-forwarded-for": r.Header.Get("X-FORWARDED-FOR"),
+			}, "'client_secret' mismatch."))
+		te.failByInvalidClientError(w, inHeader)
+		return nil, false
+	}
+	if !client.CanUseGrantType(gt) {
+		te.logger.Info(log.TokenEndpointLog(gt, log.UnauthorizedGrantType,
+			map[string]string{"client_id": cid}, "unauthorized 'grant_type'."))
+		te.fail(w, oer.NewOAuthSimpleError(oer.ErrUnauthorizedClient))
+		return nil, false
+	}
+
+	return client, true
+}
+
+func (te *TokenEndpoint) executeGrantHandler(w http.ResponseWriter,
+	r *http.Request, sdi sd.ServiceDataInterface,
+	client sd.ClientInterface, gt string, h grant.GrantHandlerFunc) {
+	res, oerr := h(r, client, sdi, te.logger)
+	if oerr != nil {
+		te.fail(w, oerr)
+		return
+	} else {
+		te.logger.Debug(log.TokenEndpointLog(gt, log.AccessTokenGranted,
+			map[string]string{"client_id": client.Id()},
+			"granted successfully"))
+		te.success(w, res)
+		return
 	}
 }
 
@@ -141,6 +231,16 @@ func (te *TokenEndpoint) findClientCredential(r *http.Request) (string, string, 
 		return cid, sec, false, true
 	} else {
 		return "", "", false, false
+	}
+}
+
+func (te *TokenEndpoint) findClientAssertion(r *http.Request) (string, bool) {
+	ca := r.FormValue("client_assertion")
+	cat := r.FormValue("client_assertion_type")
+	if ca != "" && cat == "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" {
+		return ca, true
+	} else {
+		return "", false
 	}
 }
 
