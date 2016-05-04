@@ -110,34 +110,43 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 	gt, ca string) (sd.ClientInterface, bool) {
 	/*
 
-		var client ClientInterface
-		finished := false
+				var client ClientInterface
+				finished := false
 
-		token, err := jwt.Parse(ca, func(token *jwt.Token) (interface{}, error) {
+				token, err := jwt.Parse(ca, func(token *jwt.Token) (interface{}, error) {
 
-			aud := token.Claimes["aud"].(string)
-			if sdi.Issure() != aud {
-				// Invalid audience
-				// te.fail()
-				finished = true
-				return nil, fmt.Errorf("")
-			}
-			clientService := token.Claimes["iss"].(string)
-			cid := token.Claimes["sub"].(string)
-			client, err := sdi.FindClientById(cid)
+					aud := token.Claimes["aud"].(string)
+					if sdi.Issure() != aud {
+						// Invalid audience
+						// te.fail()
+						finished = true
+						return nil, fmt.Errorf("")
+					}
+					clientService := token.Claimes["iss"].(string)
+					cid := token.Claimes["sub"].(string)
+					client, err := sdi.FindClientById(cid)
 
-			kid := token.Header["kid"].(string)
-			alg := token.Header["alg"].(string)
-		})
+					kid := token.Header["kid"].(string)
+					alg := token.Header["alg"].(string)
 
-		if err != nil {
-			if !finished {
-				te.fail()
-			}
-			return nil, false
-		}
+		            key := client.AssertionKeyFor(alg, kid)
+		            if key != nil {
+		                return key, nil
+		            } else {
+		                // te.fail
+		                // finished
+		                return nil, fmt.Errorf()
+		            }
+				})
 
-		return client, false
+				if err != nil {
+					if !finished {
+						te.fail()
+					}
+					return nil, false
+				}
+
+				return client, false
 	*/
 	return nil, false
 }

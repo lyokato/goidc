@@ -30,3 +30,21 @@ func TestInclude(t *testing.T) {
 		t.Error("'offline_access' should be found")
 	}
 }
+
+func TestIncludeAll(t *testing.T) {
+
+	targetScope := []string{"profile", "custom1"}
+	included, _ := IncludeAll("openid profile custom1 custom2", targetScope)
+	if !included {
+		t.Error("IncludeAll should success")
+	}
+
+	included, not_found := IncludeAll("openid profile custom2", targetScope)
+	if included {
+		t.Error("IncludeAll should fail")
+	}
+	expected := "custom1"
+	if not_found != expected {
+		t.Errorf("NotFound:\n - got: %v\n - want: %v\n", not_found, expected)
+	}
+}
