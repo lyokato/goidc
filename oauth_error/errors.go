@@ -50,6 +50,8 @@ var errStatusCodeMap = map[OAuthErrorType]int{
 	ErrUnsupportedGrantType:    http.StatusBadRequest,
 	ErrUnsupportedResponseType: http.StatusBadRequest,
 	ErrServerError:             http.StatusInternalServerError,
+	ErrInvalidToken:            http.StatusUnauthorized,
+	ErrInsufficientScope:       http.StatusForbidden,
 }
 
 func (t OAuthErrorType) String() string {

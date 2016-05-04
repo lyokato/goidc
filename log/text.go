@@ -56,5 +56,6 @@ func EndpointLog(endpoint, category string, ev LogEvent,
 			attributes = attributes + fmt.Sprintf(" %s=%s", k, strconv.Quote(v))
 		}
 	}
-	return fmt.Sprintf("[goidc.%s:%s] <%s%s>: %s", endpoint, category, ev.String(), attributes, msg)
+	return fmt.Sprintf("[goidc.%s:%s] <%s%s>: %s", endpoint,
+		paint(category, Magenta), paint(ev.String(), Yellow), attributes, msg)
 }

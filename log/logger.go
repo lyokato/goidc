@@ -2,12 +2,14 @@ package log
 
 import "fmt"
 
+type LogLevel int
+
 const (
-	LogLevelDebug = 0
-	LogLevelInfo  = 1
-	LogLevelWarn  = 2
-	LogLevelError = 3
-	LogLevelFatal = 4
+	LogLevelDebug LogLevel = iota
+	LogLevelInfo
+	LogLevelWarn
+	LogLevelError
+	LogLevelFatal
 )
 
 var defaultLoggerLevel = LogLevelDebug
@@ -26,76 +28,119 @@ type (
 		Fatalf(format string, args ...interface{})
 	}
 
-	defaultLogger struct{}
+	defaultLogger struct {
+		colorMap map[LogLevel]TextColor
+	}
 )
 
-func NewDefaultLogger() *defaultLogger {
-	return &defaultLogger{}
+func (level LogLevel) String() string {
+	switch level {
+	case LogLevelDebug:
+		return "DEBUG"
+	case LogLevelInfo:
+		return "INFO"
+	case LogLevelWarn:
+		return "WARN"
+	case LogLevelError:
+		return "DEBUG"
+	case LogLevelFatal:
+		return "DEBUG"
+	default:
+		return ""
+	}
 }
 
-func SetLevelForDefaultLogger(level int) {
+func NewDefaultLogger() *defaultLogger {
+	return &defaultLogger{
+		colorMap: map[LogLevel]TextColor{
+			LogLevelDebug: White,
+			LogLevelInfo:  Green,
+			LogLevelWarn:  Blue,
+			LogLevelError: Yellow,
+			LogLevelFatal: Red,
+		},
+	}
+}
+
+func SetLevelForDefaultLogger(level LogLevel) {
 	if level > LogLevelFatal {
 		panic("invalid log level")
 	}
 	defaultLoggerLevel = level
 }
 
+func (l *defaultLogger) insertLevelLabel(level LogLevel, msg string) string {
+	levelPart := fmt.Sprintf("[%s]", level.String())
+	color := l.colorMap[level]
+	return fmt.Sprintf("%s %s", paint(levelPart, color), msg)
+}
+
 func (l *defaultLogger) Debug(args ...interface{}) {
 	if defaultLoggerLevel <= LogLevelDebug {
-		fmt.Println(args...)
+		msg := l.insertLevelLabel(LogLevelDebug, args[0].(string))
+		fmt.Println(msg)
 	}
 }
 
 func (l *defaultLogger) Info(args ...interface{}) {
 	if defaultLoggerLevel <= LogLevelInfo {
-		fmt.Println(args...)
+		msg := l.insertLevelLabel(LogLevelInfo, args[0].(string))
+		fmt.Println(msg)
 	}
 }
 
 func (l *defaultLogger) Warn(args ...interface{}) {
 	if defaultLoggerLevel <= LogLevelWarn {
-		fmt.Println(args...)
+		msg := l.insertLevelLabel(LogLevelWarn, args[0].(string))
+		fmt.Println(msg)
 	}
 }
 
 func (l *defaultLogger) Error(args ...interface{}) {
 	if defaultLoggerLevel <= LogLevelError {
-		fmt.Println(args...)
+		msg := l.insertLevelLabel(LogLevelError, args[0].(string))
+		fmt.Println(msg)
 	}
 }
 
 func (l *defaultLogger) Fatal(args ...interface{}) {
 	if defaultLoggerLevel <= LogLevelFatal {
-		fmt.Println(args...)
+		msg := l.insertLevelLabel(LogLevelFatal, args[0].(string))
+		fmt.Println(msg)
 	}
 }
 
 func (l *defaultLogger) Debugf(format string, args ...interface{}) {
 	if defaultLoggerLevel <= LogLevelDebug {
-		fmt.Println(fmt.Sprintf(format, args...))
+		msg := l.insertLevelLabel(LogLevelDebug, format)
+		fmt.Println(fmt.Sprintf(msg, args...))
 	}
 }
 
 func (l *defaultLogger) Infof(format string, args ...interface{}) {
 	if defaultLoggerLevel <= LogLevelInfo {
-		fmt.Println(fmt.Sprintf(format, args...))
+		msg := l.insertLevelLabel(LogLevelInfo, format)
+		fmt.Println(fmt.Sprintf(msg, args...))
 	}
 }
 
 func (l *defaultLogger) Warnf(format string, args ...interface{}) {
 	if defaultLoggerLevel <= LogLevelWarn {
-		fmt.Println(fmt.Sprintf(format, args...))
+		msg := l.insertLevelLabel(LogLevelWarn, format)
+		fmt.Println(fmt.Sprintf(msg, args...))
 	}
 }
 
 func (l *defaultLogger) Errorf(format string, args ...interface{}) {
 	if defaultLoggerLevel <= LogLevelError {
-		fmt.Println(fmt.Sprintf(format, args...))
+		msg := l.insertLevelLabel(LogLevelError, format)
+		fmt.Println(fmt.Sprintf(msg, args...))
 	}
 }
 
 func (l *defaultLogger) Fatalf(format string, args ...interface{}) {
 	if defaultLoggerLevel <= LogLevelFatal {
-		fmt.Println(fmt.Sprintf(format, args...))
+		msg := l.insertLevelLabel(LogLevelFatal, format)
+		fmt.Println(fmt.Sprintf(msg, args...))
 	}
 }
