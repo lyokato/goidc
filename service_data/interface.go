@@ -3,13 +3,15 @@ package service_data
 type (
 	ClientInterface interface {
 		Id() string
-		Secret() string
-		RedirectURI() string
 		OwnerUserId() int64
 		IdTokenAlg() string
 		IdTokenKeyId() string
 		IdTokenKey() interface{}
+		MatchSecret(secret string) bool
 		CanUseGrantType(gt string) bool
+		CanUseScope(scope string) bool
+		CanUseRedirectURI(uri string) bool
+		AssertionKey(alg, kid string) interface{}
 	}
 
 	AuthInfoInterface interface {
@@ -66,5 +68,7 @@ type (
 		RefreshAccessToken(info AuthInfoInterface, token AccessTokenInterface, offlineAccess bool) (AccessTokenInterface, *Error)
 		FindUserId(username, password string) (int64, *Error)
 		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *AuthSession) (AuthInfoInterface, *Error)
+
+		FindUserIdBySubject(sub string) (int64, *Error)
 	}
 )

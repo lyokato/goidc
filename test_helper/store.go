@@ -198,6 +198,15 @@ func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface, offlineAccess b
 	return t, nil
 }
 
+func (s *TestStore) FindUserIdBySubject(sub string) (int64, *sd.Error) {
+	for _, u := range s.users {
+		if u.Username == sub {
+			return u.Id, nil
+		}
+	}
+	return -1, sd.NewError(sd.ErrFailed)
+}
+
 func (s *TestStore) RefreshAccessToken(info sd.AuthInfoInterface, old sd.AccessTokenInterface, offlineAccess bool) (sd.AccessTokenInterface, *sd.Error) {
 	oldToken := old.AccessToken()
 	token, _ := s.accessTokenes[oldToken]

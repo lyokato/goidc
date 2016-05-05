@@ -14,7 +14,7 @@ func Split(scope string) []string {
 
 func IncludeAll(scopes string, targetScopes []string) (bool, string) {
 	list := Split(scopes)
-	var existanceMap map[string]bool
+	existanceMap := make(map[string]bool, 0)
 	for _, s := range list {
 		existanceMap[s] = true
 	}
