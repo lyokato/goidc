@@ -38,8 +38,15 @@ func JWT() *GrantHandler {
 
 			t, jwt_err := jwt.Parse(a, func(t *jwt.Token) (interface{}, error) {
 
-				alg := t.Header["alg"].(string)
-				kid := t.Header["kid"].(string)
+				alg := ""
+				kid := ""
+
+				if found, ok := t.Header["alg"].(string); ok {
+					alg = found
+				}
+				if found, ok := t.Header["kid"].(string); ok {
+					kid = found
+				}
 
 				key := c.AssertionKey(alg, kid)
 
