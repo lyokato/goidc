@@ -130,7 +130,7 @@ func (s *TestStore) ClearAll() {
 
 // ServiceDataInterface
 func (s *TestStore) Issure() string {
-	return "example.org"
+	return "http://example.org/"
 }
 
 func (s *TestStore) FindUserId(username, password string) (int64, *sd.Error) {
