@@ -52,7 +52,7 @@ func (rp *ResourceProtector) SetErrorURIBulder(builder oer.OAuthErrorURIBuilder)
 	rp.errorURIBuilder = builder
 }
 
-func (rp *ResourceProtector) findTokenFromHeader(r *http.Request) string {
+func (rp *ResourceProtector) findTokenFromRequest(r *http.Request) string {
 	header := r.Header.Get("Authorization")
 	if header == "" {
 		return ""
@@ -106,7 +106,7 @@ func (rp *ResourceProtector) ValidateWithScopes(w http.ResponseWriter, r *http.R
 func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	sdi sd.ServiceDataInterface) bool {
 
-	rt := rp.findTokenFromHeader(r)
+	rt := rp.findTokenFromRequest(r)
 
 	if rt == "" {
 
