@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/dgrijalva/jwt-go"
+	"github.com/lyokato/goidc/assertion"
 	"github.com/lyokato/goidc/grant"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
@@ -121,41 +123,115 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 	// JSON Web Token (JWT) Profile
 	// for OAuth 2.0 Client Authentication and Authorization Grants
 
-	/*
-						var client ClientInterface
-						finished := false
+	var c sd.ClientInterface
+	t, jwt_err := jwt.Parse(ca, func(t *jwt.Token) (interface{}, error) {
 
-						token, err := jwt.Parse(ca, func(token *jwt.Token) (interface{}, error) {
+		cid := ""
+		if found, ok := t.Claims["sub"].(string); ok {
+			cid = found
+		} else {
 
-							cid := token.Claimes["sub"].(string)
-							client, err = sdi.FindClientById(cid)
-		                    if err != nil {
+			te.logger.Debug(log.TokenEndpointLog(gt,
+				log.MissingParam,
+				map[string]string{"assertion": ca},
+				"'sub' not found in assertion"))
 
-		                    }
+			return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
+				"client assertion does not include 'sub'")
+		}
 
-							kid := token.Header["kid"].(string)
-							alg := token.Header["alg"].(string)
+		var serr *sd.Error
+		c, serr = sdi.FindClientById(cid)
 
-				            key := client.AssertionKey(alg, kid)
-				            if key != nil {
-				                return key, nil
-				            } else {
-				                // te.fail
-				                // finished
-				                return nil, fmt.Errorf()
-				            }
-						})
+		if serr != nil {
 
-						if err != nil {
-							if !finished {
-								te.fail()
-							}
-							return nil, false
-						}
+			if serr.Type() == sd.ErrFailed {
 
-						return client, false
-	*/
-	return nil, false
+				te.logger.Info(log.TokenEndpointLog(gt,
+					log.NoEnabledClient,
+					map[string]string{
+						"method":    "FindClientById",
+						"assertion": ca,
+						"client_id": cid,
+					},
+					"client associated with the sub value in assertion not found"))
+
+				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidClient)
+
+			} else if serr.Type() == sd.ErrUnsupported {
+
+				te.logger.Error(log.TokenEndpointLog(gt,
+					log.InterfaceUnsupported,
+					map[string]string{"method": "FindClientById"},
+					"the method returns 'unsupported' error."))
+
+				return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
+			} else {
+
+				te.logger.Warn(log.TokenEndpointLog(gt,
+					log.InterfaceServerError,
+					map[string]string{
+						"method":    "FindClientById",
+						"assertion": ca,
+						"client_id": cid,
+					},
+					"interface returned ServerError"))
+
+				return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+			}
+
+		} else {
+			if c == nil {
+
+				te.logger.Error(log.TokenEndpointLog(gt,
+					log.InterfaceError,
+					map[string]string{
+						"method":    "FindClientById",
+						"assertion": ca,
+						"client_id": cid,
+					},
+					"the method returns (nil, nil)."))
+
+				return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+			}
+		}
+
+		alg := ""
+		kid := ""
+
+		if found, ok := t.Header["alg"].(string); ok {
+			alg = found
+		}
+		if found, ok := t.Header["kid"].(string); ok {
+			kid = found
+		}
+
+		key := c.AssertionKey(alg, kid)
+
+		if key == nil {
+
+			te.logger.Debug(log.TokenEndpointLog(gt,
+				log.MissingParam,
+				map[string]string{
+					"assertion": ca,
+					"method":    "AssertionKey",
+				},
+				"returns nil as key"))
+
+			return nil, fmt.Errorf("key_not_found")
+		} else {
+			return key, nil
+		}
+	})
+
+	err := assertion.HandleAssertionError(ca, t, jwt_err, gt, c, sdi, te.logger)
+	if err != nil {
+		te.fail(w, err)
+		return nil, false
+	}
+
+	return c, true
 }
 
 func (te *TokenEndpoint) validateClientBySecret(w http.ResponseWriter,
