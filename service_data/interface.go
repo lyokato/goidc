@@ -58,7 +58,7 @@ type (
 	}
 
 	ServiceDataInterface interface {
-		Issure() string
+		Issuer() string
 		FindClientById(clientId string) (ClientInterface, *Error)
 		FindAuthInfoByCode(code string) (AuthInfoInterface, *Error)
 		FindAuthInfoById(id int64) (AuthInfoInterface, *Error)

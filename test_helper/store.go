@@ -129,7 +129,7 @@ func (s *TestStore) ClearAll() {
 }
 
 // ServiceDataInterface
-func (s *TestStore) Issure() string {
+func (s *TestStore) Issuer() string {
 	return "http://example.org/"
 }
 

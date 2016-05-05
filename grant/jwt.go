@@ -164,7 +164,7 @@ func JWT() *GrantHandler {
 					"'aud' parameter not found in assertion")
 			}
 
-			service := sdi.Issure()
+			service := sdi.Issuer()
 			if service == "" {
 
 				logger.Error(log.TokenEndpointLog(TypeJWT,
