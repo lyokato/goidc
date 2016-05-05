@@ -16,78 +16,171 @@ func Password() *GrantHandler {
 		TypePassword,
 		func(r *http.Request, c sd.ClientInterface,
 			sdi sd.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+
 			username := r.FormValue("username")
 			if username == "" {
+
+				logger.Debug(log.TokenEndpointLog(TypePassword,
+					log.MissingParam,
+					map[string]string{"param": "username", "client_id": c.Id()},
+					"'username' not found"))
+
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
 					"missing 'username' parameter")
 			}
+
 			password := r.FormValue("password")
 			if password == "" {
+
+				logger.Debug(log.TokenEndpointLog(TypePassword,
+					log.MissingParam,
+					map[string]string{"param": "password", "client_id": c.Id()},
+					"'password' not found"))
+
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
 					"missing 'password' parameter")
 			}
 
 			scp_req := r.FormValue("scope")
 			if scp_req != "" && !c.CanUseScope(scp_req) {
+
 				logger.Info(log.TokenEndpointLog(TypePassword, log.InvalidScope,
 					map[string]string{"scope": scp_req, "client_id": c.Id()},
 					"requested scope is not allowed to this client"))
+
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidScope)
 			}
 
 			uid, err := sdi.FindUserId(username, password)
 			if err != nil {
+
 				if err.Type() == sd.ErrFailed {
+
+					logger.Debug(log.TokenEndpointLog(TypePassword,
+						log.NoEnabledUserId,
+						map[string]string{
+							"method":    "FindUserId",
+							"client_id": c.Id(),
+							"username":  username,
+							"password":  password,
+						},
+						"user id not found."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Error(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
+
+					logger.Error(log.TokenEndpointLog(TypePassword,
+						log.InterfaceUnsupported,
 						map[string]string{"method": "FindUserId"},
 						"the method returns 'unsupported' error."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
 				} else {
+
+					logger.Warn(log.TokenEndpointLog(TypePassword,
+						log.InterfaceServerError,
+						map[string]string{
+							"method":    "FindUserId",
+							"client_id": c.Id(),
+							"username":  username,
+							"password":  password,
+						},
+						"interface returned ServerError."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 
 			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.Id(), scp_req, nil)
 			if err != nil {
+
 				if err.Type() == sd.ErrFailed {
+
+					logger.Debug(log.TokenEndpointLog(TypePassword,
+						log.AuthInfoCreationFailed,
+						map[string]string{
+							"method":    "CreateOrUpdateAuthInfo",
+							"client_id": c.Id(),
+						},
+						"user id not found."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Error(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
+
+					logger.Error(log.TokenEndpointLog(TypePassword,
+						log.InterfaceUnsupported,
 						map[string]string{"method": "CreateOrUpdateAuthInfo"},
 						"the method returns 'unsupported' error."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
 				} else {
+
+					logger.Warn(log.TokenEndpointLog(TypePassword,
+						log.InterfaceServerError,
+						map[string]string{
+							"method":    "CreateOrUpdateAuthInfo",
+							"client_id": c.Id(),
+						},
+						"interface returned ServerError."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if info == nil {
-					logger.Error(log.TokenEndpointLog(TypePassword, log.InterfaceError,
+
+					logger.Error(log.TokenEndpointLog(TypePassword,
+						log.InterfaceError,
 						map[string]string{"method": "CreateOrUpdateAuthInfo"},
 						"the method returns (nil, nil)."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 
 			token, err := sdi.CreateAccessToken(info,
 				scope.IncludeOfflineAccess(info.Scope()))
+
 			if err != nil {
+
 				if err.Type() == sd.ErrFailed {
+
+					logger.Debug(log.TokenEndpointLog(TypePassword,
+						log.AccessTokenCreationFailed,
+						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						"failed to create access token."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Error(log.TokenEndpointLog(TypePassword, log.InterfaceUnsupported,
+
+					logger.Error(log.TokenEndpointLog(TypePassword,
+						log.InterfaceUnsupported,
 						map[string]string{"method": "CreateAccessToken"},
 						"the method returns 'unsupported' error."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
 				} else {
+
+					logger.Warn(log.TokenEndpointLog(TypePassword,
+						log.InterfaceServerError,
+						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						"interface returned ServerError."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if token == nil {
-					logger.Error(log.TokenEndpointLog(TypePassword, log.InterfaceError,
+
+					logger.Error(log.TokenEndpointLog(TypePassword,
+						log.InterfaceError,
 						map[string]string{"method": "CreateAccessToken"},
 						"the method returns (nil, nil)."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}

@@ -24,36 +24,53 @@ func AuthorizationCode() *GrantHandler {
 
 			uri := r.FormValue("redirect_uri")
 			if uri == "" {
+
 				logger.Debug(log.TokenEndpointLog(TypeAuthorizationCode,
 					log.MissingParam,
 					map[string]string{"param": "redirect_uri", "client_id": c.Id()},
 					"'redirect_uri' not found"))
+
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
 					"missing 'redirect_uri' parameter")
 			}
 			code := r.FormValue("code")
 			if code == "" {
+
 				logger.Debug(log.TokenEndpointLog(TypeAuthorizationCode,
 					log.MissingParam,
 					map[string]string{"param": "code", "client_id": c.Id()},
 					"'code' not found"))
+
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
 					"missing 'code' parameter")
 			}
+
 			info, err := sdi.FindAuthInfoByCode(code)
 			if err != nil {
 				if err.Type() == sd.ErrFailed {
-					logger.Debug(log.TokenEndpointLog(TypeAuthorizationCode,
+
+					logger.Info(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.NoEnabledAuthInfo,
-						map[string]string{"method": "FindAuthInfoByCode", "code": code, "client_id": c.Id()},
+						map[string]string{
+							"method":    "FindAuthInfoByCode",
+							"code":      code,
+							"client_id": c.Id(),
+						},
 						"enabled AuthInfo associated with the code not found."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
+
+					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
+						log.InterfaceUnsupported,
 						map[string]string{"method": "FindAuthInfoByCode", "client_id": c.Id()},
 						"the method returns 'unsupported' error."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
 				} else {
+
 					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceServerError,
 						map[string]string{
@@ -62,24 +79,36 @@ func AuthorizationCode() *GrantHandler {
 							"client_id": c.Id(),
 						},
 						"interface returned ServerError."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if info == nil {
-					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
+
+					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
+						log.InterfaceError,
 						map[string]string{"method": "FindAuthInfoByCode", "client_id": c.Id()},
 						"the method returns (nil, nil)."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 			if info.ClientId() != c.Id() {
-				logger.Info(log.TokenEndpointLog(TypeAuthorizationCode, log.AuthInfoConditionMismatch,
-					map[string]string{"client_id": c.Id()}, "'client_id' mismatch"))
+
+				logger.Info(log.TokenEndpointLog(TypeAuthorizationCode,
+					log.AuthInfoConditionMismatch,
+					map[string]string{"client_id": c.Id()},
+					"'client_id' mismatch"))
+
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 			if info.RedirectURI() != uri {
-				logger.Info(log.TokenEndpointLog(TypeAuthorizationCode, log.AuthInfoConditionMismatch,
-					map[string]string{"client_id": c.Id()}, "'redirect_uri' mismatch"))
+
+				logger.Info(log.TokenEndpointLog(TypeAuthorizationCode,
+					log.AuthInfoConditionMismatch,
+					map[string]string{"client_id": c.Id()},
+					"'redirect_uri' mismatch"))
+
 				return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
 					fmt.Sprintf("indicated 'redirect_uri' (%s) is not allowed for this client", uri))
 			}
@@ -88,8 +117,10 @@ func AuthorizationCode() *GrantHandler {
 			// https://tools.ietf.org/html/rfc7636
 			cv := info.CodeVerifier()
 			if cv != "" {
+
 				cm := r.FormValue("code_challenge_method")
 				if cm == "" {
+
 					logger.Debug(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.MissingParam,
 						map[string]string{
@@ -97,6 +128,7 @@ func AuthorizationCode() *GrantHandler {
 							"client_id": c.Id(),
 						},
 						"'code_challenge_method' not found"))
+
 					return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
 						"missing 'code_challenge_method' parameter")
 				}
@@ -114,6 +146,7 @@ func AuthorizationCode() *GrantHandler {
 					return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
 						"missing 'code_challenge' parameter")
 				}
+
 				verifier, err := pkce.FindVerifierByMethod(cm)
 				if err != nil {
 
@@ -129,6 +162,7 @@ func AuthorizationCode() *GrantHandler {
 						fmt.Sprintf("unsupported 'code_challenge_method': '%s'", cm))
 				}
 				if !verifier.Verify(cc, cv) {
+
 					logger.Info(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.CodeChallengeFailed,
 						map[string]string{
@@ -137,6 +171,7 @@ func AuthorizationCode() *GrantHandler {
 							"client_id":             c.Id(),
 						},
 						"failed code challenge"))
+
 					return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
 						fmt.Sprintf("invalid 'code_challenge': '%s'", cc))
 				}
@@ -144,6 +179,7 @@ func AuthorizationCode() *GrantHandler {
 
 			token, err := sdi.CreateAccessToken(info,
 				scope.IncludeOfflineAccess(info.Scope()))
+
 			if err != nil {
 				if err.Type() == sd.ErrFailed {
 
@@ -153,23 +189,31 @@ func AuthorizationCode() *GrantHandler {
 						"failed to create access token."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+
 				} else if err.Type() == sd.ErrUnsupported {
+
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
 						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
 						"the method returns 'unsupported' error."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
 				} else {
+
 					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceServerError,
 						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
 						"interface returned ServerError."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if token == nil {
+
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
 						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
 						"the method returns (nil, nil)."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}

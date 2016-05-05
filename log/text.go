@@ -14,6 +14,7 @@ const (
 	AuthInfoConditionMismatch
 	ScopeConditionMismatch
 	RefreshTokenConditionMismatch
+	AssertionConditionMismatch
 	InterfaceUnsupported
 	InterfaceServerError
 	InterfaceError
@@ -26,7 +27,11 @@ const (
 	NoCredential
 	NoEnabledClient
 	NoEnabledAuthInfo
+	NoEnabledAccessToken
+	NoEnabledUserId
 	AccessTokenCreationFailed
+	AccessTokenRefreshFailed
+	AuthInfoCreationFailed
 	IdTokenGeneration
 )
 
@@ -42,6 +47,8 @@ func (e LogEvent) String() string {
 		return "scope_condition_mismatch"
 	case RefreshTokenConditionMismatch:
 		return "refresh_token_condition_mismatch"
+	case AssertionConditionMismatch:
+		return "assertion_condition_mismatch"
 	case AuthInfoConditionMismatch:
 		return "auth_info_condition_mismatch"
 	case InterfaceUnsupported:
@@ -56,6 +63,10 @@ func (e LogEvent) String() string {
 		return "access_token_granted"
 	case AccessTokenCreationFailed:
 		return "access_token_creation_failed"
+	case AccessTokenRefreshFailed:
+		return "access_token_refresh_failed"
+	case AuthInfoCreationFailed:
+		return "auth_info_creation_failed"
 	case InvalidHTTPMethod:
 		return "invalid_http_method"
 	case MissingParam:
@@ -68,8 +79,12 @@ func (e LogEvent) String() string {
 		return "no_credential"
 	case NoEnabledClient:
 		return "no_enabled_client"
+	case NoEnabledUserId:
+		return "no_enabled_user_id"
 	case NoEnabledAuthInfo:
 		return "no_enabled_auth_info"
+	case NoEnabledAccessToken:
+		return "no_enabled_access_token"
 	case IdTokenGeneration:
 		return "id_token_generation"
 	default:
