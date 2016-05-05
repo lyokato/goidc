@@ -3,6 +3,7 @@ package goidc
 import (
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/lyokato/goidc/basic_auth"
@@ -24,6 +25,7 @@ func TestTokenEndpointJWT(t *testing.T) {
 	token.Claims["aud"] = "http://example.org/"
 	token.Claims["iss"] = "http://client.example.org/"
 	token.Claims["sub"] = "user01"
+	token.Claims["exp"] = time.Now().Unix() + 60*60*24
 	assertion, err := token.SignedString(key)
 	if err != nil {
 		t.Errorf("failed to sign jwt, %s", err)

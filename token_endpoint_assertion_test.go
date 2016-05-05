@@ -3,6 +3,7 @@ package goidc
 import (
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/lyokato/goidc/grant"
@@ -35,6 +36,7 @@ func TestTokenEndpointInvalidClientAssertion(t *testing.T) {
 	token.Claims["aud"] = "http://example.org/"
 	token.Claims["iss"] = "http://client.example.org/"
 	token.Claims["sub"] = "client_id_01"
+	token.Claims["exp"] = time.Now().Unix() + 60*60*24
 
 	assertion, err := token.SignedString(key)
 	if err != nil {

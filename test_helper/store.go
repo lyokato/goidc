@@ -198,6 +198,10 @@ func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface, offlineAccess b
 	return t, nil
 }
 
+func (s *TestStore) RecordAssertionClaims(sub, jti string, iat, exp int64) *sd.Error {
+	return nil
+}
+
 func (s *TestStore) FindUserIdBySubject(sub string) (int64, *sd.Error) {
 	for _, u := range s.users {
 		if u.Username == sub {

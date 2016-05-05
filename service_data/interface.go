@@ -70,5 +70,6 @@ type (
 		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *AuthSession) (AuthInfoInterface, *Error)
 
 		FindUserIdBySubject(sub string) (int64, *Error)
+		RecordAssertionClaims(clientId, jti string, issuedAt, expiredAt int64) *Error
 	}
 )
