@@ -108,6 +108,11 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 	r *http.Request, sdi sd.ServiceDataInterface,
 	gt, ca string) (sd.ClientInterface, bool) {
+
+	// RFC7523
+	// JSON Web Token (JWT) Profile
+	// for OAuth 2.0 Client Authentication and Authorization Grants
+
 	/*
 
 				var client ClientInterface
@@ -129,7 +134,7 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 					kid := token.Header["kid"].(string)
 					alg := token.Header["alg"].(string)
 
-		            key := client.AssertionKeyFor(alg, kid)
+		            key := client.AssertionKey(alg, kid)
 		            if key != nil {
 		                return key, nil
 		            } else {

@@ -72,3 +72,7 @@ func (c *TestClient) IdTokenKeyId() string {
 func (c *TestClient) IdTokenKey() interface{} {
 	return c.idTokenKey
 }
+
+func (c *TestClient) AssertionKey(alg, kid string) interface{} {
+	return c.secret
+}
