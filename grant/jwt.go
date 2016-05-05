@@ -26,6 +26,12 @@ func JWT() *GrantHandler {
 
 			a := r.FormValue("assertion")
 			if a == "" {
+
+				logger.Debug(log.TokenEndpointLog(TypeJWT,
+					log.MissingParam,
+					map[string]string{"param": "assertion", "client_id": c.Id()},
+					"'assertion' not found"))
+
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
 					"missing 'assertion' parameter")
 			}
@@ -42,6 +48,12 @@ func JWT() *GrantHandler {
 			})
 
 			if !t.Valid {
+
+				logger.Info(log.TokenEndpointLog(TypeJWT,
+					log.AssertionConditionMismatch,
+					map[string]string{"assertion": a, "client_id": c.Id()},
+					"invalid 'assertion' signature"))
+
 				return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
 					"invalid assertion signature")
 			}
@@ -58,17 +70,30 @@ func JWT() *GrantHandler {
 
 			aud, ok := t.Claims["aud"].(string)
 			if !ok {
-				// not found
+
+				logger.Debug(log.TokenEndpointLog(TypeJWT,
+					log.MissingParam,
+					map[string]string{"param": "aud", "client_id": c.Id()},
+					"'aud' not found in assertion"))
+
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
-					"'aud' parameter not found")
+					"'aud' parameter not found in assertion")
 			}
 
 			service := sdi.Issure()
 			if service == "" {
+
 				// server error
+				return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 			}
 
 			if aud != service {
+
+				logger.Info(log.TokenEndpointLog(TypeJWT,
+					log.AssertionConditionMismatch,
+					map[string]string{"assertion": a, "client_id": c.Id()},
+					"invalid 'aud'"))
+
 				return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
 					fmt.Sprintf("invalid 'aud' parameter '%s' in assertion", aud))
 			}
@@ -92,51 +117,98 @@ func JWT() *GrantHandler {
 
 			scp_req := r.FormValue("scope")
 			if scp_req != "" && !c.CanUseScope(scp_req) {
-				logger.Info(log.TokenEndpointLog(TypeJWT, log.InvalidScope,
+
+				logger.Info(log.TokenEndpointLog(TypeJWT,
+					log.InvalidScope,
 					map[string]string{"scope": scp_req, "client_id": c.Id()},
 					"requested scope is not allowed to this client"))
+
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidScope)
 			}
 
 			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.Id(), scp_req, nil)
 			if err != nil {
+
 				if err.Type() == sd.ErrFailed {
+
+					logger.Debug(log.TokenEndpointLog(TypeJWT,
+						log.AuthInfoCreationFailed,
+						map[string]string{"method": "CreateOrUpdateAuthInfo", "client_id": c.Id()},
+						"failed to create auth info."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Error(log.TokenEndpointLog(TypeJWT, log.InterfaceUnsupported,
+
+					logger.Error(log.TokenEndpointLog(TypeJWT,
+						log.InterfaceUnsupported,
 						map[string]string{"method": "CreateOrUpdateAuthInfo"},
 						"the method returns 'unsupported' error."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
 				} else {
+
+					logger.Warn(log.TokenEndpointLog(TypeJWT,
+						log.InterfaceServerError,
+						map[string]string{"method": "CreateOrUpdateAuthInfo", "client_id": c.Id()},
+						"interface returned ServerError."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			} else {
 				if info == nil {
-					logger.Error(log.TokenEndpointLog(TypeJWT, log.InterfaceError,
+
+					logger.Error(log.TokenEndpointLog(TypeJWT,
+						log.InterfaceError,
 						map[string]string{"method": "CreateOrUpdateAuthInfo"},
 						"the method returns (nil, nil)."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 
 			token, err := sdi.CreateAccessToken(info,
 				scope.IncludeOfflineAccess(info.Scope()))
+
 			if err != nil {
+
 				if err.Type() == sd.ErrFailed {
+
+					logger.Debug(log.TokenEndpointLog(TypeJWT,
+						log.AccessTokenCreationFailed,
+						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						"failed to create access token."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+
 				} else if err.Type() == sd.ErrUnsupported {
-					logger.Error(log.TokenEndpointLog(TypeJWT, log.InterfaceUnsupported,
+
+					logger.Error(log.TokenEndpointLog(TypeJWT,
+						log.InterfaceUnsupported,
 						map[string]string{"method": "CreateAccessToken"},
 						"the method returns 'unsupported' error."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
 				} else {
+
+					logger.Warn(log.TokenEndpointLog(TypeJWT,
+						log.InterfaceServerError,
+						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						"interface returned ServerError."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
 				}
 			} else {
 				if token == nil {
-					logger.Error(log.TokenEndpointLog(TypeJWT, log.InterfaceError,
+
+					logger.Error(log.TokenEndpointLog(TypeJWT,
+						log.InterfaceError,
 						map[string]string{"method": "CreateAccessToken"},
 						"the method returns (nil, nil)."))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}

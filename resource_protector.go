@@ -109,37 +109,62 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	rt := rp.findTokenFromHeader(r)
 
 	if rt == "" {
+
+		rp.logger.Debug(log.TokenEndpointLog(r.URL.Path,
+			log.NoCredential,
+			map[string]string{},
+			"access_token not found in request."))
+
 		rp.unauthorize(w, oer.NewOAuthSimpleError(oer.ErrInvalidRequest))
 		return false
 	}
 
 	at, err := sdi.FindAccessTokenByAccessToken(rt)
+
 	if err != nil {
 		if err.Type() == sd.ErrFailed {
-			rp.logger.Info(log.ProtectedResourceLog(r.URL.Path, log.AuthenticationFailed,
+
+			rp.logger.Info(log.ProtectedResourceLog(r.URL.Path,
+				log.AuthenticationFailed,
 				map[string]string{
 					"access_token":    rt,
 					"remote_addr":     r.Header.Get("REMOTE_ADDR"),
 					"x-forwarded-for": r.Header.Get("X-FORWARDED-FOR"),
 				}, "'access_token' not found."))
+
 			rp.unauthorize(w, oer.NewOAuthSimpleError(oer.ErrInvalidToken))
 			return false
+
 		} else if err.Type() == sd.ErrUnsupported {
+
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path,
 				log.InterfaceUnsupported,
 				map[string]string{"method": "FindAccessTokenByAccessToken"},
 				"the method returns 'unsupported' error."))
+
 			w.WriteHeader(http.StatusInternalServerError)
 			return false
+
 		} else {
+
+			rp.logger.Warn(log.ProtectedResourceLog(r.URL.Path,
+				log.InterfaceServerError,
+				map[string]string{
+					"method":       "FindAccessTokenByAccessToken",
+					"access_token": rt,
+				},
+				"interface returned ServerError."))
+
 			w.WriteHeader(http.StatusInternalServerError)
 			return false
 		}
 	} else {
 		if at == nil {
+
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path, log.InterfaceError,
 				map[string]string{"method": "FindAccessTokenByAccessToken"},
 				"the method returns (nil, nil)."))
+
 			w.WriteHeader(http.StatusInternalServerError)
 			return false
 		}
@@ -154,23 +179,48 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	info, err := sdi.FindAuthInfoById(at.AuthId())
 	if err != nil {
 		if err.Type() == sd.ErrFailed {
+
+			rp.logger.Debug(log.TokenEndpointLog(r.URL.Path,
+				log.NoEnabledAuthInfo,
+				map[string]string{
+					"method":       "FindAuthInfoById",
+					"access_token": rt,
+				},
+				"no enabled auth info associated with this access_token."))
+
 			rp.unauthorize(w, oer.NewOAuthSimpleError(oer.ErrInvalidToken))
 			return false
+
 		} else if err.Type() == sd.ErrUnsupported {
-			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path, log.InterfaceUnsupported,
+
+			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path,
+				log.InterfaceUnsupported,
 				map[string]string{"method": "FindAuthInfoById"},
 				"the method returns 'unsupported' error."))
+
 			w.WriteHeader(http.StatusInternalServerError)
 			return false
+
 		} else {
+
+			rp.logger.Warn(log.TokenEndpointLog(r.URL.Path,
+				log.InterfaceServerError,
+				map[string]string{
+					"method":       "FindAuthInfoById",
+					"access_token": rt,
+				},
+				"interface returned ServerError"))
+
 			w.WriteHeader(http.StatusInternalServerError)
 			return false
 		}
 	} else {
 		if at == nil {
+
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path, log.InterfaceError,
 				map[string]string{"method": "FindClientById"},
 				"the method returns (nil, nil)."))
+
 			w.WriteHeader(http.StatusInternalServerError)
 			return false
 		}
