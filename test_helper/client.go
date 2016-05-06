@@ -74,5 +74,5 @@ func (c *TestClient) IdTokenKey() interface{} {
 }
 
 func (c *TestClient) AssertionKey(alg, kid string) interface{} {
-	return c.secret
+	return []byte(c.secret)
 }

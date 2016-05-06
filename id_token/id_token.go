@@ -28,20 +28,20 @@ func Hash(alg string, token string) (string, error) {
 }
 
 func Gen(alg string, key interface{}, keyId,
-	issure, clientId, subject, nonce string,
+	issuer, clientId, subject, nonce string,
 	expiresIn, authTime int64) (string, error) {
 
 	exp := time.Now().Unix() + expiresIn
 	iat := time.Now().Unix()
 
 	return rawGen(alg, key, keyId,
-		issure, clientId, subject,
+		issuer, clientId, subject,
 		nonce, exp, authTime, iat,
 		"", "")
 }
 
 func GenForImplicit(alg string, key interface{}, keyId,
-	issure, clientId, subject, nonce string,
+	issuer, clientId, subject, nonce string,
 	expiresIn, authTime int64, accessToken string) (string, error) {
 
 	exp := time.Now().Unix() + expiresIn
@@ -52,12 +52,12 @@ func GenForImplicit(alg string, key interface{}, keyId,
 		return "", err
 	}
 	return rawGen(alg, key, keyId,
-		issure, clientId, subject,
+		issuer, clientId, subject,
 		nonce, exp, authTime, iat, atHash, "")
 }
 
 func GenForHybrid(alg string, key interface{}, keyId,
-	issure, clientId, subject, nonce string,
+	issuer, clientId, subject, nonce string,
 	expiresIn, authTime int64, accessToken, code string) (string, error) {
 
 	exp := time.Now().Unix() + expiresIn
@@ -71,12 +71,12 @@ func GenForHybrid(alg string, key interface{}, keyId,
 		return "", err
 	}
 	return rawGen(alg, key, keyId,
-		issure, clientId, subject,
+		issuer, clientId, subject,
 		nonce, exp, authTime, iat, atHash, cHash)
 }
 
 func rawGen(alg string, key interface{}, keyId,
-	issure, clientId, subject, nonce string,
+	issuer, clientId, subject, nonce string,
 	expiredAt, authTime, issuedAt int64, atHash, cHash string) (string, error) {
 
 	meth := jwt.GetSigningMethod(alg)
@@ -85,7 +85,7 @@ func rawGen(alg string, key interface{}, keyId,
 	}
 
 	token := jwt.New(meth)
-	token.Claims["iss"] = issure
+	token.Claims["iss"] = issuer
 	token.Claims["aud"] = clientId
 	token.Claims["sub"] = subject
 	token.Claims["exp"] = expiredAt

@@ -97,7 +97,7 @@ func TestTokenEndpointRefreshTokenInvalidRequest(t *testing.T) {
 			"expires_in":    th.NewInt64Matcher(60 * 60 * 24),
 		},
 		map[string]th.Matcher{
-			"iss": th.NewStrMatcher("example.org"),
+			"iss": th.NewStrMatcher("http://example.org/"),
 			"sub": th.NewStrMatcher("0"),
 			"aud": th.NewStrMatcher("client_id_01"),
 		})

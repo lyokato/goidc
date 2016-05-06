@@ -129,8 +129,8 @@ func (s *TestStore) ClearAll() {
 }
 
 // ServiceDataInterface
-func (s *TestStore) Issure() string {
-	return "example.org"
+func (s *TestStore) Issuer() string {
+	return "http://example.org/"
 }
 
 func (s *TestStore) FindUserId(username, password string) (int64, *sd.Error) {
@@ -196,6 +196,10 @@ func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface, offlineAccess b
 		rvalue, 60*60*24*30, time.Now().Unix())
 	s.accessTokenes[t.AccessToken()] = t
 	return t, nil
+}
+
+func (s *TestStore) RecordAssertionClaims(sub, jti string, iat, exp int64) *sd.Error {
+	return nil
 }
 
 func (s *TestStore) FindUserIdBySubject(sub string) (int64, *sd.Error) {
