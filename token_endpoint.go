@@ -137,7 +137,7 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 				"'sub' not found in assertion"))
 
 			return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
-				"client assertion does not include 'sub'")
+				"'sub' parameter not found in assertion")
 		}
 
 		var serr *sd.Error

@@ -62,7 +62,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 				map[string]string{"assertion": a, "client_id": c.Id()},
 				"invalid 'assertion' signature"))
 
-			return oer.NewOAuthError(oer.ErrInvalidGrant,
+			return oer.NewOAuthError(oer.ErrInvalidClient,
 				"invalid assertion signature")
 
 		}
@@ -134,7 +134,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 			"'exp' not found in assertion"))
 
 		return oer.NewOAuthError(oer.ErrInvalidRequest,
-			"'aud' parameter not found in assertion")
+			"'exp' parameter not found in assertion")
 	}
 
 	switch num := t.Claims["iat"].(type) {
