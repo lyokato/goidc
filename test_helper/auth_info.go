@@ -9,7 +9,7 @@ type (
 		redirectUri   string
 		subject       string
 		scope         string
-		authorizedAt  int64
+		authTime      int64
 		code          string
 		codeExpiresIn int64
 		codeVerifier  string
@@ -22,8 +22,8 @@ func (i *TestAuthInfo) Id() int64 {
 	return i.id
 }
 
-func (i *TestAuthInfo) AuthorizedAt() int64 {
-	return i.authorizedAt
+func (i *TestAuthInfo) AuthTime() int64 {
+	return i.authTime
 }
 
 func (i *TestAuthInfo) IDTokenExpiresIn() int64 {
