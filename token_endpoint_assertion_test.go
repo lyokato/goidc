@@ -17,6 +17,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	te.Support(grant.AuthorizationCode())
 	te.Support(grant.Password())
 	te.Support(grant.ClientCredentials())
+	te.AcceptClientAssertion(true)
 
 	sdi := th.NewTestStore()
 	user := sdi.CreateNewUser("user01", "pass01")

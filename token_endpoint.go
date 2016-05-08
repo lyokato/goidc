@@ -12,6 +12,16 @@ import (
 	sd "github.com/lyokato/goidc/service_data"
 )
 
+const ClientAssertionTypeJWT = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+
+type CredentialAcceptanceMethod int
+
+const (
+	FromHeader CredentialAcceptanceMethod = iota
+	FromHeaderAndPostBody
+	FromAll
+)
+
 var defaultResponseHeaders = map[string]string{
 	"Cache-Control": "no-store",
 	"Pragma":        "no-cache",
@@ -19,10 +29,21 @@ var defaultResponseHeaders = map[string]string{
 }
 
 type TokenEndpoint struct {
-	realm           string
-	logger          log.Logger
-	handlers        map[string]grant.GrantHandlerFunc
-	errorURIBuilder oer.OAuthErrorURIBuilder
+	realm                        string
+	logger                       log.Logger
+	handlers                     map[string]grant.GrantHandlerFunc
+	errorURIBuilder              oer.OAuthErrorURIBuilder
+	clientSecretAcceptanceMethod CredentialAcceptanceMethod
+	acceptClientAssertion        bool
+}
+
+func (te *TokenEndpoint) AcceptClientSecret(
+	meth CredentialAcceptanceMethod) {
+	te.clientSecretAcceptanceMethod = meth
+}
+
+func (te *TokenEndpoint) AcceptClientAssertion(accept bool) {
+	te.acceptClientAssertion = accept
 }
 
 func (te *TokenEndpoint) SetLogger(l log.Logger) {
@@ -39,9 +60,11 @@ func (te *TokenEndpoint) SetErrorURIBuilder(builder oer.OAuthErrorURIBuilder) {
 
 func NewTokenEndpoint(realm string) *TokenEndpoint {
 	return &TokenEndpoint{
-		realm:    realm,
-		logger:   log.NewDefaultLogger(),
-		handlers: make(map[string]grant.GrantHandlerFunc),
+		realm:                        realm,
+		logger:                       log.NewDefaultLogger(),
+		handlers:                     make(map[string]grant.GrantHandlerFunc),
+		clientSecretAcceptanceMethod: FromHeader,
+		acceptClientAssertion:        false,
 	}
 }
 
@@ -74,6 +97,7 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 				"missing 'grant_type' parameter"))
 			return
 		}
+
 		h, exists := te.handlers[gt]
 		if !exists {
 
@@ -85,6 +109,7 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 				fmt.Sprintf("unsupported 'grant_type' parameter: '%s'", gt)))
 			return
 		}
+
 		cid, sec, inHeader, exists := te.findClientCredential(r)
 		if exists {
 			client, ok := te.validateClientBySecret(w, r,
@@ -94,14 +119,17 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 			}
 			return
 		}
-		ca, exists := te.findClientAssertion(r)
-		if exists {
-			client, ok := te.validateClientByAssertion(w, r,
-				sdi, gt, ca)
-			if ok {
-				te.executeGrantHandler(w, r, sdi, client, gt, h)
+
+		if te.acceptClientAssertion {
+			ca, exists := te.findClientAssertion(r)
+			if exists {
+				client, ok := te.validateClientByAssertion(w, r,
+					sdi, gt, ca)
+				if ok {
+					te.executeGrantHandler(w, r, sdi, client, gt, h)
+				}
+				return
 			}
-			return
 		}
 
 		te.logger.Debug(log.TokenEndpointLog(gt, log.NoCredential,
@@ -331,11 +359,26 @@ func (te *TokenEndpoint) findClientCredential(r *http.Request) (string, string, 
 	if exists {
 		return cid, sec, true, true
 	}
-	cid = r.FormValue("client_id")
-	sec = r.FormValue("client_secret")
-	if cid != "" && sec != "" {
-		return cid, sec, false, true
-	} else {
+	switch te.clientSecretAcceptanceMethod {
+	case FromHeader:
+		return "", "", false, false
+	case FromHeaderAndPostBody:
+		cid = r.PostFormValue("client_id")
+		sec = r.PostFormValue("client_secret")
+		if cid != "" && sec != "" {
+			return cid, sec, false, true
+		} else {
+			return "", "", false, false
+		}
+	case FromAll:
+		cid = r.FormValue("client_id")
+		sec = r.FormValue("client_secret")
+		if cid != "" && sec != "" {
+			return cid, sec, false, true
+		} else {
+			return "", "", false, false
+		}
+	default:
 		return "", "", false, false
 	}
 }
@@ -343,7 +386,7 @@ func (te *TokenEndpoint) findClientCredential(r *http.Request) (string, string, 
 func (te *TokenEndpoint) findClientAssertion(r *http.Request) (string, bool) {
 	ca := r.FormValue("client_assertion")
 	cat := r.FormValue("client_assertion_type")
-	if ca != "" && cat == "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" {
+	if ca != "" && cat == ClientAssertionTypeJWT {
 		return ca, true
 	} else {
 		return "", false

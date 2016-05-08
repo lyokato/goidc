@@ -13,19 +13,11 @@ import (
 	sd "github.com/lyokato/goidc/service_data"
 )
 
-type AccessTokenAcceptanceMethod int
-
-const (
-	FromHeader AccessTokenAcceptanceMethod = iota
-	FromHeaderAndPostBody
-	FromAll
-)
-
 type ResourceProtector struct {
 	realm                 string
 	logger                log.Logger
 	errorURIBuilder       oer.OAuthErrorURIBuilder
-	tokenAcceptanceMethod AccessTokenAcceptanceMethod
+	tokenAcceptanceMethod CredentialAcceptanceMethod
 }
 
 func NewResourceProtector(realm string) *ResourceProtector {
@@ -36,7 +28,7 @@ func NewResourceProtector(realm string) *ResourceProtector {
 	}
 }
 
-func (rp *ResourceProtector) AcceptAccessToken(meth AccessTokenAcceptanceMethod) {
+func (rp *ResourceProtector) AcceptAccessToken(meth CredentialAcceptanceMethod) {
 	rp.tokenAcceptanceMethod = meth
 }
 

@@ -15,6 +15,7 @@ import (
 func TestTokenEndpointNonPostRequest(t *testing.T) {
 	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
+	te.AcceptClientSecret(FromAll)
 	sdi := th.NewTestStore()
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -43,6 +44,7 @@ func TestTokenEndpointNonPostRequest(t *testing.T) {
 func TestTokenEndpointErrorURIBuilder(t *testing.T) {
 	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
+	te.AcceptClientSecret(FromAll)
 
 	sdi := th.NewTestStore()
 
@@ -94,6 +96,7 @@ func TestTokenEndpointErrorURIBuilder(t *testing.T) {
 func TestTokenEndpointInvalidGrantType(t *testing.T) {
 	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
+	te.AcceptClientSecret(FromAll)
 
 	sdi := th.NewTestStore()
 
@@ -142,6 +145,7 @@ func TestTokenEndpointInvalidClient(t *testing.T) {
 	te.Support(grant.AuthorizationCode())
 	te.Support(grant.Password())
 	te.Support(grant.ClientCredentials())
+	te.AcceptClientSecret(FromAll)
 
 	sdi := th.NewTestStore()
 	u := sdi.CreateNewUser("user01", "pass01")
@@ -236,6 +240,7 @@ func TestTokenEndpointUnauthorizedClient(t *testing.T) {
 	te.Support(grant.AuthorizationCode())
 	te.Support(grant.Password())
 	te.Support(grant.ClientCredentials())
+	te.AcceptClientSecret(FromAll)
 
 	sdi := th.NewTestStore()
 	u := sdi.CreateNewUser("user01", "pass01")
