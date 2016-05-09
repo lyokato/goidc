@@ -300,6 +300,7 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 
 	te := NewTokenEndpoint("api.example.org")
 	te.Support(grant.AuthorizationCode())
+	te.AcceptClientSecret(FromAll)
 
 	sdi := th.NewTestStore()
 	user := sdi.CreateNewUser("user01", "pass01")

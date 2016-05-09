@@ -21,7 +21,7 @@ type (
 		ClientId() string
 		UserId() int64
 		Scope() string
-		AuthorizedAt() int64
+		AuthTime() int64
 
 		// ID Token specific values
 

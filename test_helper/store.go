@@ -87,7 +87,7 @@ func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string,
 	}
 	i.subject = fmt.Sprintf("%d", uid)
 	i.scope = scope
-	i.authorizedAt = time.Now().Unix()
+	i.authTime = time.Now().Unix()
 	if session != nil {
 		i.flowType = "basic"
 		i.code = session.Code
