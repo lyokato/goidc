@@ -9,7 +9,6 @@ import (
 	"github.com/lyokato/goidc/assertion"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
-	"github.com/lyokato/goidc/scope"
 	sd "github.com/lyokato/goidc/service_data"
 )
 
@@ -294,8 +293,7 @@ func JWT() *GrantHandler {
 				}
 			}
 
-			token, err := sdi.CreateAccessToken(info,
-				scope.IncludeOfflineAccess(info.Scope()))
+			token, err := sdi.CreateOAuthToken(info)
 
 			if err != nil {
 

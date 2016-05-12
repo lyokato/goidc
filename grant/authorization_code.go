@@ -177,8 +177,7 @@ func AuthorizationCode() *GrantHandler {
 				}
 			}
 
-			token, err := sdi.CreateAccessToken(info,
-				scope.IncludeOfflineAccess(info.Scope()))
+			token, err := sdi.CreateOAuthToken(info)
 
 			if err != nil {
 				if err.Type() == sd.ErrFailed {

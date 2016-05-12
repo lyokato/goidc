@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/lyokato/goidc/crypto"
+	"github.com/lyokato/goidc/scope"
 	sd "github.com/lyokato/goidc/service_data"
 )
 
@@ -23,7 +24,7 @@ type (
 		users         map[int64]*TestUser
 		clients       map[string]*TestClient
 		infos         map[int64]*TestAuthInfo
-		accessTokenes map[string]*TestAccessToken
+		accessTokenes map[string]*TestOAuthToken
 	}
 )
 
@@ -53,7 +54,7 @@ tpgdYZY2kFpD7Nv0TxlmCsXf4JL/+Vd7pFtUuZVdNpfy
 		users:         make(map[int64]*TestUser, 0),
 		clients:       make(map[string]*TestClient, 0),
 		infos:         make(map[int64]*TestAuthInfo, 0),
-		accessTokenes: make(map[string]*TestAccessToken, 0),
+		accessTokenes: make(map[string]*TestOAuthToken, 0),
 	}
 }
 
@@ -118,7 +119,7 @@ func (s *TestStore) findAuthInfoByUserAndClient(uid int64, clientId string) (*Te
 func (s *TestStore) ClearAuthData() {
 	s.infoIdPod = 0
 	s.infos = make(map[int64]*TestAuthInfo, 0)
-	s.accessTokenes = make(map[string]*TestAccessToken, 0)
+	s.accessTokenes = make(map[string]*TestOAuthToken, 0)
 }
 
 func (s *TestStore) ClearAll() {
@@ -169,7 +170,7 @@ func (s *TestStore) FindAuthInfoById(id int64) (sd.AuthInfoInterface, *sd.Error)
 	return i, nil
 }
 
-func (s *TestStore) FindAccessTokenByAccessToken(token string) (sd.AccessTokenInterface, *sd.Error) {
+func (s *TestStore) FindOAuthTokenByAccessToken(token string) (sd.OAuthTokenInterface, *sd.Error) {
 	at, exists := s.accessTokenes[token]
 	if !exists {
 		return nil, sd.NewError(sd.ErrFailed)
@@ -177,7 +178,7 @@ func (s *TestStore) FindAccessTokenByAccessToken(token string) (sd.AccessTokenIn
 	return at, nil
 }
 
-func (s *TestStore) FindAccessTokenByRefreshToken(token string) (sd.AccessTokenInterface, *sd.Error) {
+func (s *TestStore) FindOAuthTokenByRefreshToken(token string) (sd.OAuthTokenInterface, *sd.Error) {
 	for _, at := range s.accessTokenes {
 		if at.RefreshToken() == token {
 			return at, nil
@@ -186,13 +187,13 @@ func (s *TestStore) FindAccessTokenByRefreshToken(token string) (sd.AccessTokenI
 	return nil, sd.NewError(sd.ErrFailed)
 }
 
-func (s *TestStore) CreateAccessToken(info sd.AuthInfoInterface, offlineAccess bool) (sd.AccessTokenInterface, *sd.Error) {
+func (s *TestStore) CreateOAuthToken(info sd.AuthInfoInterface) (sd.OAuthTokenInterface, *sd.Error) {
 	avalue := fmt.Sprintf("ACCESS_TOKEN_%d", info.Id())
 	rvalue := fmt.Sprintf("REFRESH_TOKEN_%d", info.Id())
-	if !offlineAccess {
+	if !scope.IncludeOfflineAccess(info.Scope()) {
 		rvalue = ""
 	}
-	t := NewTestAccessToken(info.Id(), avalue, 60*60*24, time.Now().Unix(),
+	t := NewTestOAuthToken(info.Id(), avalue, 60*60*24, time.Now().Unix(),
 		rvalue, 60*60*24*30, time.Now().Unix())
 	s.accessTokenes[t.AccessToken()] = t
 	return t, nil
@@ -211,7 +212,7 @@ func (s *TestStore) FindUserIdBySubject(sub string) (int64, *sd.Error) {
 	return -1, sd.NewError(sd.ErrFailed)
 }
 
-func (s *TestStore) RefreshAccessToken(info sd.AuthInfoInterface, old sd.AccessTokenInterface, offlineAccess bool) (sd.AccessTokenInterface, *sd.Error) {
+func (s *TestStore) RefreshAccessToken(info sd.AuthInfoInterface, old sd.OAuthTokenInterface) (sd.OAuthTokenInterface, *sd.Error) {
 	oldToken := old.AccessToken()
 	token, _ := s.accessTokenes[oldToken]
 	token.accessToken = token.accessToken + ":R"

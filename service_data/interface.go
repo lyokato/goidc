@@ -37,7 +37,7 @@ type (
 		Nonce() string
 	}
 
-	AccessTokenInterface interface {
+	OAuthTokenInterface interface {
 		AuthId() int64
 
 		AccessToken() string
@@ -62,10 +62,10 @@ type (
 		FindClientById(clientId string) (ClientInterface, *Error)
 		FindAuthInfoByCode(code string) (AuthInfoInterface, *Error)
 		FindAuthInfoById(id int64) (AuthInfoInterface, *Error)
-		FindAccessTokenByAccessToken(token string) (AccessTokenInterface, *Error)
-		FindAccessTokenByRefreshToken(token string) (AccessTokenInterface, *Error)
-		CreateAccessToken(info AuthInfoInterface, offlineAccess bool) (AccessTokenInterface, *Error)
-		RefreshAccessToken(info AuthInfoInterface, token AccessTokenInterface, offlineAccess bool) (AccessTokenInterface, *Error)
+		FindOAuthTokenByAccessToken(token string) (OAuthTokenInterface, *Error)
+		FindOAuthTokenByRefreshToken(token string) (OAuthTokenInterface, *Error)
+		CreateOAuthToken(info AuthInfoInterface) (OAuthTokenInterface, *Error)
+		RefreshAccessToken(info AuthInfoInterface, token OAuthTokenInterface) (OAuthTokenInterface, *Error)
 		FindUserId(username, password string) (int64, *Error)
 		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *AuthSession) (AuthInfoInterface, *Error)
 

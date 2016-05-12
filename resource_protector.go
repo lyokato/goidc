@@ -111,7 +111,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		return false
 	}
 
-	at, err := sdi.FindAccessTokenByAccessToken(rt)
+	at, err := sdi.FindOAuthTokenByAccessToken(rt)
 
 	if err != nil {
 		if err.Type() == sd.ErrFailed {
