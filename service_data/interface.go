@@ -27,7 +27,7 @@ type (
 
 		// Subject: If you support PPID, generate unique ID for each client, or not, just return string same as UserId
 		Subject() string
-		IDTokenExpiresIn() int64
+		IdTokenExpiresIn() int64
 
 		// Session specific Values
 		RedirectURI() string
