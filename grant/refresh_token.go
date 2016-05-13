@@ -34,7 +34,7 @@ func RefreshToken() *GrantHandler {
 					"missing 'refresh_token' parameter")
 			}
 
-			old, err := sdi.FindAccessTokenByRefreshToken(rt)
+			old, err := sdi.FindOAuthTokenByRefreshToken(rt)
 			if err != nil {
 
 				if err.Type() == sd.ErrFailed {
@@ -164,7 +164,7 @@ func RefreshToken() *GrantHandler {
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
 
-			token, err := sdi.RefreshAccessToken(info, old, true)
+			token, err := sdi.RefreshAccessToken(info, old)
 			if err != nil {
 
 				if err.Type() == sd.ErrFailed {
