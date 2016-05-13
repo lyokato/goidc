@@ -236,7 +236,7 @@ func AuthorizationCode() *GrantHandler {
 					"found 'openid' scope, so generate id_token, and attach it to response"))
 
 				idt, err := id_token.Gen(c.IdTokenAlg(), c.IdTokenKey(), c.IdTokenKeyId(), sdi.Issuer(),
-					info.ClientId(), info.Subject(), info.Nonce(), info.IDTokenExpiresIn(), info.AuthTime())
+					info.ClientId(), info.Subject(), info.Nonce(), info.IdTokenExpiresIn(), info.AuthTime())
 				if err != nil {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {

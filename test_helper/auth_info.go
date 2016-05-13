@@ -26,7 +26,7 @@ func (i *TestAuthInfo) AuthTime() int64 {
 	return i.authTime
 }
 
-func (i *TestAuthInfo) IDTokenExpiresIn() int64 {
+func (i *TestAuthInfo) IdTokenExpiresIn() int64 {
 	return int64(60 * 60 * 24 * 7)
 }
 
