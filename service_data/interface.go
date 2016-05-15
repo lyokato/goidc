@@ -55,6 +55,7 @@ type (
 		CodeExpiresIn int64
 		CodeVerifier  string
 		Nonce         string
+		AuthTime      int64
 	}
 
 	ServiceDataInterface interface {

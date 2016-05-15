@@ -88,7 +88,6 @@ func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string,
 	}
 	i.subject = fmt.Sprintf("%d", uid)
 	i.scope = scope
-	i.authTime = time.Now().Unix()
 	if session != nil {
 		i.flowType = "basic"
 		i.code = session.Code
@@ -96,10 +95,12 @@ func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string,
 		i.codeVerifier = session.CodeVerifier
 		i.nonce = session.Nonce
 		i.redirectUri = session.RedirectURI
+		i.authTime = session.AuthTime
 	} else {
 		i.flowType = "direct"
 		i.code = ""
 		i.codeExpiresIn = 0
+		i.authTime = 0
 		i.codeVerifier = ""
 		i.nonce = ""
 		i.redirectUri = ""
