@@ -31,6 +31,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 			CodeVerifier:  "",
 			CodeExpiresIn: int64(60 * 60 * 24),
 			Nonce:         "07dfa90f",
+			AuthTime:      time.Now().Unix(),
 		})
 
 	key := client.AssertionKey("", "")

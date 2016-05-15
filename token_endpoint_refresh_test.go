@@ -3,6 +3,7 @@ package goidc
 import (
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/lyokato/goidc/basic_auth"
 	"github.com/lyokato/goidc/grant"
@@ -28,6 +29,7 @@ func TestTokenEndpointRefreshTokenInvalidRequest(t *testing.T) {
 			CodeVerifier:  "",
 			CodeExpiresIn: int64(60 * 60 * 24),
 			Nonce:         "07dfa90f",
+			AuthTime:      time.Now().Unix(),
 		})
 
 	ts := httptest.NewServer(te.Handler(sdi))
