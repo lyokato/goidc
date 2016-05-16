@@ -237,8 +237,16 @@ func AuthorizationCode() *GrantHandler {
 
 				idt, err := id_token.Gen(c.GetIdTokenAlg(), c.GetIdTokenKey(), c.GetIdTokenKeyId(), sdi.Issuer(),
 					info.GetClientId(), info.GetSubject(), info.GetNonce(), info.GetIdTokenExpiresIn(), info.GetAuthTime())
+
 				if err != nil {
+
+					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode,
+						log.IdTokenGeneration,
+						map[string]string{"client_id": c.GetId()},
+						fmt.Sprintf("failedd to generate id_token: %s", err)))
+
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
 				} else {
 					res.IdToken = idt
 				}
