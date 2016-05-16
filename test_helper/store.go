@@ -156,6 +156,7 @@ func (s *TestStore) FindClientById(cid string) (sd.ClientInterface, *sd.Error) {
 func (s *TestStore) FindAuthInfoByCode(code string) (sd.AuthInfoInterface, *sd.Error) {
 	for _, i := range s.infos {
 		if i.GetCode() == code {
+			// TODO check code expiration here
 			return i, nil
 		}
 	}

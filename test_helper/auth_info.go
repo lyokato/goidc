@@ -26,6 +26,11 @@ func (i *TestAuthInfo) GetAuthTime() int64 {
 	return i.authTime
 }
 
+func (i *TestAuthInfo) GetAuthorizedAt() int64 {
+	// FIXME
+	return i.authTime
+}
+
 func (i *TestAuthInfo) GetIdTokenExpiresIn() int64 {
 	return int64(60 * 60 * 24 * 7)
 }

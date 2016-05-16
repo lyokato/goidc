@@ -22,6 +22,7 @@ type (
 		GetUserId() int64
 		GetScope() string
 		GetAuthTime() int64
+		GetAuthorizedAt() int64
 
 		// ID Token specific values
 
