@@ -2,51 +2,51 @@ package service_data
 
 type (
 	ClientInterface interface {
-		Id() string
-		OwnerUserId() int64
-		IdTokenAlg() string
-		IdTokenKeyId() string
-		IdTokenKey() interface{}
+		GetId() string
+		GetOwnerUserId() int64
+		GetIdTokenAlg() string
+		GetIdTokenKeyId() string
+		GetIdTokenKey() interface{}
 		MatchSecret(secret string) bool
 		CanUseGrantType(gt string) bool
 		CanUseScope(scope string) bool
 		CanUseRedirectURI(uri string) bool
-		AssertionKey(alg, kid string) interface{}
+		GetAssertionKey(alg, kid string) interface{}
 	}
 
 	AuthInfoInterface interface {
-		Id() int64
-		FlowType() string
+		GetId() int64
+		GetFlowType() string
 
-		ClientId() string
-		UserId() int64
-		Scope() string
-		AuthTime() int64
+		GetClientId() string
+		GetUserId() int64
+		GetScope() string
+		GetAuthTime() int64
 
 		// ID Token specific values
 
 		// Subject: If you support PPID, generate unique ID for each client, or not, just return string same as UserId
-		Subject() string
-		IdTokenExpiresIn() int64
+		GetSubject() string
+		GetIdTokenExpiresIn() int64
 
 		// Session specific Values
-		RedirectURI() string
-		Code() string
-		CodeExpiresIn() int64
-		CodeVerifier() string
-		Nonce() string
+		GetRedirectURI() string
+		GetCode() string
+		GetCodeExpiresIn() int64
+		GetCodeVerifier() string
+		GetNonce() string
 	}
 
 	OAuthTokenInterface interface {
-		AuthId() int64
+		GetAuthId() int64
 
-		AccessToken() string
-		AccessTokenExpiresIn() int64
-		RefreshedAt() int64
+		GetAccessToken() string
+		GetAccessTokenExpiresIn() int64
+		GetRefreshedAt() int64
 
-		RefreshToken() string
-		RefreshTokenExpiresIn() int64
-		CreatedAt() int64
+		GetRefreshToken() string
+		GetRefreshTokenExpiresIn() int64
+		GetCreatedAt() int64
 	}
 
 	AuthSession struct {

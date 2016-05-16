@@ -48,7 +48,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 
 			logger.Debug(log.TokenEndpointLog(gt,
 				log.AssertionConditionMismatch,
-				map[string]string{"assertion": a, "client_id": c.Id()},
+				map[string]string{"assertion": a, "client_id": c.GetId()},
 				"invalid 'assertion' format"))
 
 			return oer.NewOAuthError(oer.ErrInvalidGrant,
@@ -59,7 +59,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 
 			logger.Info(log.TokenEndpointLog(gt,
 				log.AssertionConditionMismatch,
-				map[string]string{"assertion": a, "client_id": c.Id()},
+				map[string]string{"assertion": a, "client_id": c.GetId()},
 				"invalid 'assertion' signature"))
 
 			return oer.NewOAuthError(oer.ErrInvalidClient,
@@ -71,7 +71,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 
 			logger.Info(log.TokenEndpointLog(gt,
 				log.AssertionConditionMismatch,
-				map[string]string{"assertion": a, "client_id": c.Id()},
+				map[string]string{"assertion": a, "client_id": c.GetId()},
 				"assertion expired"))
 
 			return oer.NewOAuthError(oer.ErrInvalidGrant,
@@ -82,7 +82,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 
 			logger.Info(log.TokenEndpointLog(gt,
 				log.AssertionConditionMismatch,
-				map[string]string{"assertion": a, "client_id": c.Id()},
+				map[string]string{"assertion": a, "client_id": c.GetId()},
 				"assertion not valid yet"))
 
 			return oer.NewOAuthError(oer.ErrInvalidGrant,
@@ -92,7 +92,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 		// unknown error type
 		logger.Warn(log.TokenEndpointLog(gt,
 			log.AssertionConditionMismatch,
-			map[string]string{"assertion": a, "client_id": c.Id()},
+			map[string]string{"assertion": a, "client_id": c.GetId()},
 			"unknown 'assertion' validation failure"))
 
 		return oer.NewOAuthError(oer.ErrInvalidGrant,
@@ -104,7 +104,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 		// must not come here
 		logger.Warn(log.TokenEndpointLog(gt,
 			log.AssertionConditionMismatch,
-			map[string]string{"assertion": a, "client_id": c.Id()},
+			map[string]string{"assertion": a, "client_id": c.GetId()},
 			"invalid 'assertion' signature"))
 
 		return oer.NewOAuthError(oer.ErrInvalidGrant,
@@ -130,7 +130,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 
 		logger.Debug(log.TokenEndpointLog(gt,
 			log.MissingParam,
-			map[string]string{"param": "exp", "client_id": c.Id()},
+			map[string]string{"param": "exp", "client_id": c.GetId()},
 			"'exp' not found in assertion"))
 
 		return oer.NewOAuthError(oer.ErrInvalidRequest,
@@ -154,7 +154,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 		jti = found
 	}
 
-	err := sdi.RecordAssertionClaims(c.Id(), jti, iat, exp)
+	err := sdi.RecordAssertionClaims(c.GetId(), jti, iat, exp)
 	if err != nil {
 		if err.Type() == sd.ErrFailed {
 
@@ -162,7 +162,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 				log.AssertionConditionMismatch,
 				map[string]string{
 					"method":    "FindAuthInfoByCode",
-					"client_id": c.Id(),
+					"client_id": c.GetId(),
 					"jti":       jti,
 					"exp":       fmt.Sprintf("%d", exp),
 					"iat":       fmt.Sprintf("%d", iat),
@@ -178,7 +178,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 				log.InterfaceUnsupported,
 				map[string]string{
 					"method":    "FindAuthInfoByCode",
-					"client_id": c.Id(),
+					"client_id": c.GetId(),
 				},
 				"the method returns 'unsupported' error."))
 
@@ -190,7 +190,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 				log.InterfaceServerError,
 				map[string]string{
 					"method":    "FindAuthInfoByCode",
-					"client_id": c.Id(),
+					"client_id": c.GetId(),
 					"jti":       jti,
 					"exp":       fmt.Sprintf("%d", exp),
 					"iat":       fmt.Sprintf("%d", iat),
@@ -208,7 +208,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 
 		logger.Debug(log.TokenEndpointLog(gt,
 			log.MissingParam,
-			map[string]string{"param": "aud", "client_id": c.Id()},
+			map[string]string{"param": "aud", "client_id": c.GetId()},
 			"'aud' not found in assertion"))
 
 		return oer.NewOAuthError(oer.ErrInvalidRequest,
@@ -230,7 +230,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 
 		logger.Info(log.TokenEndpointLog(gt,
 			log.AssertionConditionMismatch,
-			map[string]string{"assertion": a, "client_id": c.Id()},
+			map[string]string{"assertion": a, "client_id": c.GetId()},
 			"invalid 'aud'"))
 
 		return oer.NewOAuthError(oer.ErrInvalidGrant,

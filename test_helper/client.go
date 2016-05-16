@@ -49,11 +49,11 @@ func (c *TestClient) CanUseScope(scope string) bool {
 	return true
 }
 
-func (c *TestClient) OwnerUserId() int64 {
+func (c *TestClient) GetOwnerUserId() int64 {
 	return c.ownerId
 }
 
-func (c *TestClient) Id() string {
+func (c *TestClient) GetId() string {
 	return c.id
 }
 
@@ -61,18 +61,18 @@ func (c *TestClient) MatchSecret(secret string) bool {
 	return c.secret == secret
 }
 
-func (c *TestClient) IdTokenAlg() string {
+func (c *TestClient) GetIdTokenAlg() string {
 	return c.idTokenAlg
 }
 
-func (c *TestClient) IdTokenKeyId() string {
+func (c *TestClient) GetIdTokenKeyId() string {
 	return c.idTokenKeyId
 }
 
-func (c *TestClient) IdTokenKey() interface{} {
+func (c *TestClient) GetIdTokenKey() interface{} {
 	return c.idTokenKey
 }
 
-func (c *TestClient) AssertionKey(alg, kid string) interface{} {
+func (c *TestClient) GetAssertionKey(alg, kid string) interface{} {
 	return []byte(c.secret)
 }

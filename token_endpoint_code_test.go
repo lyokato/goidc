@@ -22,7 +22,7 @@ func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 
 	code_verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile offline_access",
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
 		&sd.AuthSession{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",
@@ -199,7 +199,7 @@ func TestTokenEndpointAuthorizationCodeInvalidRequest(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile offline_access",
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
 		&sd.AuthSession{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",
@@ -310,7 +310,7 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile offline_access",
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
 		&sd.AuthSession{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",
@@ -388,7 +388,7 @@ func TestTokenEndpointAuthorizationCodeWithoutOfflineAccess(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile",
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile",
 		&sd.AuthSession{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",
@@ -438,7 +438,7 @@ func TestTokenEndpointAuthorizationCodeWithoutOpenID(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "profile offline_access",
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "profile offline_access",
 		&sd.AuthSession{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",

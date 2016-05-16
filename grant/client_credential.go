@@ -16,12 +16,12 @@ func ClientCredentials() *GrantHandler {
 		func(r *http.Request, c sd.ClientInterface,
 			sdi sd.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
-			uid := c.OwnerUserId()
+			uid := c.GetOwnerUserId()
 			if uid < 0 {
 
 				logger.Warn(log.TokenEndpointLog(TypeClientCredentials,
 					log.NoEnabledUserId,
-					map[string]string{"method": "OwnerUserId", "client_id": c.Id()},
+					map[string]string{"method": "OwnerUserId", "client_id": c.GetId()},
 					"client returned no enabled owner's id"))
 
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -32,20 +32,20 @@ func ClientCredentials() *GrantHandler {
 
 				logger.Info(log.TokenEndpointLog(TypeClientCredentials,
 					log.InvalidScope,
-					map[string]string{"scope": scp_req, "client_id": c.Id()},
+					map[string]string{"scope": scp_req, "client_id": c.GetId()},
 					"requested scope is not allowed to this client"))
 
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidScope)
 			}
 
-			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.Id(), scp_req, nil)
+			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.GetId(), scp_req, nil)
 			if err != nil {
 
 				if err.Type() == sd.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypeClientCredentials,
 						log.AuthInfoCreationFailed,
-						map[string]string{"method": "CreateOrUpdateAuthInfo", "client_id": c.Id()},
+						map[string]string{"method": "CreateOrUpdateAuthInfo", "client_id": c.GetId()},
 						"failed to create auth info."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -63,7 +63,7 @@ func ClientCredentials() *GrantHandler {
 
 					logger.Warn(log.TokenEndpointLog(TypeClientCredentials,
 						log.InterfaceServerError,
-						map[string]string{"method": "CreateOrUpdateAuthInfo", "client_id": c.Id()},
+						map[string]string{"method": "CreateOrUpdateAuthInfo", "client_id": c.GetId()},
 						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -87,7 +87,7 @@ func ClientCredentials() *GrantHandler {
 
 					logger.Debug(log.TokenEndpointLog(TypeClientCredentials,
 						log.AccessTokenCreationFailed,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
 						"failed to create access token."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -105,7 +105,7 @@ func ClientCredentials() *GrantHandler {
 
 					logger.Warn(log.TokenEndpointLog(TypeClientCredentials,
 						log.InterfaceServerError,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
 						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -122,13 +122,13 @@ func ClientCredentials() *GrantHandler {
 				}
 			}
 
-			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())
+			res := NewResponse(token.GetAccessToken(), token.GetAccessTokenExpiresIn())
 
-			scp := info.Scope()
+			scp := info.GetScope()
 			if scp != "" {
 				res.Scope = scp
 			}
-			rt := token.RefreshToken()
+			rt := token.GetRefreshToken()
 			if rt != "" {
 				res.RefreshToken = rt
 			}

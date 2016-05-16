@@ -162,13 +162,13 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		}
 	}
 
-	if at.RefreshedAt()+at.AccessTokenExpiresIn() < time.Now().Unix() {
+	if at.GetRefreshedAt()+at.GetAccessTokenExpiresIn() < time.Now().Unix() {
 		rp.unauthorize(w, oer.NewOAuthError(oer.ErrInvalidToken,
 			"your access_token is expired"))
 		return false
 	}
 
-	info, err := sdi.FindAuthInfoById(at.AuthId())
+	info, err := sdi.FindAuthInfoById(at.GetAuthId())
 	if err != nil {
 		if err.Type() == sd.ErrFailed {
 
@@ -218,9 +218,9 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		}
 	}
 
-	r.Header.Set("REMOTE_USER", fmt.Sprintf("%d", info.UserId()))
-	r.Header.Set("X-OAUTH-CLIENT-ID", info.ClientId())
-	r.Header.Set("X-OAUTH-SCOPE", info.Scope())
+	r.Header.Set("REMOTE_USER", fmt.Sprintf("%d", info.GetUserId()))
+	r.Header.Set("X-OAUTH-CLIENT-ID", info.GetClientId())
+	r.Header.Set("X-OAUTH-SCOPE", info.GetScope())
 
 	return true
 }

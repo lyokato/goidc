@@ -26,7 +26,7 @@ func RefreshToken() *GrantHandler {
 					log.MissingParam,
 					map[string]string{
 						"param":     "refresh_token",
-						"client_id": c.Id(),
+						"client_id": c.GetId(),
 					},
 					"'refresh_token' not found"))
 
@@ -44,7 +44,7 @@ func RefreshToken() *GrantHandler {
 						map[string]string{
 							"method":        "FindAccessTokenByRefreshToken",
 							"refresh_token": rt,
-							"client_id":     c.Id(),
+							"client_id":     c.GetId(),
 						},
 						"enabled access_token associated with the refresh_token not found."))
 
@@ -66,7 +66,7 @@ func RefreshToken() *GrantHandler {
 						map[string]string{
 							"method":        "FindAccessTokenByRefreshToken",
 							"refresh_token": rt,
-							"client_id":     c.Id(),
+							"client_id":     c.GetId(),
 						},
 						"interface returned ServerError."))
 
@@ -85,18 +85,18 @@ func RefreshToken() *GrantHandler {
 				}
 			}
 
-			if old.RefreshTokenExpiresIn()+old.CreatedAt() < time.Now().Unix() {
+			if old.GetRefreshTokenExpiresIn()+old.GetCreatedAt() < time.Now().Unix() {
 
 				logger.Info(log.TokenEndpointLog(TypeRefreshToken,
 					log.RefreshTokenConditionMismatch,
-					map[string]string{"client_id": c.Id()},
+					map[string]string{"client_id": c.GetId()},
 					"expired refresh_token"))
 
 				return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
 					"expired 'refresh_token'")
 			}
 
-			info, err := sdi.FindAuthInfoById(old.AuthId())
+			info, err := sdi.FindAuthInfoById(old.GetAuthId())
 			if err != nil {
 
 				if err.Type() == sd.ErrFailed {
@@ -105,7 +105,7 @@ func RefreshToken() *GrantHandler {
 						log.NoEnabledAuthInfo,
 						map[string]string{
 							"method":    "FindAuthInfoById",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 						},
 						"enabled AuthInfo associated with the id not found."))
 
@@ -126,7 +126,7 @@ func RefreshToken() *GrantHandler {
 						log.InterfaceServerError,
 						map[string]string{
 							"method":    "FindAuthInfoById",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 						},
 						"interface returned ServerError."))
 
@@ -144,21 +144,21 @@ func RefreshToken() *GrantHandler {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
-			if info.ClientId() != c.Id() {
+			if info.GetClientId() != c.GetId() {
 
 				logger.Info(log.TokenEndpointLog(TypeRefreshToken,
 					log.AuthInfoConditionMismatch,
-					map[string]string{"client_id": c.Id()},
+					map[string]string{"client_id": c.GetId()},
 					"'client_id' mismatch"))
 
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
-			scp := info.Scope()
+			scp := info.GetScope()
 			if !scope.IncludeOfflineAccess(scp) {
 
 				logger.Info(log.TokenEndpointLog(TypeRefreshToken,
 					log.ScopeConditionMismatch,
-					map[string]string{"client_id": c.Id()},
+					map[string]string{"client_id": c.GetId()},
 					"'offline_access' not found"))
 
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -173,7 +173,7 @@ func RefreshToken() *GrantHandler {
 						log.AccessTokenRefreshFailed,
 						map[string]string{
 							"method":    "RefreshAccessToken",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 						},
 						"failed refreshing access_token."))
 
@@ -194,7 +194,7 @@ func RefreshToken() *GrantHandler {
 						log.InterfaceServerError,
 						map[string]string{
 							"method":    "RefreshAccessToken",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 						},
 						"interface returned ServerError."))
 
@@ -213,12 +213,12 @@ func RefreshToken() *GrantHandler {
 				}
 			}
 
-			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())
+			res := NewResponse(token.GetAccessToken(), token.GetAccessTokenExpiresIn())
 			if scp != "" {
 				res.Scope = scp
 			}
 
-			newRt := token.RefreshToken()
+			newRt := token.GetRefreshToken()
 			if newRt != "" {
 				res.RefreshToken = newRt
 			}

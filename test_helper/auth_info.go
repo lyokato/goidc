@@ -18,54 +18,54 @@ type (
 	}
 )
 
-func (i *TestAuthInfo) Id() int64 {
+func (i *TestAuthInfo) GetId() int64 {
 	return i.id
 }
 
-func (i *TestAuthInfo) AuthTime() int64 {
+func (i *TestAuthInfo) GetAuthTime() int64 {
 	return i.authTime
 }
 
-func (i *TestAuthInfo) IdTokenExpiresIn() int64 {
+func (i *TestAuthInfo) GetIdTokenExpiresIn() int64 {
 	return int64(60 * 60 * 24 * 7)
 }
 
-func (i *TestAuthInfo) FlowType() string {
+func (i *TestAuthInfo) GetFlowType() string {
 	return i.flowType
 }
 
-func (i *TestAuthInfo) ClientId() string {
+func (i *TestAuthInfo) GetClientId() string {
 	return i.clientId
 }
 
-func (i *TestAuthInfo) Code() string {
+func (i *TestAuthInfo) GetCode() string {
 	return i.code
 }
 
-func (i *TestAuthInfo) Scope() string {
+func (i *TestAuthInfo) GetScope() string {
 	return i.scope
 }
 
-func (i *TestAuthInfo) CodeExpiresIn() int64 {
+func (i *TestAuthInfo) GetCodeExpiresIn() int64 {
 	return i.codeExpiresIn
 }
 
-func (i *TestAuthInfo) CodeVerifier() string {
+func (i *TestAuthInfo) GetCodeVerifier() string {
 	return i.codeVerifier
 }
 
-func (i *TestAuthInfo) RedirectURI() string {
+func (i *TestAuthInfo) GetRedirectURI() string {
 	return i.redirectUri
 }
 
-func (i *TestAuthInfo) UserId() int64 {
+func (i *TestAuthInfo) GetUserId() int64 {
 	return i.userId
 }
 
-func (i *TestAuthInfo) Subject() string {
+func (i *TestAuthInfo) GetSubject() string {
 	return i.subject
 }
 
-func (i *TestAuthInfo) Nonce() string {
+func (i *TestAuthInfo) GetNonce() string {
 	return i.nonce
 }

@@ -24,7 +24,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType("authorization_code")
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile offline_access",
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
 		&sd.AuthSession{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",
@@ -34,7 +34,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 			AuthTime:      time.Now().Unix(),
 		})
 
-	key := client.AssertionKey("", "")
+	key := client.GetAssertionKey("", "")
 	token := jwt.New(jwt.SigningMethodHS256)
 	token.Claims["aud"] = "http://example.org/"
 	token.Claims["iss"] = "http://client.example.org/"
@@ -78,7 +78,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 		})
 
 	// with valid nbf
-	key = client.AssertionKey("", "")
+	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
 	token.Claims["aud"] = "http://example.org/"
 	token.Claims["iss"] = "http://client.example.org/"
@@ -120,7 +120,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 		})
 
 	// aud not found
-	key = client.AssertionKey("", "")
+	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
 	//token.Claims["aud"] = "http://unknown.example.org/"
 	token.Claims["iss"] = "http://client.example.org/"
@@ -155,7 +155,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 		})
 
 	// INVALID aud
-	key = client.AssertionKey("", "")
+	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
 	token.Claims["aud"] = "http://unknown.example.org/"
 	token.Claims["iss"] = "http://client.example.org/"
@@ -190,7 +190,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 		})
 
 	// exp NOT FOUND
-	key = client.AssertionKey("", "")
+	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
 	token.Claims["aud"] = "http://example.org/"
 	token.Claims["iss"] = "http://client.example.org/"
@@ -223,7 +223,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 			"error_description": th.NewStrMatcher("'exp' parameter not found in assertion"),
 		})
 
-	key = client.AssertionKey("", "")
+	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
 	token.Claims["aud"] = "http://example.org/"
 	token.Claims["iss"] = "http://client.example.org/"
@@ -258,7 +258,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 		})
 
 	// include nbf, but it's future
-	key = client.AssertionKey("", "")
+	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
 	token.Claims["aud"] = "http://example.org/"
 	token.Claims["iss"] = "http://client.example.org/"
@@ -293,7 +293,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 		})
 
 	// sub not found
-	key = client.AssertionKey("", "")
+	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
 	token.Claims["aud"] = "http://unknown.example.org/"
 	token.Claims["iss"] = "http://client.example.org/"
@@ -328,7 +328,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 		})
 
 	// invalid sub
-	key = client.AssertionKey("", "")
+	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
 	token.Claims["aud"] = "http://unknown.example.org/"
 	token.Claims["iss"] = "http://client.example.org/"

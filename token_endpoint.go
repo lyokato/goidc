@@ -235,7 +235,7 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 			kid = found
 		}
 
-		key := c.AssertionKey(alg, kid)
+		key := c.GetAssertionKey(alg, kid)
 
 		if key == nil {
 
@@ -339,7 +339,7 @@ func (te *TokenEndpoint) executeGrantHandler(w http.ResponseWriter,
 		return
 	} else {
 		te.logger.Debug(log.TokenEndpointLog(gt, log.AccessTokenGranted,
-			map[string]string{"client_id": client.Id()},
+			map[string]string{"client_id": client.GetId()},
 			"granted successfully"))
 		te.success(w, res)
 		return

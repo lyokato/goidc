@@ -22,7 +22,7 @@ func TestTokenEndpointRefreshTokenInvalidRequest(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 	client.AllowToUseGrantType(grant.TypeRefreshToken)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.Id(), "openid profile offline_access",
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
 		&sd.AuthSession{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",

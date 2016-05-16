@@ -67,7 +67,7 @@ func (s *TestStore) CreateNewUser(name, pass string) *TestUser {
 
 func (s *TestStore) CreateNewClient(ownerId int64, id, secret, redirectURI string) *TestClient {
 	c := NewTestClient(ownerId, id, secret, redirectURI, "RS256", s.privKey, "my_service_key_id")
-	s.clients[c.Id()] = c
+	s.clients[c.GetId()] = c
 	return c
 }
 
@@ -110,7 +110,7 @@ func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string,
 
 func (s *TestStore) findAuthInfoByUserAndClient(uid int64, clientId string) (*TestAuthInfo, bool) {
 	for _, i := range s.infos {
-		if i.UserId() == uid && i.ClientId() == clientId {
+		if i.GetUserId() == uid && i.GetClientId() == clientId {
 			return i, true
 		}
 	}
@@ -155,7 +155,7 @@ func (s *TestStore) FindClientById(cid string) (sd.ClientInterface, *sd.Error) {
 
 func (s *TestStore) FindAuthInfoByCode(code string) (sd.AuthInfoInterface, *sd.Error) {
 	for _, i := range s.infos {
-		if i.Code() == code {
+		if i.GetCode() == code {
 			return i, nil
 		}
 	}
@@ -181,7 +181,7 @@ func (s *TestStore) FindOAuthTokenByAccessToken(token string) (sd.OAuthTokenInte
 
 func (s *TestStore) FindOAuthTokenByRefreshToken(token string) (sd.OAuthTokenInterface, *sd.Error) {
 	for _, at := range s.accessTokenes {
-		if at.RefreshToken() == token {
+		if at.GetRefreshToken() == token {
 			return at, nil
 		}
 	}
@@ -189,14 +189,14 @@ func (s *TestStore) FindOAuthTokenByRefreshToken(token string) (sd.OAuthTokenInt
 }
 
 func (s *TestStore) CreateOAuthToken(info sd.AuthInfoInterface) (sd.OAuthTokenInterface, *sd.Error) {
-	avalue := fmt.Sprintf("ACCESS_TOKEN_%d", info.Id())
-	rvalue := fmt.Sprintf("REFRESH_TOKEN_%d", info.Id())
-	if !scope.IncludeOfflineAccess(info.Scope()) {
+	avalue := fmt.Sprintf("ACCESS_TOKEN_%d", info.GetId())
+	rvalue := fmt.Sprintf("REFRESH_TOKEN_%d", info.GetId())
+	if !scope.IncludeOfflineAccess(info.GetScope()) {
 		rvalue = ""
 	}
-	t := NewTestOAuthToken(info.Id(), avalue, 60*60*24, time.Now().Unix(),
+	t := NewTestOAuthToken(info.GetId(), avalue, 60*60*24, time.Now().Unix(),
 		rvalue, 60*60*24*30, time.Now().Unix())
-	s.accessTokenes[t.AccessToken()] = t
+	s.accessTokenes[t.GetAccessToken()] = t
 	return t, nil
 }
 
@@ -214,7 +214,7 @@ func (s *TestStore) FindUserIdBySubject(sub string) (int64, *sd.Error) {
 }
 
 func (s *TestStore) RefreshAccessToken(info sd.AuthInfoInterface, old sd.OAuthTokenInterface) (sd.OAuthTokenInterface, *sd.Error) {
-	oldToken := old.AccessToken()
+	oldToken := old.GetAccessToken()
 	token, _ := s.accessTokenes[oldToken]
 	token.accessToken = token.accessToken + ":R"
 	token.accessTokenExpiresIn = 60 * 60 * 24

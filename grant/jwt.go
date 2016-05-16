@@ -29,7 +29,7 @@ func JWT() *GrantHandler {
 
 				logger.Debug(log.TokenEndpointLog(TypeJWT,
 					log.MissingParam,
-					map[string]string{"param": "assertion", "client_id": c.Id()},
+					map[string]string{"param": "assertion", "client_id": c.GetId()},
 					"'assertion' not found"))
 
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
@@ -48,7 +48,7 @@ func JWT() *GrantHandler {
 					kid = found
 				}
 
-				key := c.AssertionKey(alg, kid)
+				key := c.GetAssertionKey(alg, kid)
 
 				if key == nil {
 					return nil, fmt.Errorf("key_not_found")
@@ -61,143 +61,12 @@ func JWT() *GrantHandler {
 			if oerr != nil {
 				return nil, oerr
 			}
-			/*
-				if jwt_err != nil {
-
-					ve := jwt_err.(*jwt.ValidationError)
-
-					if ve.Errors&jwt.ValidationErrorMalformed == jwt.ValidationErrorMalformed {
-
-						logger.Debug(log.TokenEndpointLog(TypeJWT,
-							log.AssertionConditionMismatch,
-							map[string]string{"assertion": a, "client_id": c.Id()},
-							"invalid 'assertion' format"))
-
-						return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
-							"invalid assertion format")
-					}
-
-					if ve.Errors&jwt.ValidationErrorUnverifiable == jwt.ValidationErrorUnverifiable {
-
-						// - invalid alg
-						// - no key func
-						// - key func returns err
-						if inner, ok := ve.Inner.(*oer.OAuthError); ok {
-
-							logger.Debug(log.TokenEndpointLog(TypeJWT,
-								log.AssertionConditionMismatch,
-								map[string]string{"assertion": a, "client_id": c.Id()},
-								"'assertion' unverifiable"))
-
-							return nil, inner
-						} else {
-
-							return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
-								"assertion unverifiable")
-						}
-					}
-
-					if ve.Errors&jwt.ValidationErrorSignatureInvalid == jwt.ValidationErrorSignatureInvalid {
-
-						logger.Info(log.TokenEndpointLog(TypeJWT,
-							log.AssertionConditionMismatch,
-							map[string]string{"assertion": a, "client_id": c.Id()},
-							"invalid 'assertion' signature"))
-
-						return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
-							"invalid assertion signature")
-
-					}
-
-					if ve.Errors&jwt.ValidationErrorExpired == jwt.ValidationErrorExpired {
-
-						logger.Info(log.TokenEndpointLog(TypeJWT,
-							log.AssertionConditionMismatch,
-							map[string]string{"assertion": a, "client_id": c.Id()},
-							"assertion expired"))
-
-						return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
-							"assertion expired")
-					}
-
-					if ve.Errors&jwt.ValidationErrorNotValidYet == jwt.ValidationErrorNotValidYet {
-
-						logger.Info(log.TokenEndpointLog(TypeJWT,
-							log.AssertionConditionMismatch,
-							map[string]string{"assertion": a, "client_id": c.Id()},
-							"assertion not valid yet"))
-
-						return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
-							"assertion not valid yet")
-					}
-
-					// unknown error type
-					logger.Warn(log.TokenEndpointLog(TypeJWT,
-						log.AssertionConditionMismatch,
-						map[string]string{"assertion": a, "client_id": c.Id()},
-						"unknown 'assertion' validation failure"))
-
-					return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
-						"invalid assertion")
-				}
-
-				if !t.Valid {
-
-					// must not come here
-					logger.Warn(log.TokenEndpointLog(TypeJWT,
-						log.AssertionConditionMismatch,
-						map[string]string{"assertion": a, "client_id": c.Id()},
-						"invalid 'assertion' signature"))
-
-					return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
-						"invalid assertion signature")
-				}
-
-				// MUST(exp) error
-				// MAY(iat) reject if too far past
-				// MAY(jti)
-
-				aud, ok := t.Claims["aud"].(string)
-				if !ok {
-
-					logger.Debug(log.TokenEndpointLog(TypeJWT,
-						log.MissingParam,
-						map[string]string{"param": "aud", "client_id": c.Id()},
-						"'aud' not found in assertion"))
-
-					return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
-						"'aud' parameter not found in assertion")
-				}
-
-				service := sdi.Issuer()
-				if service == "" {
-
-					logger.Error(log.TokenEndpointLog(TypeJWT,
-						log.InterfaceUnsupported,
-						map[string]string{"method": "Issure"},
-						"the method returns 'unsupported' error."))
-
-					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
-				}
-
-				if aud != service {
-
-					logger.Info(log.TokenEndpointLog(TypeJWT,
-						log.AssertionConditionMismatch,
-						map[string]string{"assertion": a, "client_id": c.Id()},
-						"invalid 'aud'"))
-
-					return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
-						fmt.Sprintf("invalid 'aud' parameter '%s' in assertion", aud))
-				}
-			*/
-
 			sub, ok := t.Claims["sub"].(string)
 			if !ok {
 
 				logger.Debug(log.TokenEndpointLog(TypeJWT,
 					log.MissingParam,
-					map[string]string{"param": "sub", "client_id": c.Id()},
+					map[string]string{"param": "sub", "client_id": c.GetId()},
 					"'sub' not found in assertion"))
 
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
@@ -212,7 +81,7 @@ func JWT() *GrantHandler {
 						log.NoEnabledUserId,
 						map[string]string{
 							"method":    "FindUserIdBySubject",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 							"subject":   sub,
 						},
 						"user_id associated with this subject not found."))
@@ -233,7 +102,7 @@ func JWT() *GrantHandler {
 
 					logger.Warn(log.TokenEndpointLog(TypeJWT,
 						log.InterfaceServerError,
-						map[string]string{"method": "FindUserIdBySubject", "client_id": c.Id()},
+						map[string]string{"method": "FindUserIdBySubject", "client_id": c.GetId()},
 						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -245,20 +114,20 @@ func JWT() *GrantHandler {
 
 				logger.Info(log.TokenEndpointLog(TypeJWT,
 					log.InvalidScope,
-					map[string]string{"scope": scp_req, "client_id": c.Id()},
+					map[string]string{"scope": scp_req, "client_id": c.GetId()},
 					"requested scope is not allowed to this client"))
 
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidScope)
 			}
 
-			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.Id(), scp_req, nil)
+			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.GetId(), scp_req, nil)
 			if err != nil {
 
 				if err.Type() == sd.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypeJWT,
 						log.AuthInfoCreationFailed,
-						map[string]string{"method": "CreateOrUpdateAuthInfo", "client_id": c.Id()},
+						map[string]string{"method": "CreateOrUpdateAuthInfo", "client_id": c.GetId()},
 						"failed to create auth info."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -276,7 +145,7 @@ func JWT() *GrantHandler {
 
 					logger.Warn(log.TokenEndpointLog(TypeJWT,
 						log.InterfaceServerError,
-						map[string]string{"method": "CreateOrUpdateAuthInfo", "client_id": c.Id()},
+						map[string]string{"method": "CreateOrUpdateAuthInfo", "client_id": c.GetId()},
 						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -301,7 +170,7 @@ func JWT() *GrantHandler {
 
 					logger.Debug(log.TokenEndpointLog(TypeJWT,
 						log.AccessTokenCreationFailed,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
 						"failed to create access token."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -319,7 +188,7 @@ func JWT() *GrantHandler {
 
 					logger.Warn(log.TokenEndpointLog(TypeJWT,
 						log.InterfaceServerError,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
 						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -337,13 +206,13 @@ func JWT() *GrantHandler {
 				}
 			}
 
-			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())
+			res := NewResponse(token.GetAccessToken(), token.GetAccessTokenExpiresIn())
 
-			scp := info.Scope()
+			scp := info.GetScope()
 			if scp != "" {
 				res.Scope = scp
 			}
-			rt := token.RefreshToken()
+			rt := token.GetRefreshToken()
 			if rt != "" {
 				res.RefreshToken = rt
 			}

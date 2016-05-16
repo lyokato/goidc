@@ -20,7 +20,7 @@ func TestTokenEndpointJWT(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeJWT)
 
-	key := client.AssertionKey("", "")
+	key := client.GetAssertionKey("", "")
 	token := jwt.New(jwt.SigningMethodHS256)
 	token.Claims["aud"] = "http://example.org/"
 	token.Claims["iss"] = "http://client.example.org/"

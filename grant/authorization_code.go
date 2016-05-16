@@ -27,7 +27,7 @@ func AuthorizationCode() *GrantHandler {
 
 				logger.Debug(log.TokenEndpointLog(TypeAuthorizationCode,
 					log.MissingParam,
-					map[string]string{"param": "redirect_uri", "client_id": c.Id()},
+					map[string]string{"param": "redirect_uri", "client_id": c.GetId()},
 					"'redirect_uri' not found"))
 
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
@@ -38,7 +38,7 @@ func AuthorizationCode() *GrantHandler {
 
 				logger.Debug(log.TokenEndpointLog(TypeAuthorizationCode,
 					log.MissingParam,
-					map[string]string{"param": "code", "client_id": c.Id()},
+					map[string]string{"param": "code", "client_id": c.GetId()},
 					"'code' not found"))
 
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
@@ -54,7 +54,7 @@ func AuthorizationCode() *GrantHandler {
 						map[string]string{
 							"method":    "FindAuthInfoByCode",
 							"code":      code,
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 						},
 						"enabled AuthInfo associated with the code not found."))
 
@@ -64,7 +64,7 @@ func AuthorizationCode() *GrantHandler {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceUnsupported,
-						map[string]string{"method": "FindAuthInfoByCode", "client_id": c.Id()},
+						map[string]string{"method": "FindAuthInfoByCode", "client_id": c.GetId()},
 						"the method returns 'unsupported' error."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -76,7 +76,7 @@ func AuthorizationCode() *GrantHandler {
 						map[string]string{
 							"method":    "FindAuthInfoByCode",
 							"code":      code,
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 						},
 						"interface returned ServerError."))
 
@@ -87,26 +87,26 @@ func AuthorizationCode() *GrantHandler {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceError,
-						map[string]string{"method": "FindAuthInfoByCode", "client_id": c.Id()},
+						map[string]string{"method": "FindAuthInfoByCode", "client_id": c.GetId()},
 						"the method returns (nil, nil)."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
-			if info.ClientId() != c.Id() {
+			if info.GetClientId() != c.GetId() {
 
 				logger.Info(log.TokenEndpointLog(TypeAuthorizationCode,
 					log.AuthInfoConditionMismatch,
-					map[string]string{"client_id": c.Id()},
+					map[string]string{"client_id": c.GetId()},
 					"'client_id' mismatch"))
 
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 			}
-			if info.RedirectURI() != uri {
+			if info.GetRedirectURI() != uri {
 
 				logger.Info(log.TokenEndpointLog(TypeAuthorizationCode,
 					log.AuthInfoConditionMismatch,
-					map[string]string{"client_id": c.Id()},
+					map[string]string{"client_id": c.GetId()},
 					"'redirect_uri' mismatch"))
 
 				return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
@@ -115,7 +115,7 @@ func AuthorizationCode() *GrantHandler {
 
 			// RFC7636: OAuth PKCE Extension
 			// https://tools.ietf.org/html/rfc7636
-			cv := info.CodeVerifier()
+			cv := info.GetCodeVerifier()
 			if cv != "" {
 
 				cm := r.FormValue("code_challenge_method")
@@ -125,7 +125,7 @@ func AuthorizationCode() *GrantHandler {
 						log.MissingParam,
 						map[string]string{
 							"param":     "code_challenge_method",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 						},
 						"'code_challenge_method' not found"))
 
@@ -139,7 +139,7 @@ func AuthorizationCode() *GrantHandler {
 						log.MissingParam,
 						map[string]string{
 							"param":     "code_challenge",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 						},
 						"'code_challenge' not found"))
 
@@ -154,7 +154,7 @@ func AuthorizationCode() *GrantHandler {
 						log.UnsupportedCodeChallengeMethod,
 						map[string]string{
 							"code_challenge_method": cm,
-							"client_id":             c.Id(),
+							"client_id":             c.GetId(),
 						},
 						"unsupported 'code_challenge_method'"))
 
@@ -168,7 +168,7 @@ func AuthorizationCode() *GrantHandler {
 						map[string]string{
 							"code_challenge_method": cm,
 							"code_challenge":        cc,
-							"client_id":             c.Id(),
+							"client_id":             c.GetId(),
 						},
 						"failed code challenge"))
 
@@ -184,7 +184,7 @@ func AuthorizationCode() *GrantHandler {
 
 					logger.Debug(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.AccessTokenCreationFailed,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
 						"failed to create access token."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -192,7 +192,7 @@ func AuthorizationCode() *GrantHandler {
 				} else if err.Type() == sd.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
 						"the method returns 'unsupported' error."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -201,7 +201,7 @@ func AuthorizationCode() *GrantHandler {
 
 					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceServerError,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
 						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -210,20 +210,20 @@ func AuthorizationCode() *GrantHandler {
 				if token == nil {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
 						"the method returns (nil, nil)."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
 
-			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())
-			scp := info.Scope()
+			res := NewResponse(token.GetAccessToken(), token.GetAccessTokenExpiresIn())
+			scp := info.GetScope()
 			if scp != "" {
 				res.Scope = scp
 			}
 
-			rt := token.RefreshToken()
+			rt := token.GetRefreshToken()
 			if rt != "" {
 				res.RefreshToken = rt
 			}
@@ -232,11 +232,11 @@ func AuthorizationCode() *GrantHandler {
 
 				logger.Debug(log.TokenEndpointLog(TypeAuthorizationCode,
 					log.IdTokenGeneration,
-					map[string]string{"client_id": c.Id()},
+					map[string]string{"client_id": c.GetId()},
 					"found 'openid' scope, so generate id_token, and attach it to response"))
 
-				idt, err := id_token.Gen(c.IdTokenAlg(), c.IdTokenKey(), c.IdTokenKeyId(), sdi.Issuer(),
-					info.ClientId(), info.Subject(), info.Nonce(), info.IdTokenExpiresIn(), info.AuthTime())
+				idt, err := id_token.Gen(c.GetIdTokenAlg(), c.GetIdTokenKey(), c.GetIdTokenKeyId(), sdi.Issuer(),
+					info.GetClientId(), info.GetSubject(), info.GetNonce(), info.GetIdTokenExpiresIn(), info.GetAuthTime())
 				if err != nil {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				} else {

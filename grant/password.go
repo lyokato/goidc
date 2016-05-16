@@ -21,7 +21,7 @@ func Password() *GrantHandler {
 
 				logger.Debug(log.TokenEndpointLog(TypePassword,
 					log.MissingParam,
-					map[string]string{"param": "username", "client_id": c.Id()},
+					map[string]string{"param": "username", "client_id": c.GetId()},
 					"'username' not found"))
 
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
@@ -33,7 +33,7 @@ func Password() *GrantHandler {
 
 				logger.Debug(log.TokenEndpointLog(TypePassword,
 					log.MissingParam,
-					map[string]string{"param": "password", "client_id": c.Id()},
+					map[string]string{"param": "password", "client_id": c.GetId()},
 					"'password' not found"))
 
 				return nil, oer.NewOAuthError(oer.ErrInvalidRequest,
@@ -44,7 +44,7 @@ func Password() *GrantHandler {
 			if scp_req != "" && !c.CanUseScope(scp_req) {
 
 				logger.Info(log.TokenEndpointLog(TypePassword, log.InvalidScope,
-					map[string]string{"scope": scp_req, "client_id": c.Id()},
+					map[string]string{"scope": scp_req, "client_id": c.GetId()},
 					"requested scope is not allowed to this client"))
 
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidScope)
@@ -59,7 +59,7 @@ func Password() *GrantHandler {
 						log.NoEnabledUserId,
 						map[string]string{
 							"method":    "FindUserId",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 							"username":  username,
 							"password":  password,
 						},
@@ -82,7 +82,7 @@ func Password() *GrantHandler {
 						log.InterfaceServerError,
 						map[string]string{
 							"method":    "FindUserId",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 							"username":  username,
 							"password":  password,
 						},
@@ -92,7 +92,7 @@ func Password() *GrantHandler {
 				}
 			}
 
-			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.Id(), scp_req, nil)
+			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.GetId(), scp_req, nil)
 			if err != nil {
 
 				if err.Type() == sd.ErrFailed {
@@ -101,7 +101,7 @@ func Password() *GrantHandler {
 						log.AuthInfoCreationFailed,
 						map[string]string{
 							"method":    "CreateOrUpdateAuthInfo",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 						},
 						"user id not found."))
 
@@ -122,7 +122,7 @@ func Password() *GrantHandler {
 						log.InterfaceServerError,
 						map[string]string{
 							"method":    "CreateOrUpdateAuthInfo",
-							"client_id": c.Id(),
+							"client_id": c.GetId(),
 						},
 						"interface returned ServerError."))
 
@@ -148,7 +148,7 @@ func Password() *GrantHandler {
 
 					logger.Debug(log.TokenEndpointLog(TypePassword,
 						log.AccessTokenCreationFailed,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
 						"failed to create access token."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -166,7 +166,7 @@ func Password() *GrantHandler {
 
 					logger.Warn(log.TokenEndpointLog(TypePassword,
 						log.InterfaceServerError,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.Id()},
+						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
 						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -183,13 +183,13 @@ func Password() *GrantHandler {
 				}
 			}
 
-			res := NewResponse(token.AccessToken(), token.AccessTokenExpiresIn())
-			scp := info.Scope()
+			res := NewResponse(token.GetAccessToken(), token.GetAccessTokenExpiresIn())
+			scp := info.GetScope()
 			if scp != "" {
 				res.Scope = scp
 			}
 
-			rt := token.RefreshToken()
+			rt := token.GetRefreshToken()
 			if rt != "" {
 				res.RefreshToken = rt
 			}
