@@ -170,7 +170,7 @@ func JWT() *GrantHandler {
 
 					logger.Debug(log.TokenEndpointLog(TypeJWT,
 						log.AccessTokenCreationFailed,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
+						map[string]string{"method": "CreateOAuthToken", "client_id": c.GetId()},
 						"failed to create access token."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -179,7 +179,7 @@ func JWT() *GrantHandler {
 
 					logger.Error(log.TokenEndpointLog(TypeJWT,
 						log.InterfaceUnsupported,
-						map[string]string{"method": "CreateAccessToken"},
+						map[string]string{"method": "CreateOAuthToken"},
 						"the method returns 'unsupported' error."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -188,7 +188,7 @@ func JWT() *GrantHandler {
 
 					logger.Warn(log.TokenEndpointLog(TypeJWT,
 						log.InterfaceServerError,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
+						map[string]string{"method": "CreateOAuthToken", "client_id": c.GetId()},
 						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -199,7 +199,7 @@ func JWT() *GrantHandler {
 
 					logger.Error(log.TokenEndpointLog(TypeJWT,
 						log.InterfaceError,
-						map[string]string{"method": "CreateAccessToken"},
+						map[string]string{"method": "CreateOAuthToken"},
 						"the method returns (nil, nil)."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)

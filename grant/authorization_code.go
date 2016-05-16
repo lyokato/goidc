@@ -184,7 +184,7 @@ func AuthorizationCode() *GrantHandler {
 
 					logger.Debug(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.AccessTokenCreationFailed,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
+						map[string]string{"method": "CreateOAuthToken", "client_id": c.GetId()},
 						"failed to create access token."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -192,7 +192,7 @@ func AuthorizationCode() *GrantHandler {
 				} else if err.Type() == sd.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
+						map[string]string{"method": "CreateOAuthToken", "client_id": c.GetId()},
 						"the method returns 'unsupported' error."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -201,7 +201,7 @@ func AuthorizationCode() *GrantHandler {
 
 					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceServerError,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
+						map[string]string{"method": "CreateOAuthToken", "client_id": c.GetId()},
 						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -210,7 +210,7 @@ func AuthorizationCode() *GrantHandler {
 				if token == nil {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
+						map[string]string{"method": "CreateOAuthToken", "client_id": c.GetId()},
 						"the method returns (nil, nil)."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)

@@ -148,7 +148,7 @@ func Password() *GrantHandler {
 
 					logger.Debug(log.TokenEndpointLog(TypePassword,
 						log.AccessTokenCreationFailed,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
+						map[string]string{"method": "CreateOAuthToken", "client_id": c.GetId()},
 						"failed to create access token."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
@@ -157,7 +157,7 @@ func Password() *GrantHandler {
 
 					logger.Error(log.TokenEndpointLog(TypePassword,
 						log.InterfaceUnsupported,
-						map[string]string{"method": "CreateAccessToken"},
+						map[string]string{"method": "CreateOAuthToken"},
 						"the method returns 'unsupported' error."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -166,7 +166,7 @@ func Password() *GrantHandler {
 
 					logger.Warn(log.TokenEndpointLog(TypePassword,
 						log.InterfaceServerError,
-						map[string]string{"method": "CreateAccessToken", "client_id": c.GetId()},
+						map[string]string{"method": "CreateOAuthToken", "client_id": c.GetId()},
 						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -176,7 +176,7 @@ func Password() *GrantHandler {
 
 					logger.Error(log.TokenEndpointLog(TypePassword,
 						log.InterfaceError,
-						map[string]string{"method": "CreateAccessToken"},
+						map[string]string{"method": "CreateOAuthToken"},
 						"the method returns (nil, nil)."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
