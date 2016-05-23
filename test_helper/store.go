@@ -189,6 +189,11 @@ func (s *TestStore) FindOAuthTokenByRefreshToken(token string) (sd.OAuthTokenInt
 	return nil, sd.NewError(sd.ErrFailed)
 }
 
+func (s *TestStore) DisableCode(info sd.AuthInfoInterface, code string) *sd.Error {
+	//return sd.NewError(sd.ErrUnsupported)
+	return nil
+}
+
 func (s *TestStore) CreateOAuthToken(info sd.AuthInfoInterface) (sd.OAuthTokenInterface, *sd.Error) {
 	avalue := fmt.Sprintf("ACCESS_TOKEN_%d", info.GetId())
 	rvalue := fmt.Sprintf("REFRESH_TOKEN_%d", info.GetId())

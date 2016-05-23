@@ -191,7 +191,8 @@ func AuthorizationCode() *GrantHandler {
 
 				} else if err.Type() == sd.ErrUnsupported {
 
-					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceUnsupported,
+					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
+						log.InterfaceUnsupported,
 						map[string]string{"method": "CreateOAuthToken", "client_id": c.GetId()},
 						"the method returns 'unsupported' error."))
 
@@ -212,6 +213,37 @@ func AuthorizationCode() *GrantHandler {
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode, log.InterfaceError,
 						map[string]string{"method": "CreateOAuthToken", "client_id": c.GetId()},
 						"the method returns (nil, nil)."))
+
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+				}
+			}
+
+			err = sdi.DisableCode(info, code)
+			if err != nil {
+				if err.Type() == sd.ErrFailed {
+
+					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
+						log.CodeConsumptionFailed,
+						map[string]string{"method": "DisableCode", "client_id": c.GetId()},
+						"failed to disable code."))
+
+					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
+
+				} else if err.Type() == sd.ErrUnsupported {
+
+					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
+						log.InterfaceUnsupported,
+						map[string]string{"method": "DisableCode", "client_id": c.GetId()},
+						"the method returns 'unsupported' error."))
+
+					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
+
+				} else {
+
+					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode,
+						log.InterfaceServerError,
+						map[string]string{"method": "DisableCode", "client_id": c.GetId()},
+						"interface returned ServerError."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}

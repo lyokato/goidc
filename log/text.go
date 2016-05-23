@@ -31,6 +31,7 @@ const (
 	NoEnabledUserId
 	AccessTokenCreationFailed
 	AccessTokenRefreshFailed
+	CodeConsumptionFailed
 	AuthInfoCreationFailed
 	IdTokenGeneration
 )
@@ -67,6 +68,8 @@ func (e LogEvent) String() string {
 		return "access_token_refresh_failed"
 	case AuthInfoCreationFailed:
 		return "auth_info_creation_failed"
+	case CodeConsumptionFailed:
+		return "code_consumption_failed"
 	case InvalidHTTPMethod:
 		return "invalid_http_method"
 	case MissingParam:

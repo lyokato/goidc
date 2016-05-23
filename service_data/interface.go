@@ -70,7 +70,7 @@ type (
 		RefreshAccessToken(info AuthInfoInterface, token OAuthTokenInterface) (OAuthTokenInterface, *Error)
 		FindUserId(username, password string) (int64, *Error)
 		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *AuthSession) (AuthInfoInterface, *Error)
-
+		DisableCode(into AuthInfoInterface, code string) *Error
 		FindUserIdBySubject(sub string) (int64, *Error)
 		RecordAssertionClaims(clientId, jti string, issuedAt, expiredAt int64) *Error
 	}
