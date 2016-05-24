@@ -2,13 +2,13 @@ package test_helper
 
 type (
 	TestAuthSession struct {
-		authId        int64
-		redirectUri   string
-		authTime      int64
-		code          string
-		codeExpiresIn int64
-		codeVerifier  string
-		nonce         string
+		authId       int64
+		redirectUri  string
+		authTime     int64
+		code         string
+		expiresIn    int64
+		codeVerifier string
+		nonce        string
 
 		Enabled bool
 	}
@@ -35,8 +35,8 @@ func (s *TestAuthSession) GetCode() string {
 	return s.code
 }
 
-func (s *TestAuthSession) GetCodeExpiresIn() int64 {
-	return s.codeExpiresIn
+func (s *TestAuthSession) GetExpiresIn() int64 {
+	return s.expiresIn
 }
 
 func (s *TestAuthSession) GetCodeVerifier() string {

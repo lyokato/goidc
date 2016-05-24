@@ -94,13 +94,13 @@ func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string,
 
 	if session != nil {
 		s.sessions[session.Code] = &TestAuthSession{
-			authId:        i.id,
-			redirectUri:   session.RedirectURI,
-			authTime:      session.AuthTime,
-			code:          session.Code,
-			codeExpiresIn: session.CodeExpiresIn,
-			codeVerifier:  session.CodeVerifier,
-			nonce:         session.Nonce,
+			authId:       i.id,
+			redirectUri:  session.RedirectURI,
+			authTime:     session.AuthTime,
+			code:         session.Code,
+			expiresIn:    session.ExpiresIn,
+			codeVerifier: session.CodeVerifier,
+			nonce:        session.Nonce,
 		}
 	}
 	return i, nil

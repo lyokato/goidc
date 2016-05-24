@@ -30,13 +30,13 @@ type (
 	}
 
 	AuthSessionInterface interface {
+		GetCode() string
 		GetAuthId() int64
 		GetAuthTime() int64
 		GetIdTokenExpiresIn() int64
 		GetRedirectURI() string
-		GetCode() string
-		GetCodeExpiresIn() int64
 		GetCodeVerifier() string
+		GetExpiresIn() int64
 		GetNonce() string
 		GetAuthorizedAt() int64
 	}
