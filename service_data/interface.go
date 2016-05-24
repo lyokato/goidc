@@ -1,5 +1,9 @@
 package service_data
 
+import (
+	"github.com/lyokato/goidc/authorizer"
+)
+
 type (
 	ClientInterface interface {
 		GetId() string
@@ -8,6 +12,7 @@ type (
 		GetIdTokenKeyId() string
 		GetIdTokenKey() interface{}
 		MatchSecret(secret string) bool
+		CanUseFlow(flow *authorizer.Flow) bool
 		CanUseGrantType(gt string) bool
 		CanUseScope(scope string) bool
 		CanUseRedirectURI(uri string) bool
@@ -50,15 +55,6 @@ type (
 		GetCreatedAt() int64
 	}
 
-	AuthSession struct {
-		RedirectURI   string
-		Code          string
-		CodeExpiresIn int64
-		CodeVerifier  string
-		Nonce         string
-		AuthTime      int64
-	}
-
 	ServiceDataInterface interface {
 		Issuer() string
 		FindClientById(clientId string) (ClientInterface, *Error)
@@ -69,7 +65,7 @@ type (
 		CreateOAuthToken(info AuthInfoInterface) (OAuthTokenInterface, *Error)
 		RefreshAccessToken(info AuthInfoInterface, token OAuthTokenInterface) (OAuthTokenInterface, *Error)
 		FindUserId(username, password string) (int64, *Error)
-		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *AuthSession) (AuthInfoInterface, *Error)
+		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *authorizer.Session) (AuthInfoInterface, *Error)
 		DisableCode(into AuthInfoInterface, code string) *Error
 		FindUserIdBySubject(sub string) (int64, *Error)
 		RecordAssertionClaims(clientId, jti string, issuedAt, expiredAt int64) *Error

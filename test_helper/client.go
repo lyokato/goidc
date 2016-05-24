@@ -1,5 +1,9 @@
 package test_helper
 
+import (
+	"github.com/lyokato/goidc/authorizer"
+)
+
 type (
 	TestClient struct {
 		id           string
@@ -30,6 +34,10 @@ func NewTestClient(ownerId int64, id, secret, redirectURI, alg string, key inter
 
 func (c *TestClient) AllowToUseGrantType(gt string) {
 	c.grantTypes[gt] = true
+}
+
+func (c *TestClient) CanUseFlow(flow *authorizer.Flow) bool {
+	return true
 }
 
 func (c *TestClient) CanUseGrantType(gt string) bool {

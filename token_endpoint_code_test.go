@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lyokato/goidc/authorizer"
 	"github.com/lyokato/goidc/basic_auth"
 	"github.com/lyokato/goidc/grant"
-	sd "github.com/lyokato/goidc/service_data"
 	th "github.com/lyokato/goidc/test_helper"
 )
 
@@ -23,7 +23,7 @@ func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 	code_verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
-		&sd.AuthSession{
+		&authorizer.Session{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",
 			CodeVerifier:  code_verifier,
@@ -200,7 +200,7 @@ func TestTokenEndpointAuthorizationCodeInvalidRequest(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
-		&sd.AuthSession{
+		&authorizer.Session{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",
 			CodeVerifier:  "",
@@ -311,7 +311,7 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
-		&sd.AuthSession{
+		&authorizer.Session{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",
 			CodeVerifier:  "",
@@ -389,7 +389,7 @@ func TestTokenEndpointAuthorizationCodeWithoutOfflineAccess(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile",
-		&sd.AuthSession{
+		&authorizer.Session{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",
 			CodeVerifier:  "",
@@ -439,7 +439,7 @@ func TestTokenEndpointAuthorizationCodeWithoutOpenID(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "profile offline_access",
-		&sd.AuthSession{
+		&authorizer.Session{
 			RedirectURI:   "http://example.org/callback",
 			Code:          "code_value",
 			CodeVerifier:  "",

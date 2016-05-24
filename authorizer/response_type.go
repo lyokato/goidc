@@ -14,9 +14,9 @@ const (
 
 type (
 	Flow struct {
-		Type        string `json:"type"`
-		NeedToken   bool   `json:"need_token"`
-		NeedIDToken bool   `json:"need_id_token"`
+		Type               string `json:"type"`
+		RequireAccessToken bool   `json:"require_access_token"`
+		RequireIdToken     bool   `json:"require_id_token"`
 	}
 )
 

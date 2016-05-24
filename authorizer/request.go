@@ -1,5 +1,10 @@
 package authorizer
 
+import (
+	"encoding/base64"
+	"encoding/json"
+)
+
 const (
 	DisplayTypePopup = "popup"
 	DisplayTypeTouch = "touch"
@@ -24,9 +29,41 @@ type (
 		Nonce        string `json:"nonce"`
 		Display      string `json:"display"`
 		Prompt       string `json:"prompt"`
-		MaxAge       int    `json:"max_age"`
+		MaxAge       int64  `json:"max_age"`
 		UILocales    string `json:"ui_locales"`
 		IDTokenHint  string `json:"id_token_hint"`
 		LoginHint    string `json:"login_hint"`
 	}
+
+	Session struct {
+		RedirectURI   string
+		Code          string
+		CodeExpiresIn int64
+		CodeVerifier  string
+		Nonce         string
+		AuthTime      int64
+	}
 )
+
+func (r *Request) Encode() string {
+	data, _ := json.Marshal(r)
+	return base64.URLEncoding.EncodeToString(data)
+}
+
+func DecodeRequest(encoded string) *Request {
+	data, _ := base64.URLEncoding.DecodeString(encoded)
+	var r Request
+	json.Unmarshal(data, &r)
+	return &r
+}
+
+func (r *Request) ToSession(code string, codeExpiresIn, authTime int64) *Session {
+	return &Session{
+		Code:          code,
+		CodeExpiresIn: codeExpiresIn,
+		RedirectURI:   r.RedirectURI,
+		CodeVerifier:  r.CodeVerifier,
+		Nonce:         r.Nonce,
+		AuthTime:      authTime,
+	}
+}

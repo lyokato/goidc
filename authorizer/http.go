@@ -30,10 +30,10 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 		return nil, errors.New("missing 'redirect_uri' parameter")
 	}
 
-	ma := 0
+	var ma int64
 	mas := r.FormValue("max_age")
 	if mas != "" {
-		ma, err = strconv.Atoi(mas)
+		ma, err = strconv.ParseInt(mas, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("'max_age' should be integer: %s", mas)
 		}
@@ -67,9 +67,11 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 	}
 
 	if f.Type == FlowTypeBasic {
-		if !scope.IncludeOfflineAccess(s) {
-			s = s + " offline_access"
-		}
+		/*
+			if !scope.IncludeOfflineAccess(s) {
+				s = s + " offline_access"
+			}
+		*/
 	} else {
 		if scope.IncludeOfflineAccess(s) {
 			return nil, errors.New("'offline_access' is not supported on implicit/hybrid flow")

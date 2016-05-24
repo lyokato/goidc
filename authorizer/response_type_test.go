@@ -16,11 +16,11 @@ func TestFlow(t *testing.T) {
 		t.Errorf("'code token' should be hybrid")
 	}
 
-	if !flow.NeedToken {
-		t.Error("'code token' requires token")
+	if !flow.RequireAccessToken {
+		t.Error("'code token' requires access token")
 	}
 
-	if flow.NeedIDToken {
+	if flow.RequireIdToken {
 		t.Error("'code token' doesn't requires id_token")
 	}
 }

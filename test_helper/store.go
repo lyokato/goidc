@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/lyokato/goidc/authorizer"
 	"github.com/lyokato/goidc/crypto"
 	"github.com/lyokato/goidc/scope"
 	sd "github.com/lyokato/goidc/service_data"
@@ -72,7 +73,7 @@ func (s *TestStore) CreateNewClient(ownerId int64, id, secret, redirectURI strin
 }
 
 func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string,
-	session *sd.AuthSession) (sd.AuthInfoInterface, *sd.Error) {
+	session *authorizer.Session) (sd.AuthInfoInterface, *sd.Error) {
 
 	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
 	if !exists {
