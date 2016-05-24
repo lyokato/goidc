@@ -36,12 +36,12 @@ type (
 	}
 
 	Session struct {
-		RedirectURI   string
-		Code          string
-		CodeExpiresIn int64
-		CodeVerifier  string
-		Nonce         string
-		AuthTime      int64
+		RedirectURI  string
+		Code         string
+		ExpiresIn    int64
+		CodeVerifier string
+		Nonce        string
+		AuthTime     int64
 	}
 )
 
@@ -57,13 +57,13 @@ func DecodeRequest(encoded string) *Request {
 	return &r
 }
 
-func (r *Request) ToSession(code string, codeExpiresIn, authTime int64) *Session {
+func (r *Request) ToSession(code string, expiresIn, authTime int64) *Session {
 	return &Session{
-		Code:          code,
-		CodeExpiresIn: codeExpiresIn,
-		RedirectURI:   r.RedirectURI,
-		CodeVerifier:  r.CodeVerifier,
-		Nonce:         r.Nonce,
-		AuthTime:      authTime,
+		Code:         code,
+		ExpiresIn:    expiresIn,
+		RedirectURI:  r.RedirectURI,
+		CodeVerifier: r.CodeVerifier,
+		Nonce:        r.Nonce,
+		AuthTime:     authTime,
 	}
 }

@@ -25,6 +25,7 @@ type (
 		users         map[int64]*TestUser
 		clients       map[string]*TestClient
 		infos         map[int64]*TestAuthInfo
+		sessions      map[string]*TestAuthSession
 		accessTokenes map[string]*TestOAuthToken
 	}
 )
@@ -55,6 +56,7 @@ tpgdYZY2kFpD7Nv0TxlmCsXf4JL/+Vd7pFtUuZVdNpfy
 		users:         make(map[int64]*TestUser, 0),
 		clients:       make(map[string]*TestClient, 0),
 		infos:         make(map[int64]*TestAuthInfo, 0),
+		sessions:      make(map[string]*TestAuthSession, 0),
 		accessTokenes: make(map[string]*TestOAuthToken, 0),
 	}
 }
@@ -89,22 +91,17 @@ func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string,
 	}
 	i.subject = fmt.Sprintf("%d", uid)
 	i.scope = scope
+
 	if session != nil {
-		i.flowType = "basic"
-		i.code = session.Code
-		i.codeExpiresIn = session.CodeExpiresIn
-		i.codeVerifier = session.CodeVerifier
-		i.nonce = session.Nonce
-		i.redirectUri = session.RedirectURI
-		i.authTime = session.AuthTime
-	} else {
-		i.flowType = "direct"
-		i.code = ""
-		i.codeExpiresIn = 0
-		i.authTime = 0
-		i.codeVerifier = ""
-		i.nonce = ""
-		i.redirectUri = ""
+		s.sessions[session.Code] = &TestAuthSession{
+			authId:       i.id,
+			redirectUri:  session.RedirectURI,
+			authTime:     session.AuthTime,
+			code:         session.Code,
+			expiresIn:    session.ExpiresIn,
+			codeVerifier: session.CodeVerifier,
+			nonce:        session.Nonce,
+		}
 	}
 	return i, nil
 }
@@ -121,6 +118,7 @@ func (s *TestStore) findAuthInfoByUserAndClient(uid int64, clientId string) (*Te
 func (s *TestStore) ClearAuthData() {
 	s.infoIdPod = 0
 	s.infos = make(map[int64]*TestAuthInfo, 0)
+	s.sessions = make(map[string]*TestAuthSession, 0)
 	s.accessTokenes = make(map[string]*TestOAuthToken, 0)
 }
 
@@ -154,15 +152,13 @@ func (s *TestStore) FindClientById(cid string) (sd.ClientInterface, *sd.Error) {
 	return c, nil
 }
 
-func (s *TestStore) FindAuthInfoByCode(code string) (sd.AuthInfoInterface, *sd.Error) {
-	for _, i := range s.infos {
-		if i.GetCode() == code {
-			// TODO check code expiration here
-			return i, nil
-		}
+func (s *TestStore) FindAuthSessionByCode(code string) (sd.AuthSessionInterface, *sd.Error) {
+	sess, exists := s.sessions[code]
+	if !exists {
+		// not found
+		return nil, sd.NewError(sd.ErrFailed)
 	}
-	// TODO check error type
-	return nil, sd.NewError(sd.ErrFailed)
+	return sess, nil
 }
 
 func (s *TestStore) FindAuthInfoById(id int64) (sd.AuthInfoInterface, *sd.Error) {
@@ -190,8 +186,8 @@ func (s *TestStore) FindOAuthTokenByRefreshToken(token string) (sd.OAuthTokenInt
 	return nil, sd.NewError(sd.ErrFailed)
 }
 
-func (s *TestStore) DisableCode(info sd.AuthInfoInterface, code string) *sd.Error {
-	//return sd.NewError(sd.ErrUnsupported)
+func (s *TestStore) DisableSession(sess sd.AuthSessionInterface) *sd.Error {
+	delete(s.sessions, sess.GetCode())
 	return nil
 }
 

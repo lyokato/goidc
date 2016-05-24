@@ -21,26 +21,24 @@ type (
 
 	AuthInfoInterface interface {
 		GetId() int64
-		GetFlowType() string
 
 		GetClientId() string
 		GetUserId() int64
-		GetScope() string
-		GetAuthTime() int64
-		GetAuthorizedAt() int64
-
-		// ID Token specific values
-
 		// Subject: If you support PPID, generate unique ID for each client, or not, just return string same as UserId
 		GetSubject() string
-		GetIdTokenExpiresIn() int64
+		GetScope() string
+	}
 
-		// Session specific Values
-		GetRedirectURI() string
+	AuthSessionInterface interface {
 		GetCode() string
-		GetCodeExpiresIn() int64
+		GetAuthId() int64
+		GetAuthTime() int64
+		GetIdTokenExpiresIn() int64
+		GetRedirectURI() string
 		GetCodeVerifier() string
+		GetExpiresIn() int64
 		GetNonce() string
+		GetAuthorizedAt() int64
 	}
 
 	OAuthTokenInterface interface {
@@ -58,7 +56,7 @@ type (
 	ServiceDataInterface interface {
 		Issuer() string
 		FindClientById(clientId string) (ClientInterface, *Error)
-		FindAuthInfoByCode(code string) (AuthInfoInterface, *Error)
+		FindAuthSessionByCode(code string) (AuthSessionInterface, *Error)
 		FindAuthInfoById(id int64) (AuthInfoInterface, *Error)
 		FindOAuthTokenByAccessToken(token string) (OAuthTokenInterface, *Error)
 		FindOAuthTokenByRefreshToken(token string) (OAuthTokenInterface, *Error)
@@ -66,7 +64,7 @@ type (
 		RefreshAccessToken(info AuthInfoInterface, token OAuthTokenInterface) (OAuthTokenInterface, *Error)
 		FindUserId(username, password string) (int64, *Error)
 		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *authorizer.Session) (AuthInfoInterface, *Error)
-		DisableCode(into AuthInfoInterface, code string) *Error
+		DisableSession(sess AuthSessionInterface) *Error
 		FindUserIdBySubject(sub string) (int64, *Error)
 		RecordAssertionClaims(clientId, jti string, issuedAt, expiredAt int64) *Error
 	}

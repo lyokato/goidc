@@ -26,12 +26,12 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 
 	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
 		&authorizer.Session{
-			RedirectURI:   "http://example.org/callback",
-			Code:          "code_value",
-			CodeVerifier:  "",
-			CodeExpiresIn: int64(60 * 60 * 24),
-			Nonce:         "07dfa90f",
-			AuthTime:      time.Now().Unix(),
+			RedirectURI:  "http://example.org/callback",
+			Code:         "code_value",
+			CodeVerifier: "",
+			ExpiresIn:    int64(60 * 60 * 24),
+			Nonce:        "07dfa90f",
+			AuthTime:     time.Now().Unix(),
 		})
 
 	key := client.GetAssertionKey("", "")
@@ -90,6 +90,16 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to sign jwt, %s", err)
 	}
+
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
+		&authorizer.Session{
+			RedirectURI:  "http://example.org/callback",
+			Code:         "code_value",
+			CodeVerifier: "",
+			ExpiresIn:    int64(60 * 60 * 24),
+			Nonce:        "07dfa90f",
+			AuthTime:     time.Now().Unix(),
+		})
 
 	th.TokenEndpointSuccessTest(t, ts,
 		map[string]string{
