@@ -159,6 +159,16 @@ func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 			"aud": th.NewStrMatcher("client_id_01"),
 		})
 
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
+		&authorizer.Session{
+			RedirectURI:   "http://example.org/callback",
+			Code:          "code_value",
+			CodeVerifier:  code_verifier,
+			CodeExpiresIn: int64(60 * 60 * 24),
+			Nonce:         "07dfa90f",
+			AuthTime:      time.Now().Unix(),
+		})
+
 	// VALID CODE for plain
 	th.TokenEndpointSuccessTest(t, ts,
 		map[string]string{
@@ -348,6 +358,16 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 			"iss": th.NewStrMatcher("http://example.org/"),
 			"sub": th.NewStrMatcher("0"),
 			"aud": th.NewStrMatcher("client_id_01"),
+		})
+
+	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
+		&authorizer.Session{
+			RedirectURI:   "http://example.org/callback",
+			Code:          "code_value",
+			CodeVerifier:  "",
+			CodeExpiresIn: int64(60 * 60 * 24),
+			Nonce:         "07dfa90f",
+			AuthTime:      time.Now().Unix(),
 		})
 
 	th.TokenEndpointSuccessTest(t, ts,

@@ -12,6 +12,7 @@ const (
 	CodeChallengeFailed
 	UnauthorizedGrantType
 	AuthInfoConditionMismatch
+	AuthSessionConditionMismatch
 	ScopeConditionMismatch
 	RefreshTokenConditionMismatch
 	AssertionConditionMismatch
@@ -27,11 +28,12 @@ const (
 	NoCredential
 	NoEnabledClient
 	NoEnabledAuthInfo
+	NoEnabledAuthSession
 	NoEnabledAccessToken
 	NoEnabledUserId
 	AccessTokenCreationFailed
 	AccessTokenRefreshFailed
-	CodeConsumptionFailed
+	DisableSessionFailed
 	AuthInfoCreationFailed
 	IdTokenGeneration
 )
@@ -52,6 +54,8 @@ func (e LogEvent) String() string {
 		return "assertion_condition_mismatch"
 	case AuthInfoConditionMismatch:
 		return "auth_info_condition_mismatch"
+	case AuthSessionConditionMismatch:
+		return "auth_session_condition_mismatch"
 	case InterfaceUnsupported:
 		return "interface_unsupported"
 	case InterfaceServerError:
@@ -68,8 +72,8 @@ func (e LogEvent) String() string {
 		return "access_token_refresh_failed"
 	case AuthInfoCreationFailed:
 		return "auth_info_creation_failed"
-	case CodeConsumptionFailed:
-		return "code_consumption_failed"
+	case DisableSessionFailed:
+		return "disable_session_failed"
 	case InvalidHTTPMethod:
 		return "invalid_http_method"
 	case MissingParam:
@@ -86,6 +90,8 @@ func (e LogEvent) String() string {
 		return "no_enabled_user_id"
 	case NoEnabledAuthInfo:
 		return "no_enabled_auth_info"
+	case NoEnabledAuthSession:
+		return "no_enabled_auth_session"
 	case NoEnabledAccessToken:
 		return "no_enabled_access_token"
 	case IdTokenGeneration:
