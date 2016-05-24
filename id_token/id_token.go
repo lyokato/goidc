@@ -47,9 +47,13 @@ func GenForImplicit(alg string, key interface{}, keyId,
 	exp := time.Now().Unix() + expiresIn
 	iat := time.Now().Unix()
 
-	atHash, err := Hash(alg, accessToken)
-	if err != nil {
-		return "", err
+	atHash := ""
+	var err error
+	if accessToken != "" {
+		atHash, err = Hash(alg, accessToken)
+		if err != nil {
+			return "", err
+		}
 	}
 	return rawGen(alg, key, keyId,
 		issuer, clientId, subject,
@@ -62,9 +66,13 @@ func GenForHybrid(alg string, key interface{}, keyId,
 
 	exp := time.Now().Unix() + expiresIn
 	iat := time.Now().Unix()
-	atHash, err := Hash(alg, accessToken)
-	if err != nil {
-		return "", err
+	atHash := ""
+	var err error
+	if accessToken != "" {
+		atHash, err = Hash(alg, accessToken)
+		if err != nil {
+			return "", err
+		}
 	}
 	cHash, err := Hash(alg, code)
 	if err != nil {
