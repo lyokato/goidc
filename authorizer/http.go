@@ -66,7 +66,7 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 		return nil, errors.New("missing 'scope' parameter")
 	}
 
-	if f.Type == FlowTypeBasic {
+	if f.Type == FlowTypeAuthorizationCode {
 		/*
 			if !scope.IncludeOfflineAccess(s) {
 				s = s + " offline_access"
@@ -79,7 +79,7 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 	}
 
 	n := r.FormValue("nonce")
-	if f.Type != FlowTypeBasic {
+	if f.Type != FlowTypeAuthorizationCode {
 		if scope.IncludeOpenID(s) && n == "" {
 			return nil, errors.New("'nonce' parameter is required on implicit/hybrid flow if it's for OpenID")
 		}

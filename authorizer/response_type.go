@@ -10,7 +10,7 @@ import (
 type FlowType int
 
 const (
-	FlowTypeBasic FlowType = iota
+	FlowTypeAuthorizationCode FlowType = iota
 	FlowTypeImplicit
 	FlowTypeHybrid
 	FlowTypeDirectGrant
@@ -18,8 +18,8 @@ const (
 
 func (ft FlowType) String() string {
 	switch ft {
-	case FlowTypeBasic:
-		return "basic"
+	case FlowTypeAuthorizationCode:
+		return "authorization_code"
 	case FlowTypeImplicit:
 		return "implicit"
 	case FlowTypeHybrid:
@@ -37,8 +37,8 @@ func (ft FlowType) MarshalJSON() ([]byte, error) {
 
 func (ft *FlowType) UnmarshalJSON(data []byte) error {
 	switch string(data) {
-	case `"basic"`:
-		*ft = FlowTypeBasic
+	case `"authorization_code"`:
+		*ft = FlowTypeAuthorizationCode
 		return nil
 	case `"implicit"`:
 		*ft = FlowTypeImplicit
@@ -66,7 +66,7 @@ func JudgeFlowFromResponseType(responseType string) (*Flow, error) {
 	sorted := strings.Join(list, " ")
 	switch sorted {
 	case "code":
-		return &Flow{FlowTypeBasic, false, false}, nil
+		return &Flow{FlowTypeAuthorizationCode, false, false}, nil
 	case "code id_token":
 		return &Flow{FlowTypeHybrid, false, true}, nil
 	case "code id_token token":

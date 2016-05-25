@@ -58,7 +58,7 @@ func TestFlow(t *testing.T) {
 	if err != nil {
 		t.Error("failed to judge flow")
 	}
-	if flow.Type != FlowTypeBasic {
+	if flow.Type != FlowTypeAuthorizationCode {
 		t.Errorf("'code token' should be hybrid")
 	}
 
