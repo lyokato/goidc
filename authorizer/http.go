@@ -66,23 +66,20 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 		return nil, errors.New("missing 'scope' parameter")
 	}
 
-	if f.Type == FlowTypeAuthorizationCode {
-		/*
-			if !scope.IncludeOfflineAccess(s) {
-				s = s + " offline_access"
-			}
-		*/
-	} else {
-		if scope.IncludeOfflineAccess(s) {
-			return nil, errors.New("'offline_access' is not supported on implicit/hybrid flow")
-		}
+	if f.RequireIdToken && !scope.IncludeOpenID(s) {
+		return nil, errors.New("'response_type' requires id_token but scope doesn't include 'openid'")
+	}
+
+	if f.Type == FlowTypeImplicit && scope.IncludeOfflineAccess(s) {
+		return nil, errors.New("'offline_access' is not supported on implicit flow")
 	}
 
 	n := r.FormValue("nonce")
-	if f.Type != FlowTypeAuthorizationCode {
-		if scope.IncludeOpenID(s) && n == "" {
-			return nil, errors.New("'nonce' parameter is required on implicit/hybrid flow if it's for OpenID")
-		}
+	if f.Type != FlowTypeAuthorizationCode &&
+		scope.IncludeOpenID(s) &&
+		f.RequireIdToken &&
+		n == "" {
+		return nil, errors.New("'nonce' parameter is required on implicit/hybrid flow if it's for OpenID")
 	}
 
 	return &Request{

@@ -28,7 +28,7 @@ func TestParser(t *testing.T) {
 		return
 	}
 
-	if ar.Flow.Type != FlowTypeBasic {
+	if ar.Flow.Type != FlowTypeAuthorizationCode {
 		t.Error("flow type should be basic")
 	}
 }
