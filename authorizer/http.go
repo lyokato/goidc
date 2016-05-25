@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/lyokato/goidc/prompt"
 	"github.com/lyokato/goidc/scope"
 )
 
@@ -50,12 +51,11 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 		}
 	}
 
-	prompt := ""
+	prmpt := ""
 	p := r.FormValue("prompt")
 	if p != "" {
-		if p == PromptTypeNone || d == PromptTypeLogin ||
-			p == PromptTypeConsent || p == PromptTypeSelectAccount {
-			prompt = p
+		if prompt.Validate(p) {
+			prmpt = p
 		} else {
 			return nil, fmt.Errorf("Unknown value for 'prompt': %s", p)
 		}
@@ -83,7 +83,7 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 
 	if scope.IncludeOfflineAccess(s) {
 		// OpenID Connect Core 11. Offline Access
-		if f.Type == FlowTypeImplicit || prompt != PromptTypeConsent {
+		if f.Type == FlowTypeImplicit || !prompt.IncludeConsent(prmpt) {
 			s = scope.RemoveOfflineAccess(s)
 			if s == "" {
 				return nil, errors.New("'scope' doesn't include other than 'offline_access'")
@@ -100,7 +100,7 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 		CodeVerifier: r.FormValue("code_verifier"),
 		Nonce:        n,
 		Display:      display,
-		Prompt:       prompt,
+		Prompt:       prmpt,
 		MaxAge:       ma,
 		UILocales:    r.FormValue("ui_locales"),
 		IDTokenHint:  r.FormValue("id_token_hint"),

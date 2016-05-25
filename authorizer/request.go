@@ -10,11 +10,6 @@ const (
 	DisplayTypeTouch = "touch"
 	DisplayTypeWAP   = "wap"
 	DisplayTypePage  = "page"
-
-	PromptTypeNone          = "none"
-	PromptTypeLogin         = "login"
-	PromptTypeSelectAccount = "select_account"
-	PromptTypeConsent       = "consent"
 )
 
 type (
