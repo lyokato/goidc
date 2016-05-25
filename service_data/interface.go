@@ -14,7 +14,7 @@ type (
 		MatchSecret(secret string) bool
 		CanUseFlow(flow *authorizer.Flow) bool
 		CanUseGrantType(gt string) bool
-		CanUseScope(scope string) bool
+		CanUseScope(flowType authorizer.FlowType, scope string) bool
 		CanUseRedirectURI(uri string) bool
 		GetAssertionKey(alg, kid string) interface{}
 	}

@@ -1,24 +1,64 @@
 package authorizer
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 )
 
+type FlowType int
+
 const (
-	FlowTypeBasic    = "basic"
-	FlowTypeImplicit = "implicit"
-	FlowTypeHybrid   = "hybrid"
+	FlowTypeBasic FlowType = iota
+	FlowTypeImplicit
+	FlowTypeHybrid
+	FlowTypeDirectGrant
 )
 
-type (
-	Flow struct {
-		Type               string `json:"type"`
-		RequireAccessToken bool   `json:"require_access_token"`
-		RequireIdToken     bool   `json:"require_id_token"`
+func (ft FlowType) String() string {
+	switch ft {
+	case FlowTypeBasic:
+		return "basic"
+	case FlowTypeImplicit:
+		return "implicit"
+	case FlowTypeHybrid:
+		return "hybrid"
+	case FlowTypeDirectGrant:
+		return "direct_grant"
+	default:
+		panic("shouldn't be here")
 	}
-)
+}
+
+func (ft FlowType) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + ft.String() + `"`), nil
+}
+
+func (ft *FlowType) UnmarshalJSON(data []byte) error {
+	switch string(data) {
+	case `"basic"`:
+		*ft = FlowTypeBasic
+		return nil
+	case `"implicit"`:
+		*ft = FlowTypeImplicit
+		return nil
+	case `"hybrid"`:
+		*ft = FlowTypeHybrid
+		return nil
+	case `"direct_grant"`:
+		*ft = FlowTypeDirectGrant
+		return nil
+	default:
+		return errors.New("unknown flow type")
+	}
+}
+
+type Flow struct {
+	Type               FlowType `json:"type"`
+	RequireAccessToken bool     `json:"require_access_token"`
+	RequireIdToken     bool     `json:"require_id_token"`
+}
 
 func JudgeFlowFromResponseType(responseType string) (*Flow, error) {
 	list := strings.Split(responseType, " ")

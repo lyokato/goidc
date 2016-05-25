@@ -7,6 +7,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 
 	"github.com/lyokato/goidc/assertion"
+	"github.com/lyokato/goidc/authorizer"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
 	sd "github.com/lyokato/goidc/service_data"
@@ -110,7 +111,7 @@ func JWT() *GrantHandler {
 			}
 
 			scp_req := r.FormValue("scope")
-			if scp_req != "" && !c.CanUseScope(scp_req) {
+			if scp_req != "" && !c.CanUseScope(authorizer.FlowTypeDirectGrant, scp_req) {
 
 				logger.Info(log.TokenEndpointLog(TypeJWT,
 					log.InvalidScope,
