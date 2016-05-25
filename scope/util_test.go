@@ -48,3 +48,16 @@ func TestIncludeAll(t *testing.T) {
 		t.Errorf("NotFound:\n - got: %v\n - want: %v\n", not_found, expected)
 	}
 }
+
+func TestRemove(t *testing.T) {
+	origin := "openid email offline_access"
+	removed := Remove(origin, OpenID)
+	if removed != "email offline_access" {
+		t.Error("removed scope should be 'email offline_access'")
+	}
+
+	removed = RemoveOfflineAccess(origin)
+	if removed != "openid email" {
+		t.Error("removed scope should be 'openid email'")
+	}
+}

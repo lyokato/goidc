@@ -50,7 +50,7 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 		}
 	}
 
-	prompt := PromptTypeDefault
+	prompt := ""
 	p := r.FormValue("prompt")
 	if p != "" {
 		if p == PromptTypeNone || d == PromptTypeLogin ||
@@ -64,22 +64,31 @@ func ConvertHTTPRequest(r *http.Request) (*Request, error) {
 	s := r.FormValue("scope")
 	if s == "" {
 		return nil, errors.New("missing 'scope' parameter")
+	} else if s == "offline_access" {
+		return nil, errors.New("'scope' doesn't include other than 'offline_access'")
+	}
+
+	n := r.FormValue("nonce")
+
+	if f.Type != FlowTypeAuthorizationCode &&
+		scope.IncludeOpenID(s) &&
+		f.RequireIdToken &&
+		n == "" {
+		return nil, errors.New("'nonce' parameter is required on implicit/hybrid flow if it's for OpenID")
 	}
 
 	if f.RequireIdToken && !scope.IncludeOpenID(s) {
 		return nil, errors.New("'response_type' requires id_token but scope doesn't include 'openid'")
 	}
 
-	if f.Type == FlowTypeImplicit && scope.IncludeOfflineAccess(s) {
-		return nil, errors.New("'offline_access' is not supported on implicit flow")
-	}
-
-	n := r.FormValue("nonce")
-	if f.Type != FlowTypeAuthorizationCode &&
-		scope.IncludeOpenID(s) &&
-		f.RequireIdToken &&
-		n == "" {
-		return nil, errors.New("'nonce' parameter is required on implicit/hybrid flow if it's for OpenID")
+	if scope.IncludeOfflineAccess(s) {
+		// OpenID Connect Core 11. Offline Access
+		if f.Type == FlowTypeImplicit || prompt != PromptTypeConsent {
+			s = scope.RemoveOfflineAccess(s)
+			if s == "" {
+				return nil, errors.New("'scope' doesn't include other than 'offline_access'")
+			}
+		}
 	}
 
 	return &Request{

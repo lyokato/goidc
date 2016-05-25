@@ -26,6 +26,17 @@ func IncludeAll(scopes string, targetScopes []string) (bool, string) {
 	return true, ""
 }
 
+func Remove(scopes string, targetScope string) string {
+	list := Split(scopes)
+	newList := make([]string, 0)
+	for _, s := range list {
+		if s != targetScope {
+			newList = append(newList, s)
+		}
+	}
+	return strings.Join(newList, " ")
+}
+
 func Include(scopes string, targetScope string) bool {
 	list := Split(scopes)
 	for _, s := range list {
@@ -42,4 +53,8 @@ func IncludeOpenID(scopes string) bool {
 
 func IncludeOfflineAccess(scopes string) bool {
 	return Include(scopes, OfflineAccess)
+}
+
+func RemoveOfflineAccess(scopes string) string {
+	return Remove(scopes, OfflineAccess)
 }

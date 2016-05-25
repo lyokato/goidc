@@ -11,7 +11,6 @@ const (
 	DisplayTypeWAP   = "wap"
 	DisplayTypePage  = "page"
 
-	PromptTypeDefault       = ""
 	PromptTypeNone          = "none"
 	PromptTypeLogin         = "login"
 	PromptTypeSelectAccount = "select_account"
