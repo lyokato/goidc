@@ -3,6 +3,7 @@ package grant
 import (
 	"net/http"
 
+	"github.com/lyokato/goidc/authorizer"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
 	sd "github.com/lyokato/goidc/service_data"
@@ -41,7 +42,7 @@ func Password() *GrantHandler {
 			}
 
 			scp_req := r.FormValue("scope")
-			if scp_req != "" && !c.CanUseScope(scp_req) {
+			if scp_req != "" && !c.CanUseScope(authorizer.FlowTypeDirectGrant, scp_req) {
 
 				logger.Info(log.TokenEndpointLog(TypePassword, log.InvalidScope,
 					map[string]string{"scope": scp_req, "client_id": c.GetId()},
@@ -140,7 +141,7 @@ func Password() *GrantHandler {
 				}
 			}
 
-			token, err := sdi.CreateOAuthToken(info)
+			token, err := sdi.CreateOAuthToken(info, true)
 
 			if err != nil {
 

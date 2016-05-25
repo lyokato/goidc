@@ -191,7 +191,7 @@ func (s *TestStore) DisableSession(sess sd.AuthSessionInterface) *sd.Error {
 	return nil
 }
 
-func (s *TestStore) CreateOAuthToken(info sd.AuthInfoInterface) (sd.OAuthTokenInterface, *sd.Error) {
+func (s *TestStore) CreateOAuthToken(info sd.AuthInfoInterface, onTokenEndpoint bool) (sd.OAuthTokenInterface, *sd.Error) {
 	avalue := fmt.Sprintf("ACCESS_TOKEN_%d", info.GetId())
 	rvalue := fmt.Sprintf("REFRESH_TOKEN_%d", info.GetId())
 	if !scope.IncludeOfflineAccess(info.GetScope()) {

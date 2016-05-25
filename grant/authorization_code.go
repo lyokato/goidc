@@ -225,7 +225,7 @@ func AuthorizationCode() *GrantHandler {
 				}
 			}
 
-			token, err := sdi.CreateOAuthToken(info)
+			token, err := sdi.CreateOAuthToken(info, true)
 
 			if err != nil {
 				if err.Type() == sd.ErrFailed {

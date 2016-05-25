@@ -14,7 +14,7 @@ type (
 		MatchSecret(secret string) bool
 		CanUseFlow(flow *authorizer.Flow) bool
 		CanUseGrantType(gt string) bool
-		CanUseScope(scope string) bool
+		CanUseScope(flowType authorizer.FlowType, scope string) bool
 		CanUseRedirectURI(uri string) bool
 		GetAssertionKey(alg, kid string) interface{}
 	}
@@ -60,7 +60,7 @@ type (
 		FindAuthInfoById(id int64) (AuthInfoInterface, *Error)
 		FindOAuthTokenByAccessToken(token string) (OAuthTokenInterface, *Error)
 		FindOAuthTokenByRefreshToken(token string) (OAuthTokenInterface, *Error)
-		CreateOAuthToken(info AuthInfoInterface) (OAuthTokenInterface, *Error)
+		CreateOAuthToken(info AuthInfoInterface, onTokenEndpoint bool) (OAuthTokenInterface, *Error)
 		RefreshAccessToken(info AuthInfoInterface, token OAuthTokenInterface) (OAuthTokenInterface, *Error)
 		FindUserId(username, password string) (int64, *Error)
 		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *authorizer.Session) (AuthInfoInterface, *Error)

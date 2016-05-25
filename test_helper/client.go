@@ -53,7 +53,7 @@ func (c *TestClient) CanUseRedirectURI(url string) bool {
 	return (c.redirectURI == url)
 }
 
-func (c *TestClient) CanUseScope(scope string) bool {
+func (c *TestClient) CanUseScope(flowType authorizer.FlowType, scope string) bool {
 	return true
 }
 
