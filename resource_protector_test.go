@@ -41,7 +41,7 @@ func TestResourceProtector(t *testing.T) {
 	user := sdi.CreateNewUser("user01", "pass01")
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	ai, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access", nil)
-	token, _ := sdi.CreateOAuthToken(ai)
+	token, _ := sdi.CreateOAuthToken(ai, true)
 
 	rp := NewResourceProtector("api.example.org")
 	ts := httptest.NewServer(testProtectedResourceMiddleware(

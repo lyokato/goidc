@@ -60,7 +60,7 @@ type (
 		FindAuthInfoById(id int64) (AuthInfoInterface, *Error)
 		FindOAuthTokenByAccessToken(token string) (OAuthTokenInterface, *Error)
 		FindOAuthTokenByRefreshToken(token string) (OAuthTokenInterface, *Error)
-		CreateOAuthToken(info AuthInfoInterface) (OAuthTokenInterface, *Error)
+		CreateOAuthToken(info AuthInfoInterface, onTokenEndpoint bool) (OAuthTokenInterface, *Error)
 		RefreshAccessToken(info AuthInfoInterface, token OAuthTokenInterface) (OAuthTokenInterface, *Error)
 		FindUserId(username, password string) (int64, *Error)
 		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *authorizer.Session) (AuthInfoInterface, *Error)
