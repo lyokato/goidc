@@ -24,12 +24,12 @@ type (
 
 	AuthInfoInterface interface {
 		GetId() int64
-
 		GetClientId() string
 		GetUserId() int64
 		// Subject: If you support PPID, generate unique ID for each client, or not, just return string same as UserId
 		GetSubject() string
 		GetScope() string
+		GetAuthorizedAt() int64
 	}
 
 	AuthSessionInterface interface {
@@ -41,7 +41,7 @@ type (
 		GetCodeVerifier() string
 		GetExpiresIn() int64
 		GetNonce() string
-		GetAuthorizedAt() int64
+		GetCreatedAt() int64
 	}
 
 	OAuthTokenInterface interface {

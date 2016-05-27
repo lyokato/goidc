@@ -22,7 +22,7 @@ func (s *TestAuthSession) GetAuthTime() int64 {
 	return s.authTime
 }
 
-func (s *TestAuthSession) GetAuthorizedAt() int64 {
+func (s *TestAuthSession) GetCreatedAt() int64 {
 	// FIXME
 	return s.authTime
 }

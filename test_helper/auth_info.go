@@ -2,11 +2,12 @@ package test_helper
 
 type (
 	TestAuthInfo struct {
-		id       int64
-		clientId string
-		userId   int64
-		scope    string
-		subject  string
+		id           int64
+		clientId     string
+		userId       int64
+		scope        string
+		subject      string
+		authorizedAt int64
 
 		Enabled bool
 	}
@@ -30,4 +31,8 @@ func (i *TestAuthInfo) GetUserId() int64 {
 
 func (i *TestAuthInfo) GetSubject() string {
 	return i.subject
+}
+
+func (i *TestAuthInfo) GetAuthorizedAt() int64 {
+	return i.authorizedAt
 }
