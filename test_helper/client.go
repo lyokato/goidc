@@ -2,6 +2,7 @@ package test_helper
 
 import (
 	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/prompt"
 )
 
 type (
@@ -79,6 +80,14 @@ func (c *TestClient) GetIdTokenKeyId() string {
 
 func (c *TestClient) GetIdTokenKey() interface{} {
 	return c.idTokenKey
+}
+
+func (c *TestClient) GetNonePromptPolicy() prompt.NonePromptPolicy {
+	return prompt.NonePromptPolicyForbidden
+}
+
+func (c *TestClient) GetNoConsentPromptPolicy() prompt.NoConsentPromptPolicy {
+	return prompt.NoConsentPromptPolicyForceConsent
 }
 
 func (c *TestClient) GetAssertionKey(alg, kid string) interface{} {
