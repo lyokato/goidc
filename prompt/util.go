@@ -9,14 +9,6 @@ const (
 	SelectAccount = "select_account"
 )
 
-type NonePromptPolicy int
-
-const (
-	NonePromptPolicyForbidden NonePromptPolicy = iota
-	NonePromptPolicyRequireSignIn
-	NonePromptPolicyRequireIdToken
-)
-
 type NoConsentPromptPolicy int
 
 const (

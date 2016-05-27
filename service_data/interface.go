@@ -18,7 +18,6 @@ type (
 		CanUseScope(flowType authorizer.FlowType, scope string) bool
 		CanUseRedirectURI(uri string) bool
 		GetAssertionKey(alg, kid string) interface{}
-		GetNonePromptPolicy() prompt.NonePromptPolicy
 		GetNoConsentPromptPolicy() prompt.NoConsentPromptPolicy
 	}
 
