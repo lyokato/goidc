@@ -168,14 +168,14 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		return false
 	}
 
-	info, err := sdi.FindAuthInfoById(at.GetAuthId())
+	info, err := sdi.FindActiveAuthInfoById(at.GetAuthId())
 	if err != nil {
 		if err.Type() == sd.ErrFailed {
 
 			rp.logger.Debug(log.TokenEndpointLog(r.URL.Path,
 				log.NoEnabledAuthInfo,
 				map[string]string{
-					"method":       "FindAuthInfoById",
+					"method":       "FindActiveAuthInfoById",
 					"access_token": rt,
 				},
 				"no enabled auth info associated with this access_token."))
@@ -187,7 +187,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path,
 				log.InterfaceUnsupported,
-				map[string]string{"method": "FindAuthInfoById"},
+				map[string]string{"method": "FindActiveAuthInfoById"},
 				"the method returns 'unsupported' error."))
 
 			w.WriteHeader(http.StatusInternalServerError)
@@ -198,7 +198,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 			rp.logger.Warn(log.TokenEndpointLog(r.URL.Path,
 				log.InterfaceServerError,
 				map[string]string{
-					"method":       "FindAuthInfoById",
+					"method":       "FindActiveAuthInfoById",
 					"access_token": rt,
 				},
 				"interface returned ServerError"))

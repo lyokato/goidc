@@ -36,3 +36,7 @@ func (i *TestAuthInfo) GetSubject() string {
 func (i *TestAuthInfo) GetAuthorizedAt() int64 {
 	return i.authorizedAt
 }
+
+func (i *TestAuthInfo) IsActive() bool {
+	return true
+}

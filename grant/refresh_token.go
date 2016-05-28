@@ -96,7 +96,7 @@ func RefreshToken() *GrantHandler {
 					"expired 'refresh_token'")
 			}
 
-			info, err := sdi.FindAuthInfoById(old.GetAuthId())
+			info, err := sdi.FindActiveAuthInfoById(old.GetAuthId())
 			if err != nil {
 
 				if err.Type() == sd.ErrFailed {
@@ -104,7 +104,7 @@ func RefreshToken() *GrantHandler {
 					logger.Debug(log.TokenEndpointLog(TypeRefreshToken,
 						log.NoEnabledAuthInfo,
 						map[string]string{
-							"method":    "FindAuthInfoById",
+							"method":    "FindActiveAuthInfoById",
 							"client_id": c.GetId(),
 						},
 						"enabled AuthInfo associated with the id not found."))
@@ -115,7 +115,7 @@ func RefreshToken() *GrantHandler {
 
 					logger.Error(log.TokenEndpointLog(TypeRefreshToken,
 						log.InterfaceUnsupported,
-						map[string]string{"method": "FindAuthInfoById"},
+						map[string]string{"method": "FindActiveAuthInfoById"},
 						"the method returns 'unsupported' error."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -125,7 +125,7 @@ func RefreshToken() *GrantHandler {
 					logger.Warn(log.TokenEndpointLog(TypeRefreshToken,
 						log.InterfaceServerError,
 						map[string]string{
-							"method":    "FindAuthInfoById",
+							"method":    "FindActiveAuthInfoById",
 							"client_id": c.GetId(),
 						},
 						"interface returned ServerError."))
@@ -138,7 +138,7 @@ func RefreshToken() *GrantHandler {
 
 					logger.Error(log.TokenEndpointLog(TypeRefreshToken,
 						log.InterfaceError,
-						map[string]string{"method": "FindAuthInfoById"},
+						map[string]string{"method": "FindActiveAuthInfoById"},
 						"the method returns (nil, nil)."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)

@@ -29,6 +29,7 @@ type (
 		GetSubject() string
 		GetScope() string
 		GetAuthorizedAt() int64
+		IsActive() bool
 	}
 
 	AuthSessionInterface interface {
@@ -59,7 +60,8 @@ type (
 		Issuer() string
 		FindClientById(clientId string) (ClientInterface, *Error)
 		FindAuthSessionByCode(code string) (AuthSessionInterface, *Error)
-		FindAuthInfoById(id int64) (AuthInfoInterface, *Error)
+		FindActiveAuthInfoById(id int64) (AuthInfoInterface, *Error)
+		FindAuthInfoByUserIdAndClientId(uid int64, clientId string) (AuthInfoInterface, *Error)
 		FindOAuthTokenByAccessToken(token string) (OAuthTokenInterface, *Error)
 		FindOAuthTokenByRefreshToken(token string) (OAuthTokenInterface, *Error)
 		CreateOAuthToken(info AuthInfoInterface, onTokenEndpoint bool) (OAuthTokenInterface, *Error)

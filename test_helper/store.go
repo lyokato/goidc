@@ -161,7 +161,11 @@ func (s *TestStore) FindAuthSessionByCode(code string) (sd.AuthSessionInterface,
 	return sess, nil
 }
 
-func (s *TestStore) FindAuthInfoById(id int64) (sd.AuthInfoInterface, *sd.Error) {
+func (s *TestStore) FindAuthInfoByUserIdAndClientId(uid int64, cid string) (sd.AuthInfoInterface, *sd.Error) {
+	return nil, sd.NewError(sd.ErrUnsupported)
+}
+
+func (s *TestStore) FindActiveAuthInfoById(id int64) (sd.AuthInfoInterface, *sd.Error) {
 	i, exists := s.infos[id]
 	if !exists {
 		return nil, sd.NewError(sd.ErrFailed)

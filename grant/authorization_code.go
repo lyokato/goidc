@@ -93,14 +93,14 @@ func AuthorizationCode() *GrantHandler {
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
 				}
 			}
-			info, err := sdi.FindAuthInfoById(sess.GetAuthId())
+			info, err := sdi.FindActiveAuthInfoById(sess.GetAuthId())
 			if err != nil {
 				if err.Type() == sd.ErrFailed {
 
 					logger.Info(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.NoEnabledAuthInfo,
 						map[string]string{
-							"method":    "FindAuthInfoById",
+							"method":    "FindActiveAuthInfoById",
 							"code":      code,
 							"client_id": c.GetId(),
 						},
@@ -112,7 +112,10 @@ func AuthorizationCode() *GrantHandler {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceUnsupported,
-						map[string]string{"method": "FindAuthInfoById", "client_id": c.GetId()},
+						map[string]string{
+							"method":    "FindActiveAuthInfoById",
+							"client_id": c.GetId(),
+						},
 						"the method returns 'unsupported' error."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
@@ -122,7 +125,7 @@ func AuthorizationCode() *GrantHandler {
 					logger.Warn(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceServerError,
 						map[string]string{
-							"method":    "FindAuthInfoById",
+							"method":    "FindActiveAuthInfoById",
 							"code":      code,
 							"client_id": c.GetId(),
 						},
@@ -135,7 +138,10 @@ func AuthorizationCode() *GrantHandler {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceError,
-						map[string]string{"method": "FindAuthInfoById", "client_id": c.GetId()},
+						map[string]string{
+							"method":    "FindActiveAuthInfoById",
+							"client_id": c.GetId(),
+						},
 						"the method returns (nil, nil)."))
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrServerError)
