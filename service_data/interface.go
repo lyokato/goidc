@@ -2,6 +2,7 @@ package service_data
 
 import (
 	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/flow"
 	"github.com/lyokato/goidc/prompt"
 )
 
@@ -13,9 +14,9 @@ type (
 		GetIdTokenKeyId() string
 		GetIdTokenKey() interface{}
 		MatchSecret(secret string) bool
-		CanUseFlow(flow *authorizer.Flow) bool
+		CanUseFlow(flowType flow.FlowType) bool
 		CanUseGrantType(gt string) bool
-		CanUseScope(flowType authorizer.FlowType, scope string) bool
+		CanUseScope(flowType flow.FlowType, scope string) bool
 		CanUseRedirectURI(uri string) bool
 		GetAssertionKey(alg, kid string) interface{}
 		GetNoConsentPromptPolicy() prompt.NoConsentPromptPolicy

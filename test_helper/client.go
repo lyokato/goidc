@@ -1,7 +1,7 @@
 package test_helper
 
 import (
-	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/flow"
 	"github.com/lyokato/goidc/prompt"
 )
 
@@ -37,7 +37,7 @@ func (c *TestClient) AllowToUseGrantType(gt string) {
 	c.grantTypes[gt] = true
 }
 
-func (c *TestClient) CanUseFlow(flow *authorizer.Flow) bool {
+func (c *TestClient) CanUseFlow(flowType flow.FlowType) bool {
 	return true
 }
 
@@ -54,7 +54,7 @@ func (c *TestClient) CanUseRedirectURI(url string) bool {
 	return (c.redirectURI == url)
 }
 
-func (c *TestClient) CanUseScope(flowType authorizer.FlowType, scope string) bool {
+func (c *TestClient) CanUseScope(flowType flow.FlowType, scope string) bool {
 	return true
 }
 

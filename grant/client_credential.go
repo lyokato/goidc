@@ -3,7 +3,7 @@ package grant
 import (
 	"net/http"
 
-	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/flow"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
 	sd "github.com/lyokato/goidc/service_data"
@@ -29,7 +29,7 @@ func ClientCredentials() *GrantHandler {
 			}
 
 			scp_req := r.FormValue("scope")
-			if scp_req != "" && !c.CanUseScope(authorizer.FlowTypeDirectGrant, scp_req) {
+			if scp_req != "" && !c.CanUseScope(flow.DirectGrant, scp_req) {
 
 				logger.Info(log.TokenEndpointLog(TypeClientCredentials,
 					log.InvalidScope,

@@ -3,6 +3,8 @@ package authorizer
 import (
 	"encoding/base64"
 	"encoding/json"
+
+	"github.com/lyokato/goidc/flow"
 )
 
 const (
@@ -14,19 +16,19 @@ const (
 
 type (
 	Request struct {
-		Flow         *Flow  `json:"flow"`
-		ClientId     string `json:"client_id"`
-		Scope        string `json:"scope"`
-		RedirectURI  string `json:"redirect_uri"`
-		State        string `json:"state"`
-		CodeVerifier string `json:"code_verifier"`
-		Nonce        string `json:"nonce"`
-		Display      string `json:"display"`
-		Prompt       string `json:"prompt"`
-		MaxAge       int64  `json:"max_age"`
-		UILocales    string `json:"ui_locales"`
-		IDTokenHint  string `json:"id_token_hint"`
-		LoginHint    string `json:"login_hint"`
+		Flow         *flow.Flow `json:"flow"`
+		ClientId     string     `json:"client_id"`
+		Scope        string     `json:"scope"`
+		RedirectURI  string     `json:"redirect_uri"`
+		State        string     `json:"state"`
+		CodeVerifier string     `json:"code_verifier"`
+		Nonce        string     `json:"nonce"`
+		Display      string     `json:"display"`
+		Prompt       string     `json:"prompt"`
+		MaxAge       int64      `json:"max_age"`
+		UILocales    string     `json:"ui_locales"`
+		IDTokenHint  string     `json:"id_token_hint"`
+		LoginHint    string     `json:"login_hint"`
 	}
 
 	Session struct {
