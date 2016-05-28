@@ -24,15 +24,15 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType("authorization_code")
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
-		&authorizer.Session{
-			RedirectURI:  "http://example.org/callback",
-			Code:         "code_value",
-			CodeVerifier: "",
-			ExpiresIn:    int64(60 * 60 * 24),
-			Nonce:        "07dfa90f",
-			AuthTime:     time.Now().Unix(),
-		})
+	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
+	sdi.CreateAuthSession(info, &authorizer.Session{
+		RedirectURI:  "http://example.org/callback",
+		Code:         "code_value",
+		CodeVerifier: "",
+		ExpiresIn:    int64(60 * 60 * 24),
+		Nonce:        "07dfa90f",
+		AuthTime:     time.Now().Unix(),
+	})
 
 	key := client.GetAssertionKey("", "")
 	token := jwt.New(jwt.SigningMethodHS256)
@@ -91,15 +91,15 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 		t.Errorf("failed to sign jwt, %s", err)
 	}
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
-		&authorizer.Session{
-			RedirectURI:  "http://example.org/callback",
-			Code:         "code_value",
-			CodeVerifier: "",
-			ExpiresIn:    int64(60 * 60 * 24),
-			Nonce:        "07dfa90f",
-			AuthTime:     time.Now().Unix(),
-		})
+	info, _ = sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
+	sdi.CreateAuthSession(info, &authorizer.Session{
+		RedirectURI:  "http://example.org/callback",
+		Code:         "code_value",
+		CodeVerifier: "",
+		ExpiresIn:    int64(60 * 60 * 24),
+		Nonce:        "07dfa90f",
+		AuthTime:     time.Now().Unix(),
+	})
 
 	th.TokenEndpointSuccessTest(t, ts,
 		map[string]string{

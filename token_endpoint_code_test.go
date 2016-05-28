@@ -22,15 +22,15 @@ func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 
 	code_verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
-		&authorizer.Session{
-			RedirectURI:  "http://example.org/callback",
-			Code:         "code_value",
-			CodeVerifier: code_verifier,
-			ExpiresIn:    int64(60 * 60 * 24),
-			Nonce:        "07dfa90f",
-			AuthTime:     time.Now().Unix(),
-		})
+	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
+	sdi.CreateAuthSession(info, &authorizer.Session{
+		RedirectURI:  "http://example.org/callback",
+		Code:         "code_value",
+		CodeVerifier: code_verifier,
+		ExpiresIn:    int64(60 * 60 * 24),
+		Nonce:        "07dfa90f",
+		AuthTime:     time.Now().Unix(),
+	})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -159,7 +159,7 @@ func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 			"aud": th.NewStrMatcher("client_id_01"),
 		})
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
+	sdi.CreateAuthSession(info,
 		&authorizer.Session{
 			RedirectURI:  "http://example.org/callback",
 			Code:         "code_value",
@@ -209,15 +209,15 @@ func TestTokenEndpointAuthorizationCodeInvalidRequest(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
-		&authorizer.Session{
-			RedirectURI:  "http://example.org/callback",
-			Code:         "code_value",
-			CodeVerifier: "",
-			ExpiresIn:    int64(60 * 60 * 24),
-			Nonce:        "07dfa90f",
-			AuthTime:     time.Now().Unix(),
-		})
+	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
+	sdi.CreateAuthSession(info, &authorizer.Session{
+		RedirectURI:  "http://example.org/callback",
+		Code:         "code_value",
+		CodeVerifier: "",
+		ExpiresIn:    int64(60 * 60 * 24),
+		Nonce:        "07dfa90f",
+		AuthTime:     time.Now().Unix(),
+	})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -320,15 +320,15 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
-		&authorizer.Session{
-			RedirectURI:  "http://example.org/callback",
-			Code:         "code_value",
-			CodeVerifier: "",
-			ExpiresIn:    int64(60 * 60 * 24),
-			Nonce:        "07dfa90f",
-			AuthTime:     time.Now().Unix(),
-		})
+	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
+	sdi.CreateAuthSession(info, &authorizer.Session{
+		RedirectURI:  "http://example.org/callback",
+		Code:         "code_value",
+		CodeVerifier: "",
+		ExpiresIn:    int64(60 * 60 * 24),
+		Nonce:        "07dfa90f",
+		AuthTime:     time.Now().Unix(),
+	})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -360,15 +360,14 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 			"aud": th.NewStrMatcher("client_id_01"),
 		})
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
-		&authorizer.Session{
-			RedirectURI:  "http://example.org/callback",
-			Code:         "code_value",
-			CodeVerifier: "",
-			ExpiresIn:    int64(60 * 60 * 24),
-			Nonce:        "07dfa90f",
-			AuthTime:     time.Now().Unix(),
-		})
+	sdi.CreateAuthSession(info, &authorizer.Session{
+		RedirectURI:  "http://example.org/callback",
+		Code:         "code_value",
+		CodeVerifier: "",
+		ExpiresIn:    int64(60 * 60 * 24),
+		Nonce:        "07dfa90f",
+		AuthTime:     time.Now().Unix(),
+	})
 
 	th.TokenEndpointSuccessTest(t, ts,
 		map[string]string{
@@ -408,15 +407,15 @@ func TestTokenEndpointAuthorizationCodeWithoutOfflineAccess(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile",
-		&authorizer.Session{
-			RedirectURI:  "http://example.org/callback",
-			Code:         "code_value",
-			CodeVerifier: "",
-			ExpiresIn:    int64(60 * 60 * 24),
-			Nonce:        "07dfa90f",
-			AuthTime:     time.Now().Unix(),
-		})
+	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile")
+	sdi.CreateAuthSession(info, &authorizer.Session{
+		RedirectURI:  "http://example.org/callback",
+		Code:         "code_value",
+		CodeVerifier: "",
+		ExpiresIn:    int64(60 * 60 * 24),
+		Nonce:        "07dfa90f",
+		AuthTime:     time.Now().Unix(),
+	})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
@@ -458,15 +457,15 @@ func TestTokenEndpointAuthorizationCodeWithoutOpenID(t *testing.T) {
 	client := sdi.CreateNewClient(user.Id, "client_id_01", "client_secret_01", "http://example.org/callback")
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "profile offline_access",
-		&authorizer.Session{
-			RedirectURI:  "http://example.org/callback",
-			Code:         "code_value",
-			CodeVerifier: "",
-			ExpiresIn:    int64(60 * 60 * 24),
-			Nonce:        "07dfa90f",
-			AuthTime:     time.Now().Unix(),
-		})
+	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "profile offline_access")
+	sdi.CreateAuthSession(info, &authorizer.Session{
+		RedirectURI:  "http://example.org/callback",
+		Code:         "code_value",
+		CodeVerifier: "",
+		ExpiresIn:    int64(60 * 60 * 24),
+		Nonce:        "07dfa90f",
+		AuthTime:     time.Now().Unix(),
+	})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()

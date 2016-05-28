@@ -39,7 +39,7 @@ func ClientCredentials() *GrantHandler {
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidScope)
 			}
 
-			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.GetId(), scp_req, nil)
+			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.GetId(), scp_req)
 			if err != nil {
 
 				if err.Type() == sd.ErrFailed {

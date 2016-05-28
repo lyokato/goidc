@@ -65,7 +65,8 @@ type (
 		CreateOAuthToken(info AuthInfoInterface, onTokenEndpoint bool) (OAuthTokenInterface, *Error)
 		RefreshAccessToken(info AuthInfoInterface, token OAuthTokenInterface) (OAuthTokenInterface, *Error)
 		FindUserId(username, password string) (int64, *Error)
-		CreateOrUpdateAuthInfo(uid int64, clientId, scope string, session *authorizer.Session) (AuthInfoInterface, *Error)
+		CreateOrUpdateAuthInfo(uid int64, clientId, scope string) (AuthInfoInterface, *Error)
+		CreateAuthSession(info AuthInfoInterface, session *authorizer.Session) *Error
 		DisableSession(sess AuthSessionInterface) *Error
 		FindUserIdBySubject(sub string) (int64, *Error)
 		RecordAssertionClaims(clientId, jti string, issuedAt, expiredAt int64) *Error

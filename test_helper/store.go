@@ -74,8 +74,20 @@ func (s *TestStore) CreateNewClient(ownerId int64, id, secret, redirectURI strin
 	return c
 }
 
-func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string,
-	session *authorizer.Session) (sd.AuthInfoInterface, *sd.Error) {
+func (s *TestStore) CreateAuthSession(info sd.AuthInfoInterface, session *authorizer.Session) *sd.Error {
+	s.sessions[session.Code] = &TestAuthSession{
+		authId:       info.GetId(),
+		redirectUri:  session.RedirectURI,
+		authTime:     session.AuthTime,
+		code:         session.Code,
+		expiresIn:    session.ExpiresIn,
+		codeVerifier: session.CodeVerifier,
+		nonce:        session.Nonce,
+	}
+	return nil
+}
+
+func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string) (sd.AuthInfoInterface, *sd.Error) {
 
 	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
 	if !exists {
@@ -91,18 +103,6 @@ func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string,
 	}
 	i.subject = fmt.Sprintf("%d", uid)
 	i.scope = scope
-
-	if session != nil {
-		s.sessions[session.Code] = &TestAuthSession{
-			authId:       i.id,
-			redirectUri:  session.RedirectURI,
-			authTime:     session.AuthTime,
-			code:         session.Code,
-			expiresIn:    session.ExpiresIn,
-			codeVerifier: session.CodeVerifier,
-			nonce:        session.Nonce,
-		}
-	}
 	return i, nil
 }
 

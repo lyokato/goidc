@@ -22,15 +22,15 @@ func TestTokenEndpointRefreshTokenInvalidRequest(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 	client.AllowToUseGrantType(grant.TypeRefreshToken)
 
-	sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access",
-		&authorizer.Session{
-			RedirectURI:  "http://example.org/callback",
-			Code:         "code_value",
-			CodeVerifier: "",
-			ExpiresIn:    int64(60 * 60 * 24),
-			Nonce:        "07dfa90f",
-			AuthTime:     time.Now().Unix(),
-		})
+	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
+	sdi.CreateAuthSession(info, &authorizer.Session{
+		RedirectURI:  "http://example.org/callback",
+		Code:         "code_value",
+		CodeVerifier: "",
+		ExpiresIn:    int64(60 * 60 * 24),
+		Nonce:        "07dfa90f",
+		AuthTime:     time.Now().Unix(),
+	})
 
 	ts := httptest.NewServer(te.Handler(sdi))
 	defer ts.Close()
