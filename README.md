@@ -81,6 +81,8 @@ func main() {
 
         if rp.Validate(c.Writer, c.Request, sdi) {
             c.Next()
+        } else {
+            c.Abort()
         }
     })
 
@@ -129,6 +131,8 @@ pathScopeMap := map[string][]string {
 
 if rp.ValidateWithScopes(c.Writer, c.Request, sdi, pathScopeMap) {
     c.Next()
+} else {
+    c.Abort()
 }
 
 ```
