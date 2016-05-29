@@ -101,7 +101,7 @@ func GetUserInfo(c *gin.Context) {
   client_id := c.Request.Header("X-OAUTH-CLIENT-ID")
   scopes := c.Request.Header("X-OAUTH-SCOPE")
 
-  uid_string := c.Request.Header("REMOTE_USER")
+  uid_string := c.Request.Header("X-OAUTH-USER-ID")
   user_id, err := strconv.Atoi(uid_string)
 
   ...
@@ -111,7 +111,7 @@ func GetUserInfo(c *gin.Context) {
 As you see, if validation is succeeded,
 ResourceProtector put three values into HTTP header
 
-- REMOTE_ADDR: user_id associated with the access_token
+- X-OAUTH-USER-ID: user_id associated with the access_token
 - X-OAUTH-CLIENT-ID: client_id associated with the access_token
 - X-OAUTH-SCOPE: scope value associated with the access_token
 

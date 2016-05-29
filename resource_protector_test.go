@@ -28,7 +28,7 @@ func testProtectedResourceHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		r.Header.Get("X-OAUTH-CLIENT-ID"),
 		r.Header.Get("X-OAUTH-SCOPE"),
-		r.Header.Get("REMOTE_USER"),
+		r.Header.Get("X-OAUTH-USER-ID"),
 	})
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
