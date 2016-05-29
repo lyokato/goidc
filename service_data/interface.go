@@ -57,6 +57,19 @@ type (
 		GetCreatedAt() int64
 	}
 
+	AuthorizerInterface interface {
+		RenderErrorPage(locale string, authErrType int)
+		ChooseLocale(locales string) string
+		Redirect(url string)
+		RedirectToLogin(req *authorizer.Request)
+		ConfirmLoginSession(locale string) bool
+		RequestIsFromLogin() bool
+		GetAuthTime() (int64, *Error)
+		GetLoginUserId() int64
+		ShowConsentScreen(locale, display string, req *authorizer.Request)
+		CreateUniqueCode() (string, *Error)
+	}
+
 	ServiceDataInterface interface {
 		Issuer() string
 		FindClientById(clientId string) (ClientInterface, *Error)
