@@ -218,7 +218,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		}
 	}
 
-	r.Header.Set("REMOTE_USER", fmt.Sprintf("%d", info.GetUserId()))
+	r.Header.Set("X-OAUTH-USER-ID", fmt.Sprintf("%d", info.GetUserId()))
 	r.Header.Set("X-OAUTH-CLIENT-ID", info.GetClientId())
 	r.Header.Set("X-OAUTH-SCOPE", info.GetScope())
 
