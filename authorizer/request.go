@@ -8,13 +8,39 @@ import (
 )
 
 const (
+	ErrMissingClientId = iota
+	ErrMissingRedirectURI
+	ErrInvalidRedirectURI
+	ErrServerError
+)
+
+const (
 	DisplayTypePopup = "popup"
 	DisplayTypeTouch = "touch"
 	DisplayTypeWAP   = "wap"
 	DisplayTypePage  = "page"
 )
 
+const (
+	DefaultMaxMaxAge             = 86400
+	DefaultMinMaxAge             = 60
+	DefaultMaxNonceLength        = 255
+	DefaultMaxCodeVerifierLength = 255
+	DefaultConsentOmissionPeriod = 86400
+)
+
 type (
+	Policy struct {
+		MaxMaxAge             int
+		MinMaxAge             int
+		AllowEmptyScope       bool
+		MaxNonceLength        int
+		MaxCodeVerifierLength int
+		ConsentOmissionPeriod int
+		AuthSessionExpiresIn  int
+		IdTokenExpiresIn      int
+	}
+
 	Request struct {
 		Flow         *flow.Flow `json:"flow"`
 		ClientId     string     `json:"client_id"`

@@ -1,6 +1,9 @@
 package scope
 
-import "strings"
+import (
+	"sort"
+	"strings"
+)
 
 const (
 	OpenID        = "openid"
@@ -47,12 +50,26 @@ func Include(scopes string, targetScope string) bool {
 	return false
 }
 
+func Same(scope1, scope2 string) bool {
+	return Sort(scope1) == Sort(scope2)
+}
+
+func Sort(origin string) string {
+	list := Split(origin)
+	sort.Strings(list)
+	return strings.Join(list, " ")
+}
+
 func IncludeOpenID(scopes string) bool {
 	return Include(scopes, OpenID)
 }
 
 func IncludeOfflineAccess(scopes string) bool {
 	return Include(scopes, OfflineAccess)
+}
+
+func RemoveOpenID(scopes string) string {
+	return Remove(scopes, OpenID)
 }
 
 func RemoveOfflineAccess(scopes string) string {
