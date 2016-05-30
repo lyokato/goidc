@@ -349,6 +349,9 @@ func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 	if req.State != "" {
 		params.Add("state", req.State)
 	}
+	if req.Scope != "" {
+		params.Add("scope", req.Scope)
+	}
 	at := ""
 	if req.Flow.RequireAccessToken {
 		t, serr := a.sdi.CreateOAuthToken(info, false)
@@ -426,6 +429,9 @@ func (a *AuthorizationEndpoint) completeHybridFlowRequest(
 	params.Add("code", code)
 	if req.State != "" {
 		params.Add("state", req.State)
+	}
+	if req.Scope != "" {
+		params.Add("scope", req.Scope)
 	}
 
 	at := ""
