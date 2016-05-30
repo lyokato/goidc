@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/authorization"
 	"github.com/lyokato/goidc/grant"
 	th "github.com/lyokato/goidc/test_helper"
 )
@@ -25,7 +25,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	client.AllowToUseGrantType("authorization_code")
 
 	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
-	sdi.CreateAuthSession(info, &authorizer.Session{
+	sdi.CreateAuthSession(info, &authorization.Session{
 		RedirectURI:  "http://example.org/callback",
 		Code:         "code_value",
 		CodeVerifier: "",
@@ -92,7 +92,7 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	}
 
 	info, _ = sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
-	sdi.CreateAuthSession(info, &authorizer.Session{
+	sdi.CreateAuthSession(info, &authorization.Session{
 		RedirectURI:  "http://example.org/callback",
 		Code:         "code_value",
 		CodeVerifier: "",

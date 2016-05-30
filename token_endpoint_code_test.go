@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/authorization"
 	"github.com/lyokato/goidc/basic_auth"
 	"github.com/lyokato/goidc/grant"
 	th "github.com/lyokato/goidc/test_helper"
@@ -23,7 +23,7 @@ func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 	code_verifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
 
 	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
-	sdi.CreateAuthSession(info, &authorizer.Session{
+	sdi.CreateAuthSession(info, &authorization.Session{
 		RedirectURI:  "http://example.org/callback",
 		Code:         "code_value",
 		CodeVerifier: code_verifier,
@@ -160,7 +160,7 @@ func TestTokenEndpointAuthorizationCodePKCE(t *testing.T) {
 		})
 
 	sdi.CreateAuthSession(info,
-		&authorizer.Session{
+		&authorization.Session{
 			RedirectURI:  "http://example.org/callback",
 			Code:         "code_value",
 			CodeVerifier: code_verifier,
@@ -210,7 +210,7 @@ func TestTokenEndpointAuthorizationCodeInvalidRequest(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
-	sdi.CreateAuthSession(info, &authorizer.Session{
+	sdi.CreateAuthSession(info, &authorization.Session{
 		RedirectURI:  "http://example.org/callback",
 		Code:         "code_value",
 		CodeVerifier: "",
@@ -321,7 +321,7 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
-	sdi.CreateAuthSession(info, &authorizer.Session{
+	sdi.CreateAuthSession(info, &authorization.Session{
 		RedirectURI:  "http://example.org/callback",
 		Code:         "code_value",
 		CodeVerifier: "",
@@ -360,7 +360,7 @@ func TestTokenEndpointAuthorizationCode(t *testing.T) {
 			"aud": th.NewStrMatcher("client_id_01"),
 		})
 
-	sdi.CreateAuthSession(info, &authorizer.Session{
+	sdi.CreateAuthSession(info, &authorization.Session{
 		RedirectURI:  "http://example.org/callback",
 		Code:         "code_value",
 		CodeVerifier: "",
@@ -408,7 +408,7 @@ func TestTokenEndpointAuthorizationCodeWithoutOfflineAccess(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile")
-	sdi.CreateAuthSession(info, &authorizer.Session{
+	sdi.CreateAuthSession(info, &authorization.Session{
 		RedirectURI:  "http://example.org/callback",
 		Code:         "code_value",
 		CodeVerifier: "",
@@ -458,7 +458,7 @@ func TestTokenEndpointAuthorizationCodeWithoutOpenID(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeAuthorizationCode)
 
 	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "profile offline_access")
-	sdi.CreateAuthSession(info, &authorizer.Session{
+	sdi.CreateAuthSession(info, &authorization.Session{
 		RedirectURI:  "http://example.org/callback",
 		Code:         "code_value",
 		CodeVerifier: "",

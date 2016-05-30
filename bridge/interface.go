@@ -1,7 +1,7 @@
 package bridge
 
 import (
-	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/authorization"
 	"github.com/lyokato/goidc/flow"
 	"github.com/lyokato/goidc/prompt"
 )
@@ -61,12 +61,12 @@ type (
 		RenderErrorPage(locale string, authErrType int)
 		ChooseLocale(locales string) string
 		Redirect(url string)
-		RedirectToLogin(req *authorizer.Request)
+		RedirectToLogin(req *authorization.Request)
 		ConfirmLoginSession(locale string) bool
 		RequestIsFromLogin() bool
 		GetAuthTime() (int64, *Error)
 		GetLoginUserId() int64
-		ShowConsentScreen(locale, display string, req *authorizer.Request)
+		ShowConsentScreen(locale, display string, req *authorization.Request)
 		CreateUniqueCode() (string, *Error)
 	}
 
@@ -82,7 +82,7 @@ type (
 		RefreshAccessToken(info AuthInfoInterface, token OAuthTokenInterface) (OAuthTokenInterface, *Error)
 		FindUserId(username, password string) (int64, *Error)
 		CreateOrUpdateAuthInfo(uid int64, clientId, scope string) (AuthInfoInterface, *Error)
-		CreateAuthSession(info AuthInfoInterface, session *authorizer.Session) *Error
+		CreateAuthSession(info AuthInfoInterface, session *authorization.Session) *Error
 		DisableSession(sess AuthSessionInterface) *Error
 		FindUserIdBySubject(sub string) (int64, *Error)
 		RecordAssertionClaims(clientId, jti string, issuedAt, expiredAt int64) *Error
