@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/lyokato/goidc/bridge"
 	log "github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
-	sd "github.com/lyokato/goidc/service_data"
 )
 
 type (
-	GrantHandlerFunc func(r *http.Request, c sd.ClientInterface,
-		sdi sd.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError)
+	GrantHandlerFunc func(r *http.Request, c bridge.ClientInterface,
+		sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError)
 
 	GrantHandler struct {
 		Type string

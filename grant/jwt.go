@@ -7,10 +7,10 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 
 	"github.com/lyokato/goidc/assertion"
+	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/flow"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
-	sd "github.com/lyokato/goidc/service_data"
 )
 
 // RFC7523
@@ -22,8 +22,8 @@ const TypeJWT = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 func JWT() *GrantHandler {
 	return &GrantHandler{
 		TypeJWT,
-		func(r *http.Request, c sd.ClientInterface,
-			sdi sd.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+		func(r *http.Request, c bridge.ClientInterface,
+			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			a := r.FormValue("assertion")
 			if a == "" {
@@ -76,7 +76,7 @@ func JWT() *GrantHandler {
 
 			uid, err := sdi.FindUserIdBySubject(sub)
 			if err != nil {
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypeJWT,
 						log.NoEnabledUserId,
@@ -90,7 +90,7 @@ func JWT() *GrantHandler {
 					return nil, oer.NewOAuthError(oer.ErrInvalidGrant,
 						fmt.Sprintf("invalid 'sub' parameter '%s' in assertion", sub))
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeJWT,
 						log.InterfaceUnsupported,
@@ -124,7 +124,7 @@ func JWT() *GrantHandler {
 			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.GetId(), scp_req)
 			if err != nil {
 
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypeJWT,
 						log.AuthInfoCreationFailed,
@@ -133,7 +133,7 @@ func JWT() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeJWT,
 						log.InterfaceUnsupported,
@@ -167,7 +167,7 @@ func JWT() *GrantHandler {
 
 			if err != nil {
 
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypeJWT,
 						log.AccessTokenCreationFailed,
@@ -176,7 +176,7 @@ func JWT() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeJWT,
 						log.InterfaceUnsupported,

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/crypto"
 	"github.com/lyokato/goidc/scope"
-	sd "github.com/lyokato/goidc/service_data"
 )
 
 type (
@@ -74,7 +74,7 @@ func (s *TestStore) CreateNewClient(ownerId int64, id, secret, redirectURI strin
 	return c
 }
 
-func (s *TestStore) CreateAuthSession(info sd.AuthInfoInterface, session *authorizer.Session) *sd.Error {
+func (s *TestStore) CreateAuthSession(info bridge.AuthInfoInterface, session *authorizer.Session) *bridge.Error {
 	s.sessions[session.Code] = &TestAuthSession{
 		authId:       info.GetId(),
 		redirectUri:  session.RedirectURI,
@@ -87,7 +87,7 @@ func (s *TestStore) CreateAuthSession(info sd.AuthInfoInterface, session *author
 	return nil
 }
 
-func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string) (sd.AuthInfoInterface, *sd.Error) {
+func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string) (bridge.AuthInfoInterface, *bridge.Error) {
 
 	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
 	if !exists {
@@ -129,73 +129,73 @@ func (s *TestStore) ClearAll() {
 	s.clients = make(map[string]*TestClient, 0)
 }
 
-// ServiceDataInterface
+// DataInterface
 func (s *TestStore) Issuer() string {
 	return "http://example.org/"
 }
 
-func (s *TestStore) FindUserId(username, password string) (int64, *sd.Error) {
+func (s *TestStore) FindUserId(username, password string) (int64, *bridge.Error) {
 	for _, u := range s.users {
 		if u.Username == username && u.Password == password {
 			return u.Id, nil
 		}
 	}
-	return -1, sd.NewError(sd.ErrFailed)
+	return -1, bridge.NewError(bridge.ErrFailed)
 }
 
-func (s *TestStore) FindClientById(cid string) (sd.ClientInterface, *sd.Error) {
+func (s *TestStore) FindClientById(cid string) (bridge.ClientInterface, *bridge.Error) {
 	c, exists := s.clients[cid]
 	if !exists {
 		// not found
-		return nil, sd.NewError(sd.ErrFailed)
+		return nil, bridge.NewError(bridge.ErrFailed)
 	}
 	return c, nil
 }
 
-func (s *TestStore) FindAuthSessionByCode(code string) (sd.AuthSessionInterface, *sd.Error) {
+func (s *TestStore) FindAuthSessionByCode(code string) (bridge.AuthSessionInterface, *bridge.Error) {
 	sess, exists := s.sessions[code]
 	if !exists {
 		// not found
-		return nil, sd.NewError(sd.ErrFailed)
+		return nil, bridge.NewError(bridge.ErrFailed)
 	}
 	return sess, nil
 }
 
-func (s *TestStore) FindAuthInfoByUserIdAndClientId(uid int64, cid string) (sd.AuthInfoInterface, *sd.Error) {
-	return nil, sd.NewError(sd.ErrUnsupported)
+func (s *TestStore) FindAuthInfoByUserIdAndClientId(uid int64, cid string) (bridge.AuthInfoInterface, *bridge.Error) {
+	return nil, bridge.NewError(bridge.ErrUnsupported)
 }
 
-func (s *TestStore) FindActiveAuthInfoById(id int64) (sd.AuthInfoInterface, *sd.Error) {
+func (s *TestStore) FindActiveAuthInfoById(id int64) (bridge.AuthInfoInterface, *bridge.Error) {
 	i, exists := s.infos[id]
 	if !exists {
-		return nil, sd.NewError(sd.ErrFailed)
+		return nil, bridge.NewError(bridge.ErrFailed)
 	}
 	return i, nil
 }
 
-func (s *TestStore) FindOAuthTokenByAccessToken(token string) (sd.OAuthTokenInterface, *sd.Error) {
+func (s *TestStore) FindOAuthTokenByAccessToken(token string) (bridge.OAuthTokenInterface, *bridge.Error) {
 	at, exists := s.accessTokenes[token]
 	if !exists {
-		return nil, sd.NewError(sd.ErrFailed)
+		return nil, bridge.NewError(bridge.ErrFailed)
 	}
 	return at, nil
 }
 
-func (s *TestStore) FindOAuthTokenByRefreshToken(token string) (sd.OAuthTokenInterface, *sd.Error) {
+func (s *TestStore) FindOAuthTokenByRefreshToken(token string) (bridge.OAuthTokenInterface, *bridge.Error) {
 	for _, at := range s.accessTokenes {
 		if at.GetRefreshToken() == token {
 			return at, nil
 		}
 	}
-	return nil, sd.NewError(sd.ErrFailed)
+	return nil, bridge.NewError(bridge.ErrFailed)
 }
 
-func (s *TestStore) DisableSession(sess sd.AuthSessionInterface) *sd.Error {
+func (s *TestStore) DisableSession(sess bridge.AuthSessionInterface) *bridge.Error {
 	delete(s.sessions, sess.GetCode())
 	return nil
 }
 
-func (s *TestStore) CreateOAuthToken(info sd.AuthInfoInterface, onTokenEndpoint bool) (sd.OAuthTokenInterface, *sd.Error) {
+func (s *TestStore) CreateOAuthToken(info bridge.AuthInfoInterface, onTokenEndpoint bool) (bridge.OAuthTokenInterface, *bridge.Error) {
 	avalue := fmt.Sprintf("ACCESS_TOKEN_%d", info.GetId())
 	rvalue := fmt.Sprintf("REFRESH_TOKEN_%d", info.GetId())
 	if !scope.IncludeOfflineAccess(info.GetScope()) {
@@ -207,20 +207,20 @@ func (s *TestStore) CreateOAuthToken(info sd.AuthInfoInterface, onTokenEndpoint 
 	return t, nil
 }
 
-func (s *TestStore) RecordAssertionClaims(sub, jti string, iat, exp int64) *sd.Error {
+func (s *TestStore) RecordAssertionClaims(sub, jti string, iat, exp int64) *bridge.Error {
 	return nil
 }
 
-func (s *TestStore) FindUserIdBySubject(sub string) (int64, *sd.Error) {
+func (s *TestStore) FindUserIdBySubject(sub string) (int64, *bridge.Error) {
 	for _, u := range s.users {
 		if u.Username == sub {
 			return u.Id, nil
 		}
 	}
-	return -1, sd.NewError(sd.ErrFailed)
+	return -1, bridge.NewError(bridge.ErrFailed)
 }
 
-func (s *TestStore) RefreshAccessToken(info sd.AuthInfoInterface, old sd.OAuthTokenInterface) (sd.OAuthTokenInterface, *sd.Error) {
+func (s *TestStore) RefreshAccessToken(info bridge.AuthInfoInterface, old bridge.OAuthTokenInterface) (bridge.OAuthTokenInterface, *bridge.Error) {
 	oldToken := old.GetAccessToken()
 	token, _ := s.accessTokenes[oldToken]
 	token.accessToken = token.accessToken + ":R"

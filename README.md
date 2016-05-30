@@ -22,7 +22,7 @@ func main() {
     endpoint.Support(grant.AuthorizationCode())
     endpoint.Support(grant.RefreshToken())
 
-    sdi := my_service_data_interface.New()
+    sdi := my_data_interface.New()
 
     http.HandleFunc("/token", endpoint.Handler(sdi))
     http.ListenAndServe(":8080", nil)
@@ -31,8 +31,8 @@ func main() {
 
 1. Prepare **TokenEndpoint** with **NewTokenEndpoint** method
 2. Specify GrantHandler for which grant_type you want to support.
-3. Prepare **ServiceDataInterface** which is bridge to access to data stored in your service.
-4. Finally, call **Handler**, passing the **ServiceDataInterface** you prepared.
+3. Prepare **DataInterface** which is bridge to access to data stored in your service.
+4. Finally, call **Handler**, passing the **DataInterface** you prepared.
 
 **goidc**'s **TokenEndpoint** provides you a golang's **http.HandlerFunc** with it's **Handler** method.
 So, it's easy to combine with your favorite Web Application Framework.
@@ -44,7 +44,7 @@ g := gin.Default()
 g.POST("/token", gin.WrapF(endpoint.Handler(sdi)))
 ```
 
-## ServiceDataInterface
+## DataInterface
 
 ### ClientInterface
 ### AuthInfoInterface
@@ -73,7 +73,7 @@ func main() {
     realm := "api.example.org"
     rp := goidc.NewResourceProtector(realm)
 
-    sdi := my_service_data_interface.New()
+    sdi := my_data_interface.New()
 
     r := gin.Default()  
 

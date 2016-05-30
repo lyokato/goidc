@@ -1,4 +1,4 @@
-package service_data
+package bridge
 
 type ErrorType int
 

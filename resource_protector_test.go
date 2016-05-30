@@ -7,12 +7,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	sd "github.com/lyokato/goidc/service_data"
+	"github.com/lyokato/goidc/bridge"
 	th "github.com/lyokato/goidc/test_helper"
 )
 
 func testProtectedResourceMiddleware(rp *ResourceProtector,
-	sdi sd.ServiceDataInterface, next http.Handler) http.Handler {
+	sdi bridge.DataInterface, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if rp.Validate(w, r, sdi) {
 			next.ServeHTTP(w, r)
