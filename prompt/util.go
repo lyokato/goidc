@@ -79,3 +79,7 @@ func IncludeLogin(prompts string) bool {
 func IncludeConsent(prompts string) bool {
 	return Include(prompts, Consent)
 }
+
+func IncludeSelectAccount(prompts string) bool {
+	return Include(prompts, SelectAccount)
+}
