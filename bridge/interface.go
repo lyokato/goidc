@@ -70,7 +70,7 @@ type (
 		CreateUniqueCode() (string, *Error)
 	}
 
-	ServiceDataInterface interface {
+	DataInterface interface {
 		Issuer() string
 		FindClientById(clientId string) (ClientInterface, *Error)
 		FindAuthSessionByCode(code string) (AuthSessionInterface, *Error)

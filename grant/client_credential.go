@@ -15,7 +15,7 @@ func ClientCredentials() *GrantHandler {
 	return &GrantHandler{
 		TypeClientCredentials,
 		func(r *http.Request, c bridge.ClientInterface,
-			sdi bridge.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			uid := c.GetOwnerUserId()
 			if uid < 0 {

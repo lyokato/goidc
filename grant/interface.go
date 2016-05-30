@@ -12,7 +12,7 @@ import (
 
 type (
 	GrantHandlerFunc func(r *http.Request, c bridge.ClientInterface,
-		sdi bridge.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError)
+		sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError)
 
 	GrantHandler struct {
 		Type string

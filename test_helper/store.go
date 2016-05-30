@@ -129,7 +129,7 @@ func (s *TestStore) ClearAll() {
 	s.clients = make(map[string]*TestClient, 0)
 }
 
-// ServiceDataInterface
+// DataInterface
 func (s *TestStore) Issuer() string {
 	return "http://example.org/"
 }

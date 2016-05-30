@@ -16,12 +16,12 @@ import (
 )
 
 type AuthorizationEndpoint struct {
-	sdi    bridge.ServiceDataInterface
+	sdi    bridge.DataInterface
 	ai     bridge.AuthorizerInterface
 	policy *authorizer.Policy
 }
 
-func NewAuthorizationEndpoint(sdi bridge.ServiceDataInterface,
+func NewAuthorizationEndpoint(sdi bridge.DataInterface,
 	ai bridge.AuthorizerInterface, policy *authorizer.Policy) *AuthorizationEndpoint {
 	return &AuthorizationEndpoint{
 		sdi:    sdi,

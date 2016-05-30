@@ -23,7 +23,7 @@ func JWT() *GrantHandler {
 	return &GrantHandler{
 		TypeJWT,
 		func(r *http.Request, c bridge.ClientInterface,
-			sdi bridge.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			a := r.FormValue("assertion")
 			if a == "" {

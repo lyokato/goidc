@@ -72,7 +72,7 @@ func (te *TokenEndpoint) Support(handler *grant.GrantHandler) {
 	te.handlers[handler.Type] = handler.Func
 }
 
-func (te *TokenEndpoint) Handler(sdi bridge.ServiceDataInterface) http.HandlerFunc {
+func (te *TokenEndpoint) Handler(sdi bridge.DataInterface) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -144,7 +144,7 @@ func (te *TokenEndpoint) Handler(sdi bridge.ServiceDataInterface) http.HandlerFu
 }
 
 func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
-	r *http.Request, sdi bridge.ServiceDataInterface,
+	r *http.Request, sdi bridge.DataInterface,
 	gt, ca string) (bridge.ClientInterface, bool) {
 
 	// RFC7523
@@ -263,7 +263,7 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 }
 
 func (te *TokenEndpoint) validateClientBySecret(w http.ResponseWriter,
-	r *http.Request, sdi bridge.ServiceDataInterface, gt, cid, sec string,
+	r *http.Request, sdi bridge.DataInterface, gt, cid, sec string,
 	inHeader bool) (bridge.ClientInterface, bool) {
 
 	client, err := sdi.FindClientById(cid)
@@ -331,7 +331,7 @@ func (te *TokenEndpoint) validateClientBySecret(w http.ResponseWriter,
 }
 
 func (te *TokenEndpoint) executeGrantHandler(w http.ResponseWriter,
-	r *http.Request, sdi bridge.ServiceDataInterface,
+	r *http.Request, sdi bridge.DataInterface,
 	client bridge.ClientInterface, gt string, h grant.GrantHandlerFunc) {
 	res, oerr := h(r, client, sdi, te.logger)
 	if oerr != nil {

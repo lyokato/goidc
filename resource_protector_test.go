@@ -12,7 +12,7 @@ import (
 )
 
 func testProtectedResourceMiddleware(rp *ResourceProtector,
-	sdi bridge.ServiceDataInterface, next http.Handler) http.Handler {
+	sdi bridge.DataInterface, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if rp.Validate(w, r, sdi) {
 			next.ServeHTTP(w, r)

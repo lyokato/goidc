@@ -11,7 +11,7 @@ import (
 )
 
 func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
-	gt string, c bridge.ClientInterface, sdi bridge.ServiceDataInterface,
+	gt string, c bridge.ClientInterface, sdi bridge.DataInterface,
 	logger log.Logger) *oer.OAuthError {
 
 	if jwt_err != nil {

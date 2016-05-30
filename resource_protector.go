@@ -73,7 +73,7 @@ func (rp *ResourceProtector) findTokenFromRequest(r *http.Request) string {
 }
 
 func (rp *ResourceProtector) ValidateWithScopes(w http.ResponseWriter, r *http.Request,
-	sdi bridge.ServiceDataInterface, scopeMap map[string][]string) bool {
+	sdi bridge.DataInterface, scopeMap map[string][]string) bool {
 
 	if !rp.Validate(w, r, sdi) {
 		return false
@@ -96,7 +96,7 @@ func (rp *ResourceProtector) ValidateWithScopes(w http.ResponseWriter, r *http.R
 }
 
 func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
-	sdi bridge.ServiceDataInterface) bool {
+	sdi bridge.DataInterface) bool {
 
 	rt := rp.findTokenFromRequest(r)
 
