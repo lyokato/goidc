@@ -3,10 +3,10 @@ package grant
 import (
 	"net/http"
 
+	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/flow"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
-	sd "github.com/lyokato/goidc/service_data"
 )
 
 const TypePassword = "password"
@@ -14,8 +14,8 @@ const TypePassword = "password"
 func Password() *GrantHandler {
 	return &GrantHandler{
 		TypePassword,
-		func(r *http.Request, c sd.ClientInterface,
-			sdi sd.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+		func(r *http.Request, c bridge.ClientInterface,
+			sdi bridge.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			username := r.FormValue("username")
 			if username == "" {
@@ -54,7 +54,7 @@ func Password() *GrantHandler {
 			uid, err := sdi.FindUserId(username, password)
 			if err != nil {
 
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypePassword,
 						log.NoEnabledUserId,
@@ -68,7 +68,7 @@ func Password() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypePassword,
 						log.InterfaceUnsupported,
@@ -96,7 +96,7 @@ func Password() *GrantHandler {
 			info, err := sdi.CreateOrUpdateAuthInfo(uid, c.GetId(), scp_req)
 			if err != nil {
 
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypePassword,
 						log.AuthInfoCreationFailed,
@@ -108,7 +108,7 @@ func Password() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypePassword,
 						log.InterfaceUnsupported,
@@ -145,7 +145,7 @@ func Password() *GrantHandler {
 
 			if err != nil {
 
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypePassword,
 						log.AccessTokenCreationFailed,
@@ -154,7 +154,7 @@ func Password() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypePassword,
 						log.InterfaceUnsupported,

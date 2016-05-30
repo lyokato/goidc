@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
 	"github.com/lyokato/goidc/scope"
-	sd "github.com/lyokato/goidc/service_data"
 )
 
 type ResourceProtector struct {
@@ -73,7 +73,7 @@ func (rp *ResourceProtector) findTokenFromRequest(r *http.Request) string {
 }
 
 func (rp *ResourceProtector) ValidateWithScopes(w http.ResponseWriter, r *http.Request,
-	sdi sd.ServiceDataInterface, scopeMap map[string][]string) bool {
+	sdi bridge.ServiceDataInterface, scopeMap map[string][]string) bool {
 
 	if !rp.Validate(w, r, sdi) {
 		return false
@@ -96,7 +96,7 @@ func (rp *ResourceProtector) ValidateWithScopes(w http.ResponseWriter, r *http.R
 }
 
 func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
-	sdi sd.ServiceDataInterface) bool {
+	sdi bridge.ServiceDataInterface) bool {
 
 	rt := rp.findTokenFromRequest(r)
 
@@ -114,7 +114,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	at, err := sdi.FindOAuthTokenByAccessToken(rt)
 
 	if err != nil {
-		if err.Type() == sd.ErrFailed {
+		if err.Type() == bridge.ErrFailed {
 
 			rp.logger.Info(log.ProtectedResourceLog(r.URL.Path,
 				log.AuthenticationFailed,
@@ -127,7 +127,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 			rp.unauthorize(w, oer.NewOAuthSimpleError(oer.ErrInvalidToken))
 			return false
 
-		} else if err.Type() == sd.ErrUnsupported {
+		} else if err.Type() == bridge.ErrUnsupported {
 
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path,
 				log.InterfaceUnsupported,
@@ -170,7 +170,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 
 	info, err := sdi.FindActiveAuthInfoById(at.GetAuthId())
 	if err != nil {
-		if err.Type() == sd.ErrFailed {
+		if err.Type() == bridge.ErrFailed {
 
 			rp.logger.Debug(log.TokenEndpointLog(r.URL.Path,
 				log.NoEnabledAuthInfo,
@@ -183,7 +183,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 			rp.unauthorize(w, oer.NewOAuthSimpleError(oer.ErrInvalidToken))
 			return false
 
-		} else if err.Type() == sd.ErrUnsupported {
+		} else if err.Type() == bridge.ErrUnsupported {
 
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path,
 				log.InterfaceUnsupported,

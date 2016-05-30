@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
-	sd "github.com/lyokato/goidc/service_data"
 )
 
 func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
-	gt string, c sd.ClientInterface, sdi sd.ServiceDataInterface,
+	gt string, c bridge.ClientInterface, sdi bridge.ServiceDataInterface,
 	logger log.Logger) *oer.OAuthError {
 
 	if jwt_err != nil {
@@ -156,7 +156,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 
 	err := sdi.RecordAssertionClaims(c.GetId(), jti, iat, exp)
 	if err != nil {
-		if err.Type() == sd.ErrFailed {
+		if err.Type() == bridge.ErrFailed {
 
 			logger.Info(log.TokenEndpointLog(gt,
 				log.AssertionConditionMismatch,
@@ -172,7 +172,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 
 			return oer.NewOAuthSimpleError(oer.ErrInvalidRequest)
 
-		} else if err.Type() == sd.ErrUnsupported {
+		} else if err.Type() == bridge.ErrUnsupported {
 
 			logger.Error(log.TokenEndpointLog(gt,
 				log.InterfaceUnsupported,

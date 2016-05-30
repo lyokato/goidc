@@ -1,4 +1,4 @@
-package service_data
+package bridge
 
 import (
 	"github.com/lyokato/goidc/authorizer"

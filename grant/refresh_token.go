@@ -4,11 +4,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/log"
-	"github.com/lyokato/goidc/scope"
-	sd "github.com/lyokato/goidc/service_data"
-
 	oer "github.com/lyokato/goidc/oauth_error"
+	"github.com/lyokato/goidc/scope"
 )
 
 const TypeRefreshToken = "refresh_token"
@@ -16,8 +15,8 @@ const TypeRefreshToken = "refresh_token"
 func RefreshToken() *GrantHandler {
 	return &GrantHandler{
 		TypeRefreshToken,
-		func(r *http.Request, c sd.ClientInterface,
-			sdi sd.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+		func(r *http.Request, c bridge.ClientInterface,
+			sdi bridge.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			rt := r.FormValue("refresh_token")
 			if rt == "" {
@@ -37,7 +36,7 @@ func RefreshToken() *GrantHandler {
 			old, err := sdi.FindOAuthTokenByRefreshToken(rt)
 			if err != nil {
 
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypeRefreshToken,
 						log.NoEnabledAccessToken,
@@ -50,7 +49,7 @@ func RefreshToken() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeRefreshToken,
 						log.InterfaceUnsupported,
@@ -99,7 +98,7 @@ func RefreshToken() *GrantHandler {
 			info, err := sdi.FindActiveAuthInfoById(old.GetAuthId())
 			if err != nil {
 
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypeRefreshToken,
 						log.NoEnabledAuthInfo,
@@ -111,7 +110,7 @@ func RefreshToken() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeRefreshToken,
 						log.InterfaceUnsupported,
@@ -167,7 +166,7 @@ func RefreshToken() *GrantHandler {
 			token, err := sdi.RefreshAccessToken(info, old)
 			if err != nil {
 
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypeRefreshToken,
 						log.AccessTokenRefreshFailed,
@@ -179,7 +178,7 @@ func RefreshToken() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeRefreshToken,
 						log.InterfaceUnsupported,

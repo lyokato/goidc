@@ -8,21 +8,21 @@ import (
 	"time"
 
 	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/flow"
 	"github.com/lyokato/goidc/id_token"
 	"github.com/lyokato/goidc/prompt"
 	"github.com/lyokato/goidc/scope"
-	sd "github.com/lyokato/goidc/service_data"
 )
 
 type AuthorizationEndpoint struct {
-	sdi    sd.ServiceDataInterface
-	ai     sd.AuthorizerInterface
+	sdi    bridge.ServiceDataInterface
+	ai     bridge.AuthorizerInterface
 	policy *authorizer.Policy
 }
 
-func NewAuthorizationEndpoint(sdi sd.ServiceDataInterface,
-	ai sd.AuthorizerInterface, policy *authorizer.Policy) *AuthorizationEndpoint {
+func NewAuthorizationEndpoint(sdi bridge.ServiceDataInterface,
+	ai bridge.AuthorizerInterface, policy *authorizer.Policy) *AuthorizationEndpoint {
 	return &AuthorizationEndpoint{
 		sdi:    sdi,
 		ai:     ai,
@@ -49,13 +49,13 @@ func (a *AuthorizationEndpoint) HandleRequest(r *http.Request) bool {
 
 	clnt, serr := a.sdi.FindClientById(cid)
 	if serr != nil {
-		if serr.Type() == sd.ErrFailed {
+		if serr.Type() == bridge.ErrFailed {
 			a.ai.RenderErrorPage(locale, authorizer.ErrMissingClientId)
 			return false
-		} else if serr.Type() == sd.ErrUnsupported {
+		} else if serr.Type() == bridge.ErrUnsupported {
 			a.ai.RenderErrorPage(locale, authorizer.ErrServerError)
 			return false
-		} else if serr.Type() == sd.ErrServerError {
+		} else if serr.Type() == bridge.ErrServerError {
 			a.ai.RenderErrorPage(locale, authorizer.ErrServerError)
 			return false
 		}
@@ -262,10 +262,10 @@ func (a *AuthorizationEndpoint) HandleRequest(r *http.Request) bool {
 		case prompt.NoConsentPromptPolicyOmitConsentIfCan:
 			info, serr := a.sdi.FindAuthInfoByUserIdAndClientId(a.ai.GetLoginUserId(), req.ClientId)
 			if serr != nil {
-				if serr.Type() == sd.ErrUnsupported {
+				if serr.Type() == bridge.ErrUnsupported {
 					a.RedirectErrorForFlow(ruri, "server_error", "", state, f)
 					return false
-				} else if serr.Type() == sd.ErrServerError {
+				} else if serr.Type() == bridge.ErrServerError {
 					a.RedirectErrorForFlow(ruri, "server_error", "", state, f)
 					return false
 				}
@@ -296,7 +296,7 @@ func (a *AuthorizationEndpoint) CompleteRequest(req *authorizer.Request) bool {
 }
 
 func (a *AuthorizationEndpoint) complete(
-	info sd.AuthInfoInterface, req *authorizer.Request) bool {
+	info bridge.AuthInfoInterface, req *authorizer.Request) bool {
 	switch req.Flow.Type {
 	case flow.AuthorizationCode:
 		return a.completeAuthorizationCodeFlowRequest(info, req)
@@ -309,7 +309,7 @@ func (a *AuthorizationEndpoint) complete(
 }
 
 func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
-	info sd.AuthInfoInterface, req *authorizer.Request) bool {
+	info bridge.AuthInfoInterface, req *authorizer.Request) bool {
 	code, serr := a.ai.CreateUniqueCode()
 	if serr != nil {
 		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "?")
@@ -337,7 +337,7 @@ func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
 }
 
 func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
-	info sd.AuthInfoInterface, req *authorizer.Request) bool {
+	info bridge.AuthInfoInterface, req *authorizer.Request) bool {
 
 	clnt, serr := a.sdi.FindClientById(req.ClientId)
 	if serr != nil {
@@ -394,7 +394,7 @@ func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 }
 
 func (a *AuthorizationEndpoint) completeHybridFlowRequest(
-	info sd.AuthInfoInterface, req *authorizer.Request) bool {
+	info bridge.AuthInfoInterface, req *authorizer.Request) bool {
 
 	code, serr := a.ai.CreateUniqueCode()
 

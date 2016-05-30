@@ -8,10 +8,10 @@ import (
 
 	"github.com/lyokato/goidc/scope"
 
+	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
 	"github.com/lyokato/goidc/pkce"
-	sd "github.com/lyokato/goidc/service_data"
 )
 
 const TypeAuthorizationCode = "authorization_code"
@@ -19,8 +19,8 @@ const TypeAuthorizationCode = "authorization_code"
 func AuthorizationCode() *GrantHandler {
 	return &GrantHandler{
 		TypeAuthorizationCode,
-		func(r *http.Request, c sd.ClientInterface,
-			sdi sd.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+		func(r *http.Request, c bridge.ClientInterface,
+			sdi bridge.ServiceDataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			uri := r.FormValue("redirect_uri")
 			if uri == "" {
@@ -47,7 +47,7 @@ func AuthorizationCode() *GrantHandler {
 
 			sess, err := sdi.FindAuthSessionByCode(code)
 			if err != nil {
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Info(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.NoEnabledAuthSession,
@@ -60,7 +60,7 @@ func AuthorizationCode() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceUnsupported,
@@ -95,7 +95,7 @@ func AuthorizationCode() *GrantHandler {
 			}
 			info, err := sdi.FindActiveAuthInfoById(sess.GetAuthId())
 			if err != nil {
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Info(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.NoEnabledAuthInfo,
@@ -108,7 +108,7 @@ func AuthorizationCode() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceUnsupported,
@@ -234,7 +234,7 @@ func AuthorizationCode() *GrantHandler {
 			token, err := sdi.CreateOAuthToken(info, true)
 
 			if err != nil {
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Debug(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.AccessTokenCreationFailed,
@@ -243,7 +243,7 @@ func AuthorizationCode() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceUnsupported,
@@ -274,7 +274,7 @@ func AuthorizationCode() *GrantHandler {
 
 			err = sdi.DisableSession(sess)
 			if err != nil {
-				if err.Type() == sd.ErrFailed {
+				if err.Type() == bridge.ErrFailed {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.DisableSessionFailed,
@@ -283,7 +283,7 @@ func AuthorizationCode() *GrantHandler {
 
 					return nil, oer.NewOAuthSimpleError(oer.ErrInvalidGrant)
 
-				} else if err.Type() == sd.ErrUnsupported {
+				} else if err.Type() == bridge.ErrUnsupported {
 
 					logger.Error(log.TokenEndpointLog(TypeAuthorizationCode,
 						log.InterfaceUnsupported,

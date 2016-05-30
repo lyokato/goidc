@@ -6,10 +6,10 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/lyokato/goidc/assertion"
+	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/grant"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
-	sd "github.com/lyokato/goidc/service_data"
 )
 
 const ClientAssertionTypeJWT = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
@@ -72,7 +72,7 @@ func (te *TokenEndpoint) Support(handler *grant.GrantHandler) {
 	te.handlers[handler.Type] = handler.Func
 }
 
-func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
+func (te *TokenEndpoint) Handler(sdi bridge.ServiceDataInterface) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -144,14 +144,14 @@ func (te *TokenEndpoint) Handler(sdi sd.ServiceDataInterface) http.HandlerFunc {
 }
 
 func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
-	r *http.Request, sdi sd.ServiceDataInterface,
-	gt, ca string) (sd.ClientInterface, bool) {
+	r *http.Request, sdi bridge.ServiceDataInterface,
+	gt, ca string) (bridge.ClientInterface, bool) {
 
 	// RFC7523
 	// JSON Web Token (JWT) Profile
 	// for OAuth 2.0 Client Authentication and Authorization Grants
 
-	var c sd.ClientInterface
+	var c bridge.ClientInterface
 	t, jwt_err := jwt.Parse(ca, func(t *jwt.Token) (interface{}, error) {
 
 		cid := ""
@@ -168,12 +168,12 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 				"'sub' parameter not found in assertion")
 		}
 
-		var serr *sd.Error
+		var serr *bridge.Error
 		c, serr = sdi.FindClientById(cid)
 
 		if serr != nil {
 
-			if serr.Type() == sd.ErrFailed {
+			if serr.Type() == bridge.ErrFailed {
 
 				te.logger.Info(log.TokenEndpointLog(gt,
 					log.NoEnabledClient,
@@ -186,7 +186,7 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 
 				return nil, oer.NewOAuthSimpleError(oer.ErrInvalidClient)
 
-			} else if serr.Type() == sd.ErrUnsupported {
+			} else if serr.Type() == bridge.ErrUnsupported {
 
 				te.logger.Error(log.TokenEndpointLog(gt,
 					log.InterfaceUnsupported,
@@ -263,13 +263,13 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 }
 
 func (te *TokenEndpoint) validateClientBySecret(w http.ResponseWriter,
-	r *http.Request, sdi sd.ServiceDataInterface, gt, cid, sec string,
-	inHeader bool) (sd.ClientInterface, bool) {
+	r *http.Request, sdi bridge.ServiceDataInterface, gt, cid, sec string,
+	inHeader bool) (bridge.ClientInterface, bool) {
 
 	client, err := sdi.FindClientById(cid)
 
 	if err != nil {
-		if err.Type() == sd.ErrFailed {
+		if err.Type() == bridge.ErrFailed {
 
 			te.logger.Debug(log.TokenEndpointLog(gt, log.NoEnabledClient,
 				map[string]string{"method": "FindClientById", "client_id": cid},
@@ -278,7 +278,7 @@ func (te *TokenEndpoint) validateClientBySecret(w http.ResponseWriter,
 			te.failByInvalidClientError(w, inHeader)
 			return nil, false
 
-		} else if err.Type() == sd.ErrUnsupported {
+		} else if err.Type() == bridge.ErrUnsupported {
 
 			te.logger.Error(log.TokenEndpointLog(gt, log.InterfaceUnsupported,
 				map[string]string{"method": "FindClientById"},
@@ -331,8 +331,8 @@ func (te *TokenEndpoint) validateClientBySecret(w http.ResponseWriter,
 }
 
 func (te *TokenEndpoint) executeGrantHandler(w http.ResponseWriter,
-	r *http.Request, sdi sd.ServiceDataInterface,
-	client sd.ClientInterface, gt string, h grant.GrantHandlerFunc) {
+	r *http.Request, sdi bridge.ServiceDataInterface,
+	client bridge.ClientInterface, gt string, h grant.GrantHandlerFunc) {
 	res, oerr := h(r, client, sdi, te.logger)
 	if oerr != nil {
 		te.fail(w, oerr)
