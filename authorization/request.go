@@ -1,4 +1,4 @@
-package authorizer
+package authorization
 
 import (
 	"encoding/base64"
@@ -12,6 +12,12 @@ const (
 	ErrMissingRedirectURI
 	ErrInvalidRedirectURI
 	ErrServerError
+)
+
+const (
+	ResponseModeQuery    = "query"
+	ResponseModeFragment = "fragment"
+	ResponseModeFormPost = "form_post"
 )
 
 const (
@@ -46,6 +52,7 @@ type (
 		ClientId     string     `json:"client_id"`
 		Scope        string     `json:"scope"`
 		RedirectURI  string     `json:"redirect_uri"`
+		ResponseMode string     `json:"response_mode"`
 		State        string     `json:"state"`
 		CodeVerifier string     `json:"code_verifier"`
 		Nonce        string     `json:"nonce"`

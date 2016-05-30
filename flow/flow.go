@@ -60,7 +60,7 @@ type Flow struct {
 	RequireIdToken     bool     `json:"require_id_token"`
 }
 
-func JudgeFromResponseType(responseType string) (*Flow, error) {
+func JudgeByResponseType(responseType string) (*Flow, error) {
 	list := strings.Split(responseType, " ")
 	sort.Strings(list)
 	sorted := strings.Join(list, " ")

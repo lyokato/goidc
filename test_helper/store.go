@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/authorization"
 	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/crypto"
 	"github.com/lyokato/goidc/scope"
@@ -74,7 +74,7 @@ func (s *TestStore) CreateNewClient(ownerId int64, id, secret, redirectURI strin
 	return c
 }
 
-func (s *TestStore) CreateAuthSession(info bridge.AuthInfoInterface, session *authorizer.Session) *bridge.Error {
+func (s *TestStore) CreateAuthSession(info bridge.AuthInfoInterface, session *authorization.Session) *bridge.Error {
 	s.sessions[session.Code] = &TestAuthSession{
 		authId:       info.GetId(),
 		redirectUri:  session.RedirectURI,

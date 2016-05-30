@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/authorization"
 	"github.com/lyokato/goidc/basic_auth"
 	"github.com/lyokato/goidc/grant"
 	th "github.com/lyokato/goidc/test_helper"
@@ -23,7 +23,7 @@ func TestTokenEndpointRefreshTokenInvalidRequest(t *testing.T) {
 	client.AllowToUseGrantType(grant.TypeRefreshToken)
 
 	info, _ := sdi.CreateOrUpdateAuthInfo(user.Id, client.GetId(), "openid profile offline_access")
-	sdi.CreateAuthSession(info, &authorizer.Session{
+	sdi.CreateAuthSession(info, &authorization.Session{
 		RedirectURI:  "http://example.org/callback",
 		Code:         "code_value",
 		CodeVerifier: "",

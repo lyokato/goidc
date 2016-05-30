@@ -7,7 +7,7 @@ import (
 
 func TestFlowJSON(t *testing.T) {
 	str1 := "code token"
-	flow, _ := JudgeFromResponseType(str1)
+	flow, _ := JudgeByResponseType(str1)
 	b, _ := json.Marshal(flow)
 	actual := string(b)
 	expected := `{"type":"hybrid","require_access_token":true,"require_id_token":false}`
@@ -32,12 +32,12 @@ func TestFlowJSON(t *testing.T) {
 }
 
 func TestFlow(t *testing.T) {
-	_, err := JudgeFromResponseType("invalid code")
+	_, err := JudgeByResponseType("invalid code")
 	if err == nil {
 		t.Error("invalid repsonse_type should fail")
 	}
 	str1 := "code token"
-	flow, err := JudgeFromResponseType(str1)
+	flow, err := JudgeByResponseType(str1)
 	if err != nil {
 		t.Error("failed to judge flow")
 	}
@@ -54,7 +54,7 @@ func TestFlow(t *testing.T) {
 	}
 
 	str2 := "code"
-	flow, err = JudgeFromResponseType(str2)
+	flow, err = JudgeByResponseType(str2)
 	if err != nil {
 		t.Error("failed to judge flow")
 	}

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/lyokato/goidc/authorizer"
+	"github.com/lyokato/goidc/authorization"
 	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/flow"
 	"github.com/lyokato/goidc/id_token"
@@ -18,11 +18,11 @@ import (
 type AuthorizationEndpoint struct {
 	sdi    bridge.DataInterface
 	ai     bridge.AuthorizerInterface
-	policy *authorizer.Policy
+	policy *authorization.Policy
 }
 
 func NewAuthorizationEndpoint(sdi bridge.DataInterface,
-	ai bridge.AuthorizerInterface, policy *authorizer.Policy) *AuthorizationEndpoint {
+	ai bridge.AuthorizerInterface, policy *authorization.Policy) *AuthorizationEndpoint {
 	return &AuthorizationEndpoint{
 		sdi:    sdi,
 		ai:     ai,
@@ -30,43 +30,44 @@ func NewAuthorizationEndpoint(sdi bridge.DataInterface,
 	}
 }
 
-func (a *AuthorizationEndpoint) HandleRequest(r *http.Request) bool {
+func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Request) bool {
 
 	locales := r.FormValue("ui_locales")
 	locale := a.ai.ChooseLocale(locales)
 
 	cid := r.FormValue("client_id")
 	if cid == "" {
-		a.ai.RenderErrorPage(locale, authorizer.ErrMissingClientId)
+		a.ai.RenderErrorPage(locale, authorization.ErrMissingClientId)
 		return false
 	}
 
 	ruri := r.FormValue("redirect_uri")
 	if ruri == "" {
-		a.ai.RenderErrorPage(locale, authorizer.ErrMissingRedirectURI)
+		a.ai.RenderErrorPage(locale, authorization.ErrMissingRedirectURI)
 		return false
 	}
 
 	clnt, serr := a.sdi.FindClientById(cid)
 	if serr != nil {
 		if serr.Type() == bridge.ErrFailed {
-			a.ai.RenderErrorPage(locale, authorizer.ErrMissingClientId)
+			a.ai.RenderErrorPage(locale, authorization.ErrMissingClientId)
 			return false
 		} else if serr.Type() == bridge.ErrUnsupported {
-			a.ai.RenderErrorPage(locale, authorizer.ErrServerError)
+			a.ai.RenderErrorPage(locale, authorization.ErrServerError)
 			return false
 		} else if serr.Type() == bridge.ErrServerError {
-			a.ai.RenderErrorPage(locale, authorizer.ErrServerError)
+			a.ai.RenderErrorPage(locale, authorization.ErrServerError)
 			return false
 		}
 	}
 
 	if !clnt.CanUseRedirectURI(ruri) {
-		a.ai.RenderErrorPage(locale, authorizer.ErrInvalidRedirectURI)
+		a.ai.RenderErrorPage(locale, authorization.ErrInvalidRedirectURI)
 		return false
 	}
 
 	state := r.FormValue("state")
+	rmode := r.FormValue("response_mode")
 
 	rt := r.FormValue("response_type")
 	if rt == "" {
@@ -76,7 +77,7 @@ func (a *AuthorizationEndpoint) HandleRequest(r *http.Request) bool {
 		return false
 	}
 
-	f, err := flow.JudgeFromResponseType(rt)
+	f, err := flow.JudgeByResponseType(rt)
 	if err != nil {
 		a.RedirectError(ruri, "invalid_request",
 			fmt.Sprintf("invalid 'response_type:%s'", rt),
@@ -89,13 +90,13 @@ func (a *AuthorizationEndpoint) HandleRequest(r *http.Request) bool {
 		return false
 	}
 
-	display := authorizer.DisplayTypePage
+	display := authorization.DisplayTypePage
 	d := r.FormValue("display")
 	if d != "" {
-		if d == authorizer.DisplayTypePage ||
-			d == authorizer.DisplayTypePopup ||
-			d == authorizer.DisplayTypeWAP ||
-			d == authorizer.DisplayTypeTouch {
+		if d == authorization.DisplayTypePage ||
+			d == authorization.DisplayTypePopup ||
+			d == authorization.DisplayTypeWAP ||
+			d == authorization.DisplayTypeTouch {
 			display = d
 		} else {
 			a.RedirectErrorForFlow(ruri, "invalid_request",
@@ -209,11 +210,12 @@ func (a *AuthorizationEndpoint) HandleRequest(r *http.Request) bool {
 		return false
 	}
 
-	req := &authorizer.Request{
+	req := &authorization.Request{
 		Flow:         f,
 		ClientId:     cid,
 		RedirectURI:  ruri,
 		Scope:        scp,
+		ResponseMode: rmode,
 		State:        state,
 		Nonce:        n,
 		Display:      display,
@@ -286,7 +288,7 @@ func (a *AuthorizationEndpoint) HandleRequest(r *http.Request) bool {
 	return true
 }
 
-func (a *AuthorizationEndpoint) CompleteRequest(req *authorizer.Request) bool {
+func (a *AuthorizationEndpoint) CompleteRequest(req *authorization.Request) bool {
 	info, serr := a.sdi.CreateOrUpdateAuthInfo(a.ai.GetLoginUserId(), req.ClientId, req.Scope)
 	if serr != nil {
 		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
@@ -296,7 +298,7 @@ func (a *AuthorizationEndpoint) CompleteRequest(req *authorizer.Request) bool {
 }
 
 func (a *AuthorizationEndpoint) complete(
-	info bridge.AuthInfoInterface, req *authorizer.Request) bool {
+	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 	switch req.Flow.Type {
 	case flow.AuthorizationCode:
 		return a.completeAuthorizationCodeFlowRequest(info, req)
@@ -309,7 +311,7 @@ func (a *AuthorizationEndpoint) complete(
 }
 
 func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
-	info bridge.AuthInfoInterface, req *authorizer.Request) bool {
+	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 	code, serr := a.ai.CreateUniqueCode()
 	if serr != nil {
 		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "?")
@@ -337,7 +339,7 @@ func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
 }
 
 func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
-	info bridge.AuthInfoInterface, req *authorizer.Request) bool {
+	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 
 	clnt, serr := a.sdi.FindClientById(req.ClientId)
 	if serr != nil {
@@ -397,7 +399,7 @@ func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 }
 
 func (a *AuthorizationEndpoint) completeHybridFlowRequest(
-	info bridge.AuthInfoInterface, req *authorizer.Request) bool {
+	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 
 	code, serr := a.ai.CreateUniqueCode()
 
@@ -492,4 +494,22 @@ func (a *AuthorizationEndpoint) RedirectError(uri, typ, desc, state, connector s
 	}
 	u := fmt.Sprintf("%s%s%s", uri, connector, params.Encode())
 	a.ai.Redirect(u)
+}
+
+func (a *AuthorizationEndpoint) RenderError(w http.ResponseWriter, uri, typ, desc, state string) {
+	html := `<html><head><title>Submit This Form</title></head><body onload="javascript:document.forms[0].submit()">`
+	html = html + fmt.Sprintf(`<form method="post" action="%s">`, uri)
+	html = html + fmt.Sprintf(`<input type="hidden" name="error" value="%s">`, typ)
+	if desc != "" {
+		html = html + fmt.Sprintf(`<input type="hidden" name="error_description" value="%s">`, desc)
+	}
+	if state != "" {
+		html = html + fmt.Sprintf(`<input type="hidden" name="state" value="%s">`, state)
+	}
+	html = html + `</form></body></html>`
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	w.Header().Set("Cache-Control", "no-cache, no-store")
+	w.Header().Set("Pragma", "no-cache")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(html))
 }
