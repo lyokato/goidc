@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/lyokato/goidc/flow"
+	"github.com/lyokato/goidc/response_mode"
 )
 
 const (
@@ -33,18 +34,24 @@ const (
 	DefaultMaxNonceLength        = 255
 	DefaultMaxCodeVerifierLength = 255
 	DefaultConsentOmissionPeriod = 86400
+	DefaultAuthSessionExpiresIn  = 60
+	DefaultIdTokenExpiresIn      = 86400
 )
 
 type (
 	Policy struct {
-		MaxMaxAge             int
-		MinMaxAge             int
-		AllowEmptyScope       bool
-		MaxNonceLength        int
-		MaxCodeVerifierLength int
-		ConsentOmissionPeriod int
-		AuthSessionExpiresIn  int
-		IdTokenExpiresIn      int
+		MaxMaxAge                                int
+		MinMaxAge                                int
+		AllowEmptyScope                          bool
+		MaxNonceLength                           int
+		MaxCodeVerifierLength                    int
+		ConsentOmissionPeriod                    int
+		AuthSessionExpiresIn                     int
+		IdTokenExpiresIn                         int
+		DefaultAuthorizationCodeFlowResponseMode string
+		DefaultImplicitFlowResponseMode          string
+		IgnoreInvalidResponseMode                bool
+		RequireResponseModeSecurityLevelCheck    bool
 	}
 
 	Request struct {
@@ -73,6 +80,23 @@ type (
 		AuthTime     int64
 	}
 )
+
+func DefaultPolicy() *Policy {
+	return &Policy{
+		MaxMaxAge:                                DefaultMaxMaxAge,
+		MinMaxAge:                                DefaultMinMaxAge,
+		AllowEmptyScope:                          false,
+		MaxNonceLength:                           DefaultMaxNonceLength,
+		MaxCodeVerifierLength:                    DefaultMaxCodeVerifierLength,
+		ConsentOmissionPeriod:                    DefaultConsentOmissionPeriod,
+		AuthSessionExpiresIn:                     DefaultAuthSessionExpiresIn,
+		IdTokenExpiresIn:                         DefaultIdTokenExpiresIn,
+		DefaultAuthorizationCodeFlowResponseMode: response_mode.Query,
+		DefaultImplicitFlowResponseMode:          response_mode.Fragment,
+		IgnoreInvalidResponseMode:                true,
+		RequireResponseModeSecurityLevelCheck:    true,
+	}
+}
 
 func (r *Request) Encode() string {
 	data, _ := json.Marshal(r)

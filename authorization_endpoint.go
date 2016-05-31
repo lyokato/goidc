@@ -3,7 +3,6 @@ package goidc
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/lyokato/goidc/flow"
 	"github.com/lyokato/goidc/id_token"
 	"github.com/lyokato/goidc/prompt"
+	"github.com/lyokato/goidc/response_mode"
 	"github.com/lyokato/goidc/scope"
 )
 
@@ -71,22 +71,64 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 
 	rt := r.FormValue("response_type")
 	if rt == "" {
-		a.RedirectError(ruri, "invalid_request",
-			"missing 'response_type'",
-			state, "?")
+		authorization.ResponseHandlerForMode(rmode, w, r).Error(
+			ruri, "invalid_request", "missing 'response_type'", state)
 		return false
 	}
 
 	f, err := flow.JudgeByResponseType(rt)
 	if err != nil {
-		a.RedirectError(ruri, "invalid_request",
+		authorization.ResponseHandlerForMode(rmode, w, r).Error(
+			ruri, "invalid_request",
 			fmt.Sprintf("invalid 'response_type:%s'", rt),
-			state, "?")
+			state)
 		return false
 	}
 
+	var defaultRM string
+	switch f.Type {
+	case flow.AuthorizationCode:
+		defaultRM = a.policy.DefaultAuthorizationCodeFlowResponseMode
+	case flow.Implicit:
+		defaultRM = a.policy.DefaultImplicitFlowResponseMode
+	case flow.Hybrid:
+		defaultRM = a.policy.DefaultImplicitFlowResponseMode
+	default:
+		defaultRM = a.policy.DefaultAuthorizationCodeFlowResponseMode
+	}
+
+	if rmode == "" {
+		rmode = defaultRM
+	} else {
+		if !response_mode.Validate(rmode) {
+			if a.policy.IgnoreInvalidResponseMode {
+				rmode = defaultRM
+			} else {
+				authorization.ResponseHandlerForMode(defaultRM, w, r).Error(
+					ruri, "invalid_request",
+					fmt.Sprintf("unknown 'response_mode': '%s'", rmode),
+					state)
+			}
+		}
+	}
+
+	if a.policy.RequireResponseModeSecurityLevelCheck {
+		if !response_mode.CompareSecurityLevel(rmode, defaultRM) {
+			if a.policy.IgnoreInvalidResponseMode {
+				rmode = defaultRM
+			} else {
+				authorization.ResponseHandlerForMode(defaultRM, w, r).Error(
+					ruri, "invalid_request",
+					fmt.Sprintf("'response_mode:%s' isn't allowed for 'response_type:%s'", rmode, rt),
+					state)
+			}
+		}
+	}
+
+	rh := authorization.ResponseHandlerForMode(rmode, w, r)
+
 	if !clnt.CanUseFlow(f.Type) {
-		a.RedirectErrorForFlow(ruri, "unauthorized_client", "", state, f)
+		rh.Error(ruri, "unauthorized_client", "", state)
 		return false
 	}
 
@@ -99,9 +141,9 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 			d == authorization.DisplayTypeTouch {
 			display = d
 		} else {
-			a.RedirectErrorForFlow(ruri, "invalid_request",
+			rh.Error(ruri, "invalid_request",
 				fmt.Sprintf("unknown 'display': '%s'", d),
-				state, f)
+				state)
 			return false
 		}
 	}
@@ -111,23 +153,23 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	if mas != "" {
 		ma, err = strconv.Atoi(mas)
 		if err != nil {
-			a.RedirectErrorForFlow(ruri, "invalid_request",
+			rh.Error(ruri, "invalid_request",
 				fmt.Sprintf("'max_age' should be integer", mas),
-				state, f)
+				state)
 			return false
 		}
 
 		if ma < a.policy.MinMaxAge {
-			a.RedirectErrorForFlow(ruri, "invalid_request",
+			rh.Error(ruri, "invalid_request",
 				fmt.Sprintf("'max_age' should be greater than %d", a.policy.MinMaxAge-1),
-				state, f)
+				state)
 			return false
 		}
 
 		if ma > a.policy.MaxMaxAge {
-			a.RedirectErrorForFlow(ruri, "invalid_request",
+			rh.Error(ruri, "invalid_request",
 				fmt.Sprintf("'max_age' should be less than %d", a.policy.MaxMaxAge+1),
-				state, f)
+				state)
 			return false
 		}
 	}
@@ -138,9 +180,9 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 		if prompt.Validate(p) {
 			prmpt = p
 		} else {
-			a.RedirectErrorForFlow(ruri, "invalid_request",
+			rh.Error(ruri, "invalid_request",
 				fmt.Sprintf("invalid 'prompt': '%s'", p),
-				state, f)
+				state)
 			return false
 		}
 	}
@@ -155,30 +197,30 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 			scp_for_check := scope.RemoveOpenID(scp)
 			scp_for_check = scope.RemoveOfflineAccess(scp_for_check)
 			if len(scp_for_check) == 0 {
-				a.RedirectErrorForFlow(ruri, "invalid_request",
+				rh.Error(ruri, "invalid_request",
 					"when you request 'offline_access' scope, you should set scope other than 'openid'",
-					state, f)
+					state)
 				return false
 			}
 		}
 	}
 
 	if scp == "" && !a.policy.AllowEmptyScope {
-		a.RedirectErrorForFlow(ruri, "invalid_request",
+		rh.Error(ruri, "invalid_request",
 			"missing 'scope'",
-			state, f)
+			state)
 		return false
 	}
 
 	if f.RequireIdToken && !scope.IncludeOpenID(scp) {
-		a.RedirectErrorForFlow(ruri, "invalid_request",
+		rh.Error(ruri, "invalid_request",
 			fmt.Sprintf("'response_type:%s' requires id_token, but 'scope' doesn't include 'openid'", rt),
-			state, f)
+			state)
 		return false
 	}
 
 	if !clnt.CanUseScope(f.Type, scp) {
-		a.RedirectErrorForFlow(ruri, "invalid_scope", "", state, f)
+		rh.Error(ruri, "invalid_scope", "", state)
 		return false
 	}
 
@@ -187,26 +229,26 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 		scope.IncludeOpenID(scp) &&
 		f.RequireIdToken &&
 		n == "" {
-		a.RedirectErrorForFlow(ruri, "invalid_request",
+		rh.Error(ruri, "invalid_request",
 			fmt.Sprintf("'response_type:%s' requires 'nonce' parameter", rt),
-			state, f)
+			state)
 		return false
 	}
 
 	if n != "" && len(n) > a.policy.MaxNonceLength {
-		a.RedirectErrorForFlow(ruri, "invalid_request",
+		rh.Error(ruri, "invalid_request",
 			fmt.Sprintf("length of 'nonce' should be less than %d",
 				a.policy.MaxNonceLength+1),
-			state, f)
+			state)
 		return false
 	}
 
 	verifier := r.FormValue("code_verifier")
 	if verifier != "" && len(verifier) > a.policy.MaxCodeVerifierLength {
-		a.RedirectErrorForFlow(ruri, "invalid_request",
+		rh.Error(ruri, "invalid_request",
 			fmt.Sprintf("length of 'code_verifier' should be less than %d",
 				a.policy.MaxCodeVerifierLength+1),
-			state, f)
+			state)
 		return false
 	}
 
@@ -228,9 +270,9 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	}
 
 	if req.Prompt == prompt.None {
-		a.RedirectErrorForFlow(ruri, "interaction_required",
+		rh.Error(ruri, "interaction_required",
 			"not allowed to use 'prompt:none'",
-			state, f)
+			state)
 		return false
 	} else {
 		if !a.ai.ConfirmLoginSession(locale) {
@@ -246,7 +288,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 
 	authTime, serr := a.ai.GetAuthTime()
 	if serr != nil {
-		a.RedirectErrorForFlow(ruri, "server_error", "", state, f)
+		rh.Error(ruri, "server_error", "", state)
 		return false
 	}
 
@@ -265,20 +307,20 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 			info, serr := a.sdi.FindAuthInfoByUserIdAndClientId(a.ai.GetLoginUserId(), req.ClientId)
 			if serr != nil {
 				if serr.Type() == bridge.ErrUnsupported {
-					a.RedirectErrorForFlow(ruri, "server_error", "", state, f)
+					rh.Error(ruri, "server_error", "", state)
 					return false
 				} else if serr.Type() == bridge.ErrServerError {
-					a.RedirectErrorForFlow(ruri, "server_error", "", state, f)
+					rh.Error(ruri, "server_error", "", state)
 					return false
 				}
 			} else {
 				if info != nil {
-					a.RedirectErrorForFlow(ruri, "server_error", "", state, f)
+					rh.Error(ruri, "server_error", "", state)
 					return false
 				}
 				if info.IsActive() && scope.Same(info.GetScope(), req.Scope) &&
 					info.GetAuthorizedAt()+int64(a.policy.ConsentOmissionPeriod) > time.Now().Unix() {
-					return a.complete(info, req)
+					return a.complete(rh, info, req)
 				}
 			}
 		case prompt.NoConsentPromptPolicyForceConsent:
@@ -288,89 +330,91 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	return true
 }
 
-func (a *AuthorizationEndpoint) CompleteRequest(req *authorization.Request) bool {
+func (a *AuthorizationEndpoint) CompleteRequest(w http.ResponseWriter, r *http.Request, req *authorization.Request) bool {
+	rh := authorization.ResponseHandlerForMode(req.ResponseMode, w, r)
 	info, serr := a.sdi.CreateOrUpdateAuthInfo(a.ai.GetLoginUserId(), req.ClientId, req.Scope)
 	if serr != nil {
-		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
-	return a.complete(info, req)
+	return a.complete(rh, info, req)
 }
 
 func (a *AuthorizationEndpoint) complete(
+	rh authorization.ResponseHandler,
 	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 	switch req.Flow.Type {
 	case flow.AuthorizationCode:
-		return a.completeAuthorizationCodeFlowRequest(info, req)
+		return a.completeAuthorizationCodeFlowRequest(rh, info, req)
 	case flow.Implicit:
-		return a.completeImplicitFlowRequest(info, req)
+		return a.completeImplicitFlowRequest(rh, info, req)
 	case flow.Hybrid:
-		return a.completeHybridFlowRequest(info, req)
+		return a.completeHybridFlowRequest(rh, info, req)
 	}
 	return false
 }
 
 func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
+	rh authorization.ResponseHandler,
 	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 	code, serr := a.ai.CreateUniqueCode()
 	if serr != nil {
-		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "?")
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 	authTime, serr := a.ai.GetAuthTime()
 	if serr != nil {
-		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "?")
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 	serr = a.sdi.CreateAuthSession(info,
 		req.ToSession(code, int64(a.policy.AuthSessionExpiresIn), authTime))
 	if serr != nil {
-		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "?")
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
-	params := url.Values{}
-	params.Add("code", code)
+	params := make(map[string]string)
+	params["code"] = code
 	if req.State != "" {
-		params.Add("state", req.State)
+		params["state"] = req.State
 	}
-	u := fmt.Sprintf("%s?%s", req.RedirectURI, params.Encode())
-	a.ai.Redirect(u)
+	rh.Success(req.RedirectURI, params)
 	return true
 }
 
 func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
+	rh authorization.ResponseHandler,
 	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 
 	clnt, serr := a.sdi.FindClientById(req.ClientId)
 	if serr != nil {
-		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 
-	params := url.Values{}
+	params := make(map[string]string)
 	if req.State != "" {
-		params.Add("state", req.State)
+		params["state"] = req.State
 	}
 	if req.Scope != "" {
-		params.Add("scope", req.Scope)
+		params["scope"] = req.Scope
 	}
 	at := ""
 	if req.Flow.RequireAccessToken {
 		t, serr := a.sdi.CreateOAuthToken(info, false)
 		if serr != nil {
-			a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+			rh.Error(req.RedirectURI, "server_error", "", req.State)
 			return false
 		}
 		at = t.GetAccessToken()
-		params.Add("access_token", at)
-		params.Add("token_type", "bearer")
-		params.Add("expires_in",
-			fmt.Sprintf("%d", t.GetAccessTokenExpiresIn()))
+		params["access_token"] = at
+		params["token_type"] = "bearer"
+		params["rexpires_in"] = fmt.Sprintf("%d", t.GetAccessTokenExpiresIn())
 	}
 
 	authTime, serr := a.ai.GetAuthTime()
 	if serr != nil {
-		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 
@@ -388,66 +432,65 @@ func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 			at,       // access token
 		)
 		if err != nil {
-			a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+			rh.Error(req.RedirectURI, "server_error", "", req.State)
 			return false
 		}
-		params.Add("id_token", idt)
+		params["id_token"] = idt
 	}
-	u := fmt.Sprintf("%s#%s", req.RedirectURI, params.Encode())
-	a.ai.Redirect(u)
+	rh.Success(req.RedirectURI, params)
 	return true
 }
 
 func (a *AuthorizationEndpoint) completeHybridFlowRequest(
+	rh authorization.ResponseHandler,
 	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 
 	code, serr := a.ai.CreateUniqueCode()
 
 	if serr != nil {
-		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 
 	authTime, serr := a.ai.GetAuthTime()
 	if serr != nil {
-		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 
 	serr = a.sdi.CreateAuthSession(info,
 		req.ToSession(code, int64(a.policy.AuthSessionExpiresIn), authTime))
 	if serr != nil {
-		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 
 	clnt, serr := a.sdi.FindClientById(req.ClientId)
 	if serr != nil {
-		a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 
-	params := url.Values{}
-	params.Add("code", code)
+	params := make(map[string]string)
+	params["code"] = code
 	if req.State != "" {
-		params.Add("state", req.State)
+		params["state"] = req.State
 	}
 	if req.Scope != "" {
-		params.Add("scope", req.Scope)
+		params["scope"] = req.Scope
 	}
 
 	at := ""
 	if req.Flow.RequireAccessToken {
 		t, serr := a.sdi.CreateOAuthToken(info, false)
 		if serr != nil {
-			a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+			rh.Error(req.RedirectURI, "server_error", "", req.State)
 			return false
 		}
 		at = t.GetAccessToken()
-		params.Add("access_token", at)
-		params.Add("token_type", "bearer")
-		params.Add("expires_in",
-			fmt.Sprintf("%d", t.GetAccessTokenExpiresIn()))
+		params["access_token"] = at
+		params["token_type"] = "bearer"
+		params["expires_in"] = fmt.Sprintf("%d", t.GetAccessTokenExpiresIn())
 	}
 
 	if req.Flow.RequireIdToken {
@@ -465,51 +508,11 @@ func (a *AuthorizationEndpoint) completeHybridFlowRequest(
 			code,     // code
 		)
 		if err != nil {
-			a.RedirectError(req.RedirectURI, "server_error", "", req.State, "#")
+			rh.Error(req.RedirectURI, "server_error", "", req.State)
 			return false
 		}
-		params.Add("id_token", idt)
+		params["id_token"] = idt
 	}
-	u := fmt.Sprintf("%s#%s", req.RedirectURI, params.Encode())
-	a.ai.Redirect(u)
+	rh.Success(req.RedirectURI, params)
 	return true
-}
-
-func (a *AuthorizationEndpoint) RedirectErrorForFlow(uri, typ, desc, state string, flw *flow.Flow) {
-	connector := "?"
-	if flw.Type != flow.AuthorizationCode {
-		connector = "#"
-	}
-	a.RedirectError(uri, typ, desc, state, connector)
-}
-
-func (a *AuthorizationEndpoint) RedirectError(uri, typ, desc, state, connector string) {
-	params := url.Values{}
-	params.Add("error", typ)
-	if desc != "" {
-		params.Add("error_description", desc)
-	}
-	if state != "" {
-		params.Add("state", state)
-	}
-	u := fmt.Sprintf("%s%s%s", uri, connector, params.Encode())
-	a.ai.Redirect(u)
-}
-
-func (a *AuthorizationEndpoint) RenderError(w http.ResponseWriter, uri, typ, desc, state string) {
-	html := `<html><head><title>Submit This Form</title></head><body onload="javascript:document.forms[0].submit()">`
-	html = html + fmt.Sprintf(`<form method="post" action="%s">`, uri)
-	html = html + fmt.Sprintf(`<input type="hidden" name="error" value="%s">`, typ)
-	if desc != "" {
-		html = html + fmt.Sprintf(`<input type="hidden" name="error_description" value="%s">`, desc)
-	}
-	if state != "" {
-		html = html + fmt.Sprintf(`<input type="hidden" name="state" value="%s">`, state)
-	}
-	html = html + `</form></body></html>`
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	w.Header().Set("Cache-Control", "no-cache, no-store")
-	w.Header().Set("Pragma", "no-cache")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(html))
 }
