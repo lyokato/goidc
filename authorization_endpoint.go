@@ -94,7 +94,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 
 		} else if serr.Type() == bridge.ErrServerError {
 
-			a.logger.Warn(log.AuthorizationEndpointLog(r.URL.Path,
+			a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 				log.InterfaceError,
 				map[string]string{
 					"method":    "FindClientById",
@@ -512,7 +512,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 	locale, err := callbacks.ChooseLocale(locales)
 	if err != nil {
 
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "ChooseLocale",
@@ -560,7 +560,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 
 		if err != nil {
 
-			a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+			a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 				log.InterfaceError,
 				map[string]string{
 					"method": "ConfirmLoginSession",
@@ -581,7 +581,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 			err = callbacks.ShowLoginScreen(req)
 			if err != nil {
 
-				a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 					log.InterfaceError,
 					map[string]string{
 						"method": "ShowLoginScreen",
@@ -601,7 +601,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 
 		if err != nil {
 
-			a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+			a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 				log.InterfaceError,
 				map[string]string{
 					"method": "RequestIsFromLogin",
@@ -628,7 +628,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 
 	authTime, err := callbacks.GetAuthTime()
 	if err != nil {
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "GetAuthTime",
@@ -658,7 +658,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 		case prompt.NoConsentPromptPolicyOmitConsentIfCan:
 			uid, err := callbacks.GetLoginUserId()
 			if err != nil {
-				a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 					log.InterfaceError,
 					map[string]string{
 						"method": "GetLoginUserId",
@@ -691,7 +691,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 	}
 	err = callbacks.ShowConsentScreen(locale, display, clnt, req)
 	if err != nil {
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "ShowConsentScreen",
@@ -707,7 +707,7 @@ func (a *AuthorizationEndpoint) CancelRequest(w http.ResponseWriter, r *http.Req
 	callbacks bridge.AuthorizationCallbacks) bool {
 	req, err := callbacks.Continue()
 	if err != nil {
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "Continue",
@@ -724,7 +724,7 @@ func (a *AuthorizationEndpoint) CompleteRequest(w http.ResponseWriter, r *http.R
 	callbacks bridge.AuthorizationCallbacks) bool {
 	req, err := callbacks.Continue()
 	if err != nil {
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "Continue",
@@ -735,7 +735,7 @@ func (a *AuthorizationEndpoint) CompleteRequest(w http.ResponseWriter, r *http.R
 	rh := authorization.ResponseHandlerForMode(req.ResponseMode, w, r)
 	uid, err := callbacks.GetLoginUserId()
 	if err != nil {
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "GetLoginUserId",
@@ -776,7 +776,7 @@ func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
 	req *authorization.Request) bool {
 	code, err := callbacks.CreateAuthorizationCode()
 	if err != nil {
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "CreateAuthorizationCode",
@@ -787,7 +787,7 @@ func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
 	}
 	authTime, err := callbacks.GetAuthTime()
 	if err != nil {
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "GetAuthTime",
@@ -846,7 +846,7 @@ func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 
 	authTime, err := callbacks.GetAuthTime()
 	if err != nil {
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "GetAuthTime",
@@ -889,7 +889,7 @@ func (a *AuthorizationEndpoint) completeHybridFlowRequest(
 	code, err := callbacks.CreateAuthorizationCode()
 
 	if err != nil {
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "CreateAuthorizationCode",
@@ -901,7 +901,7 @@ func (a *AuthorizationEndpoint) completeHybridFlowRequest(
 
 	authTime, err := callbacks.GetAuthTime()
 	if err != nil {
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,
 			map[string]string{
 				"method": "GetAuthTime",
