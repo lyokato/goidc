@@ -57,7 +57,7 @@ type (
 		GetCreatedAt() int64
 	}
 
-	AuthorizerInterface interface {
+	AuthorizationCallbacks interface {
 		RenderErrorPage(authErrType int)
 		RedirectToLogin(req *authorization.Request) error
 		ShowConsentScreen(locale, display string, client ClientInterface, req *authorization.Request) error

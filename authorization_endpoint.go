@@ -17,49 +17,47 @@ import (
 
 type AuthorizationEndpoint struct {
 	sdi    bridge.DataInterface
-	ai     bridge.AuthorizerInterface
 	policy *authorization.Policy
 }
 
-func NewAuthorizationEndpoint(sdi bridge.DataInterface,
-	ai bridge.AuthorizerInterface, policy *authorization.Policy) *AuthorizationEndpoint {
+func NewAuthorizationEndpoint(sdi bridge.DataInterface, policy *authorization.Policy) *AuthorizationEndpoint {
 	return &AuthorizationEndpoint{
 		sdi:    sdi,
-		ai:     ai,
 		policy: policy,
 	}
 }
 
-func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Request) bool {
+func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
+	r *http.Request, callbacks bridge.AuthorizationCallbacks) bool {
 
 	cid := r.FormValue("client_id")
 	if cid == "" {
-		a.ai.RenderErrorPage(authorization.ErrMissingClientId)
+		callbacks.RenderErrorPage(authorization.ErrMissingClientId)
 		return false
 	}
 
 	ruri := r.FormValue("redirect_uri")
 	if ruri == "" {
-		a.ai.RenderErrorPage(authorization.ErrMissingRedirectURI)
+		callbacks.RenderErrorPage(authorization.ErrMissingRedirectURI)
 		return false
 	}
 
 	clnt, serr := a.sdi.FindClientById(cid)
 	if serr != nil {
 		if serr.Type() == bridge.ErrFailed {
-			a.ai.RenderErrorPage(authorization.ErrMissingClientId)
+			callbacks.RenderErrorPage(authorization.ErrMissingClientId)
 			return false
 		} else if serr.Type() == bridge.ErrUnsupported {
-			a.ai.RenderErrorPage(authorization.ErrServerError)
+			callbacks.RenderErrorPage(authorization.ErrServerError)
 			return false
 		} else if serr.Type() == bridge.ErrServerError {
-			a.ai.RenderErrorPage(authorization.ErrServerError)
+			callbacks.RenderErrorPage(authorization.ErrServerError)
 			return false
 		}
 	}
 
 	if !clnt.CanUseRedirectURI(ruri) {
-		a.ai.RenderErrorPage(authorization.ErrInvalidRedirectURI)
+		callbacks.RenderErrorPage(authorization.ErrInvalidRedirectURI)
 		return false
 	}
 
@@ -250,7 +248,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	}
 
 	locales := r.FormValue("ui_locales")
-	locale, err := a.ai.ChooseLocale(locales)
+	locale, err := callbacks.ChooseLocale(locales)
 	if err != nil {
 		rh.Error(ruri, "server_error", "", state)
 		return false
@@ -279,13 +277,13 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 			state)
 		return false
 	} else {
-		isLoginSession, err := a.ai.ConfirmLoginSession()
+		isLoginSession, err := callbacks.ConfirmLoginSession()
 		if err != nil {
 			rh.Error(ruri, "server_error", "", state)
 			return false
 		}
 		if !isLoginSession {
-			err = a.ai.RedirectToLogin(req)
+			err = callbacks.RedirectToLogin(req)
 			if err != nil {
 				rh.Error(ruri, "server_error", "", state)
 				return false
@@ -295,18 +293,18 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	}
 
 	if prompt.IncludeLogin(req.Prompt) {
-		isFromLogin, err := a.ai.RequestIsFromLogin()
+		isFromLogin, err := callbacks.RequestIsFromLogin()
 		if err != nil {
 			rh.Error(ruri, "server_error", "", state)
 			return false
 		}
 		if !isFromLogin {
-			a.ai.RedirectToLogin(req)
+			callbacks.RedirectToLogin(req)
 			return false
 		}
 	}
 
-	authTime, err := a.ai.GetAuthTime()
+	authTime, err := callbacks.GetAuthTime()
 	if err != nil {
 		rh.Error(ruri, "server_error", "", state)
 		return false
@@ -315,7 +313,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	if req.MaxAge > 0 {
 		age := time.Now().Unix() - authTime
 		if req.MaxAge < age {
-			a.ai.RedirectToLogin(req)
+			callbacks.RedirectToLogin(req)
 			return false
 		}
 	}
@@ -324,7 +322,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 		policy := clnt.GetNoConsentPromptPolicy()
 		switch policy {
 		case prompt.NoConsentPromptPolicyOmitConsentIfCan:
-			uid, err := a.ai.GetLoginUserId()
+			uid, err := callbacks.GetLoginUserId()
 			if err != nil {
 				rh.Error(ruri, "server_error", "", state)
 				return false
@@ -345,13 +343,13 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 				}
 				if info.IsActive() && scope.Same(info.GetScope(), req.Scope) &&
 					info.GetAuthorizedAt()+int64(a.policy.ConsentOmissionPeriod) > time.Now().Unix() {
-					return a.complete(rh, info, req)
+					return a.complete(callbacks, rh, info, req)
 				}
 			}
 		case prompt.NoConsentPromptPolicyForceConsent:
 		}
 	}
-	err = a.ai.ShowConsentScreen(locale, display, clnt, req)
+	err = callbacks.ShowConsentScreen(locale, display, clnt, req)
 	if err != nil {
 		rh.Error(ruri, "server_error", "", state)
 		return false
@@ -359,9 +357,10 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 	return true
 }
 
-func (a *AuthorizationEndpoint) CompleteRequest(w http.ResponseWriter, r *http.Request, req *authorization.Request) bool {
+func (a *AuthorizationEndpoint) CompleteRequest(w http.ResponseWriter, r *http.Request,
+	req *authorization.Request, callbacks bridge.AuthorizationCallbacks) bool {
 	rh := authorization.ResponseHandlerForMode(req.ResponseMode, w, r)
-	uid, err := a.ai.GetLoginUserId()
+	uid, err := callbacks.GetLoginUserId()
 	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
@@ -371,32 +370,35 @@ func (a *AuthorizationEndpoint) CompleteRequest(w http.ResponseWriter, r *http.R
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
-	return a.complete(rh, info, req)
+	return a.complete(callbacks, rh, info, req)
 }
 
 func (a *AuthorizationEndpoint) complete(
+	callbacks bridge.AuthorizationCallbacks,
 	rh authorization.ResponseHandler,
 	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 	switch req.Flow.Type {
 	case flow.AuthorizationCode:
-		return a.completeAuthorizationCodeFlowRequest(rh, info, req)
+		return a.completeAuthorizationCodeFlowRequest(callbacks, rh, info, req)
 	case flow.Implicit:
-		return a.completeImplicitFlowRequest(rh, info, req)
+		return a.completeImplicitFlowRequest(callbacks, rh, info, req)
 	case flow.Hybrid:
-		return a.completeHybridFlowRequest(rh, info, req)
+		return a.completeHybridFlowRequest(callbacks, rh, info, req)
 	}
 	return false
 }
 
 func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
+	callbacks bridge.AuthorizationCallbacks,
 	rh authorization.ResponseHandler,
-	info bridge.AuthInfoInterface, req *authorization.Request) bool {
-	code, err := a.ai.CreateAuthorizationCode()
+	info bridge.AuthInfoInterface,
+	req *authorization.Request) bool {
+	code, err := callbacks.CreateAuthorizationCode()
 	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
-	authTime, err := a.ai.GetAuthTime()
+	authTime, err := callbacks.GetAuthTime()
 	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
@@ -417,8 +419,10 @@ func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
 }
 
 func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
+	callbacks bridge.AuthorizationCallbacks,
 	rh authorization.ResponseHandler,
-	info bridge.AuthInfoInterface, req *authorization.Request) bool {
+	info bridge.AuthInfoInterface,
+	req *authorization.Request) bool {
 
 	clnt, serr := a.sdi.FindClientById(req.ClientId)
 	if serr != nil {
@@ -446,7 +450,7 @@ func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 		params["rexpires_in"] = fmt.Sprintf("%d", t.GetAccessTokenExpiresIn())
 	}
 
-	authTime, err := a.ai.GetAuthTime()
+	authTime, err := callbacks.GetAuthTime()
 	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
@@ -476,17 +480,19 @@ func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 }
 
 func (a *AuthorizationEndpoint) completeHybridFlowRequest(
+	callbacks bridge.AuthorizationCallbacks,
 	rh authorization.ResponseHandler,
-	info bridge.AuthInfoInterface, req *authorization.Request) bool {
+	info bridge.AuthInfoInterface,
+	req *authorization.Request) bool {
 
-	code, err := a.ai.CreateAuthorizationCode()
+	code, err := callbacks.CreateAuthorizationCode()
 
 	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 
-	authTime, err := a.ai.GetAuthTime()
+	authTime, err := callbacks.GetAuthTime()
 	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
