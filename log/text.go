@@ -15,11 +15,19 @@ const (
 	AuthSessionConditionMismatch
 	ScopeConditionMismatch
 	RefreshTokenConditionMismatch
+	RedirectURIMismatch
 	AssertionConditionMismatch
 	InterfaceUnsupported
 	InterfaceServerError
 	InterfaceError
 	InvalidScope
+	InvalidDisplay
+	InvalidMaxAge
+	InvalidResponseType
+	InvalidResponseMode
+	InvalidNonce
+	InvalidPrompt
+	InvalidCodeVerifier
 	AccessTokenGranted
 	InvalidHTTPMethod
 	MissingParam
@@ -36,6 +44,7 @@ const (
 	DisableSessionFailed
 	AuthInfoCreationFailed
 	IdTokenGeneration
+	LoginRequired
 )
 
 func (e LogEvent) String() string {
@@ -56,6 +65,8 @@ func (e LogEvent) String() string {
 		return "auth_info_condition_mismatch"
 	case AuthSessionConditionMismatch:
 		return "auth_session_condition_mismatch"
+	case RedirectURIMismatch:
+		return "redirect_uri_mismatch"
 	case InterfaceUnsupported:
 		return "interface_unsupported"
 	case InterfaceServerError:
@@ -64,6 +75,20 @@ func (e LogEvent) String() string {
 		return "interface_error"
 	case InvalidScope:
 		return "invalid_scope"
+	case InvalidDisplay:
+		return "invalid_display"
+	case InvalidMaxAge:
+		return "invalid_max_age"
+	case InvalidNonce:
+		return "invalid_nonce"
+	case InvalidPrompt:
+		return "invalid_prompt"
+	case InvalidCodeVerifier:
+		return "invalid_code_verifier"
+	case InvalidResponseType:
+		return "invalid_response_type"
+	case InvalidResponseMode:
+		return "invalid_response_mode"
 	case AccessTokenGranted:
 		return "access_token_granted"
 	case AccessTokenCreationFailed:
@@ -96,9 +121,16 @@ func (e LogEvent) String() string {
 		return "no_enabled_access_token"
 	case IdTokenGeneration:
 		return "id_token_generation"
+	case LoginRequired:
+		return "login_required"
 	default:
 		return ""
 	}
+}
+
+func AuthorizationEndpointLog(path string, ev LogEvent,
+	params map[string]string, msg string) string {
+	return EndpointLog("authorization_endpoint", path, ev, params, msg)
 }
 
 func TokenEndpointLog(grantType string, ev LogEvent,

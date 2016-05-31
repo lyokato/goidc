@@ -59,7 +59,7 @@ type (
 
 	AuthorizationCallbacks interface {
 		RenderErrorPage(authErrType int)
-		RedirectToLogin(req *authorization.Request) error
+		ShowLoginPage(req *authorization.Request) error
 		ShowConsentScreen(locale, display string, client Client, req *authorization.Request) error
 		ChooseLocale(locales string) (string, error)
 		ConfirmLoginSession() (bool, error)
