@@ -339,7 +339,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 					return false
 				}
 			} else {
-				if info != nil {
+				if info == nil {
 					rh.Error(ruri, "server_error", "", state)
 					return false
 				}
