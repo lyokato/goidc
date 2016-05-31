@@ -210,7 +210,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		if at == nil {
 
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path, log.InterfaceError,
-				map[string]string{"method": "FindClientById"},
+				map[string]string{"method": "FindActiveAuthInfoById"},
 				"the method returns (nil, nil)."))
 
 			w.WriteHeader(http.StatusInternalServerError)
