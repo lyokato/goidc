@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	ClientInterface interface {
+	Client interface {
 		GetId() string
 		GetOwnerUserId() int64
 		GetIdTokenAlg() string
@@ -22,7 +22,7 @@ type (
 		GetNoConsentPromptPolicy() prompt.NoConsentPromptPolicy
 	}
 
-	AuthInfoInterface interface {
+	AuthInfo interface {
 		GetId() int64
 		GetClientId() string
 		GetUserId() int64
@@ -33,7 +33,7 @@ type (
 		IsActive() bool
 	}
 
-	AuthSessionInterface interface {
+	AuthSession interface {
 		GetCode() string
 		GetAuthId() int64
 		GetAuthTime() int64
@@ -45,7 +45,7 @@ type (
 		GetCreatedAt() int64
 	}
 
-	OAuthTokenInterface interface {
+	OAuthToken interface {
 		GetAuthId() int64
 
 		GetAccessToken() string
@@ -60,7 +60,7 @@ type (
 	AuthorizationCallbacks interface {
 		RenderErrorPage(authErrType int)
 		RedirectToLogin(req *authorization.Request) error
-		ShowConsentScreen(locale, display string, client ClientInterface, req *authorization.Request) error
+		ShowConsentScreen(locale, display string, client Client, req *authorization.Request) error
 		ChooseLocale(locales string) (string, error)
 		ConfirmLoginSession() (bool, error)
 		RequestIsFromLogin() (bool, error)
@@ -71,18 +71,18 @@ type (
 
 	DataInterface interface {
 		Issuer() string
-		FindClientById(clientId string) (ClientInterface, *Error)
-		FindAuthSessionByCode(code string) (AuthSessionInterface, *Error)
-		FindActiveAuthInfoById(id int64) (AuthInfoInterface, *Error)
-		FindAuthInfoByUserIdAndClientId(uid int64, clientId string) (AuthInfoInterface, *Error)
-		FindOAuthTokenByAccessToken(token string) (OAuthTokenInterface, *Error)
-		FindOAuthTokenByRefreshToken(token string) (OAuthTokenInterface, *Error)
-		CreateOAuthToken(info AuthInfoInterface, onTokenEndpoint bool) (OAuthTokenInterface, *Error)
-		RefreshAccessToken(info AuthInfoInterface, token OAuthTokenInterface) (OAuthTokenInterface, *Error)
+		FindClientById(clientId string) (Client, *Error)
+		FindAuthSessionByCode(code string) (AuthSession, *Error)
+		FindActiveAuthInfoById(id int64) (AuthInfo, *Error)
+		FindAuthInfoByUserIdAndClientId(uid int64, clientId string) (AuthInfo, *Error)
+		FindOAuthTokenByAccessToken(token string) (OAuthToken, *Error)
+		FindOAuthTokenByRefreshToken(token string) (OAuthToken, *Error)
+		CreateOAuthToken(info AuthInfo, onTokenEndpoint bool) (OAuthToken, *Error)
+		RefreshAccessToken(info AuthInfo, token OAuthToken) (OAuthToken, *Error)
 		FindUserId(username, password string) (int64, *Error)
-		CreateOrUpdateAuthInfo(uid int64, clientId, scope string) (AuthInfoInterface, *Error)
-		CreateAuthSession(info AuthInfoInterface, session *authorization.Session) *Error
-		DisableSession(sess AuthSessionInterface) *Error
+		CreateOrUpdateAuthInfo(uid int64, clientId, scope string) (AuthInfo, *Error)
+		CreateAuthSession(info AuthInfo, session *authorization.Session) *Error
+		DisableSession(sess AuthSession) *Error
 		FindUserIdBySubject(sub string) (int64, *Error)
 		RecordAssertionClaims(clientId, jti string, issuedAt, expiredAt int64) *Error
 	}

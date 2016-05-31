@@ -22,7 +22,7 @@ const TypeJWT = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 func JWT() *GrantHandler {
 	return &GrantHandler{
 		TypeJWT,
-		func(r *http.Request, c bridge.ClientInterface,
+		func(r *http.Request, c bridge.Client,
 			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			a := r.FormValue("assertion")

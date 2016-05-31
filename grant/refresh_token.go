@@ -15,7 +15,7 @@ const TypeRefreshToken = "refresh_token"
 func RefreshToken() *GrantHandler {
 	return &GrantHandler{
 		TypeRefreshToken,
-		func(r *http.Request, c bridge.ClientInterface,
+		func(r *http.Request, c bridge.Client,
 			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			rt := r.FormValue("refresh_token")

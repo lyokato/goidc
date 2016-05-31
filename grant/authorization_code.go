@@ -19,7 +19,7 @@ const TypeAuthorizationCode = "authorization_code"
 func AuthorizationCode() *GrantHandler {
 	return &GrantHandler{
 		TypeAuthorizationCode,
-		func(r *http.Request, c bridge.ClientInterface,
+		func(r *http.Request, c bridge.Client,
 			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			uri := r.FormValue("redirect_uri")

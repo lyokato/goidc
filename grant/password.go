@@ -14,7 +14,7 @@ const TypePassword = "password"
 func Password() *GrantHandler {
 	return &GrantHandler{
 		TypePassword,
-		func(r *http.Request, c bridge.ClientInterface,
+		func(r *http.Request, c bridge.Client,
 			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			username := r.FormValue("username")

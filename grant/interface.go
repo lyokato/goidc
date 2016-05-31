@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	GrantHandlerFunc func(r *http.Request, c bridge.ClientInterface,
+	GrantHandlerFunc func(r *http.Request, c bridge.Client,
 		sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError)
 
 	GrantHandler struct {

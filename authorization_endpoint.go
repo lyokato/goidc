@@ -376,7 +376,7 @@ func (a *AuthorizationEndpoint) CompleteRequest(w http.ResponseWriter, r *http.R
 func (a *AuthorizationEndpoint) complete(
 	callbacks bridge.AuthorizationCallbacks,
 	rh authorization.ResponseHandler,
-	info bridge.AuthInfoInterface, req *authorization.Request) bool {
+	info bridge.AuthInfo, req *authorization.Request) bool {
 	switch req.Flow.Type {
 	case flow.AuthorizationCode:
 		return a.completeAuthorizationCodeFlowRequest(callbacks, rh, info, req)
@@ -391,7 +391,7 @@ func (a *AuthorizationEndpoint) complete(
 func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
 	callbacks bridge.AuthorizationCallbacks,
 	rh authorization.ResponseHandler,
-	info bridge.AuthInfoInterface,
+	info bridge.AuthInfo,
 	req *authorization.Request) bool {
 	code, err := callbacks.CreateAuthorizationCode()
 	if err != nil {
@@ -421,7 +421,7 @@ func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
 func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 	callbacks bridge.AuthorizationCallbacks,
 	rh authorization.ResponseHandler,
-	info bridge.AuthInfoInterface,
+	info bridge.AuthInfo,
 	req *authorization.Request) bool {
 
 	clnt, serr := a.sdi.FindClientById(req.ClientId)
@@ -482,7 +482,7 @@ func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 func (a *AuthorizationEndpoint) completeHybridFlowRequest(
 	callbacks bridge.AuthorizationCallbacks,
 	rh authorization.ResponseHandler,
-	info bridge.AuthInfoInterface,
+	info bridge.AuthInfo,
 	req *authorization.Request) bool {
 
 	code, err := callbacks.CreateAuthorizationCode()

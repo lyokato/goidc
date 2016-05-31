@@ -14,7 +14,7 @@ const TypeClientCredentials = "client_credentials"
 func ClientCredentials() *GrantHandler {
 	return &GrantHandler{
 		TypeClientCredentials,
-		func(r *http.Request, c bridge.ClientInterface,
+		func(r *http.Request, c bridge.Client,
 			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
 
 			uid := c.GetOwnerUserId()

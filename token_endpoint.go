@@ -145,13 +145,13 @@ func (te *TokenEndpoint) Handler(sdi bridge.DataInterface) http.HandlerFunc {
 
 func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 	r *http.Request, sdi bridge.DataInterface,
-	gt, ca string) (bridge.ClientInterface, bool) {
+	gt, ca string) (bridge.Client, bool) {
 
 	// RFC7523
 	// JSON Web Token (JWT) Profile
 	// for OAuth 2.0 Client Authentication and Authorization Grants
 
-	var c bridge.ClientInterface
+	var c bridge.Client
 	t, jwt_err := jwt.Parse(ca, func(t *jwt.Token) (interface{}, error) {
 
 		cid := ""
@@ -264,7 +264,7 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 
 func (te *TokenEndpoint) validateClientBySecret(w http.ResponseWriter,
 	r *http.Request, sdi bridge.DataInterface, gt, cid, sec string,
-	inHeader bool) (bridge.ClientInterface, bool) {
+	inHeader bool) (bridge.Client, bool) {
 
 	client, err := sdi.FindClientById(cid)
 
@@ -332,7 +332,7 @@ func (te *TokenEndpoint) validateClientBySecret(w http.ResponseWriter,
 
 func (te *TokenEndpoint) executeGrantHandler(w http.ResponseWriter,
 	r *http.Request, sdi bridge.DataInterface,
-	client bridge.ClientInterface, gt string, h grant.GrantHandlerFunc) {
+	client bridge.Client, gt string, h grant.GrantHandlerFunc) {
 	res, oerr := h(r, client, sdi, te.logger)
 	if oerr != nil {
 		te.fail(w, oerr)

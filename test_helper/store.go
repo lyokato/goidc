@@ -74,7 +74,7 @@ func (s *TestStore) CreateNewClient(ownerId int64, id, secret, redirectURI strin
 	return c
 }
 
-func (s *TestStore) CreateAuthSession(info bridge.AuthInfoInterface, session *authorization.Session) *bridge.Error {
+func (s *TestStore) CreateAuthSession(info bridge.AuthInfo, session *authorization.Session) *bridge.Error {
 	s.sessions[session.Code] = &TestAuthSession{
 		authId:       info.GetId(),
 		redirectUri:  session.RedirectURI,
@@ -87,7 +87,7 @@ func (s *TestStore) CreateAuthSession(info bridge.AuthInfoInterface, session *au
 	return nil
 }
 
-func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string) (bridge.AuthInfoInterface, *bridge.Error) {
+func (s *TestStore) CreateOrUpdateAuthInfo(uid int64, clientId, scope string) (bridge.AuthInfo, *bridge.Error) {
 
 	i, exists := s.findAuthInfoByUserAndClient(uid, clientId)
 	if !exists {
@@ -143,7 +143,7 @@ func (s *TestStore) FindUserId(username, password string) (int64, *bridge.Error)
 	return -1, bridge.NewError(bridge.ErrFailed)
 }
 
-func (s *TestStore) FindClientById(cid string) (bridge.ClientInterface, *bridge.Error) {
+func (s *TestStore) FindClientById(cid string) (bridge.Client, *bridge.Error) {
 	c, exists := s.clients[cid]
 	if !exists {
 		// not found
@@ -152,7 +152,7 @@ func (s *TestStore) FindClientById(cid string) (bridge.ClientInterface, *bridge.
 	return c, nil
 }
 
-func (s *TestStore) FindAuthSessionByCode(code string) (bridge.AuthSessionInterface, *bridge.Error) {
+func (s *TestStore) FindAuthSessionByCode(code string) (bridge.AuthSession, *bridge.Error) {
 	sess, exists := s.sessions[code]
 	if !exists {
 		// not found
@@ -161,11 +161,11 @@ func (s *TestStore) FindAuthSessionByCode(code string) (bridge.AuthSessionInterf
 	return sess, nil
 }
 
-func (s *TestStore) FindAuthInfoByUserIdAndClientId(uid int64, cid string) (bridge.AuthInfoInterface, *bridge.Error) {
+func (s *TestStore) FindAuthInfoByUserIdAndClientId(uid int64, cid string) (bridge.AuthInfo, *bridge.Error) {
 	return nil, bridge.NewError(bridge.ErrUnsupported)
 }
 
-func (s *TestStore) FindActiveAuthInfoById(id int64) (bridge.AuthInfoInterface, *bridge.Error) {
+func (s *TestStore) FindActiveAuthInfoById(id int64) (bridge.AuthInfo, *bridge.Error) {
 	i, exists := s.infos[id]
 	if !exists {
 		return nil, bridge.NewError(bridge.ErrFailed)
@@ -173,7 +173,7 @@ func (s *TestStore) FindActiveAuthInfoById(id int64) (bridge.AuthInfoInterface, 
 	return i, nil
 }
 
-func (s *TestStore) FindOAuthTokenByAccessToken(token string) (bridge.OAuthTokenInterface, *bridge.Error) {
+func (s *TestStore) FindOAuthTokenByAccessToken(token string) (bridge.OAuthToken, *bridge.Error) {
 	at, exists := s.accessTokenes[token]
 	if !exists {
 		return nil, bridge.NewError(bridge.ErrFailed)
@@ -181,7 +181,7 @@ func (s *TestStore) FindOAuthTokenByAccessToken(token string) (bridge.OAuthToken
 	return at, nil
 }
 
-func (s *TestStore) FindOAuthTokenByRefreshToken(token string) (bridge.OAuthTokenInterface, *bridge.Error) {
+func (s *TestStore) FindOAuthTokenByRefreshToken(token string) (bridge.OAuthToken, *bridge.Error) {
 	for _, at := range s.accessTokenes {
 		if at.GetRefreshToken() == token {
 			return at, nil
@@ -190,12 +190,12 @@ func (s *TestStore) FindOAuthTokenByRefreshToken(token string) (bridge.OAuthToke
 	return nil, bridge.NewError(bridge.ErrFailed)
 }
 
-func (s *TestStore) DisableSession(sess bridge.AuthSessionInterface) *bridge.Error {
+func (s *TestStore) DisableSession(sess bridge.AuthSession) *bridge.Error {
 	delete(s.sessions, sess.GetCode())
 	return nil
 }
 
-func (s *TestStore) CreateOAuthToken(info bridge.AuthInfoInterface, onTokenEndpoint bool) (bridge.OAuthTokenInterface, *bridge.Error) {
+func (s *TestStore) CreateOAuthToken(info bridge.AuthInfo, onTokenEndpoint bool) (bridge.OAuthToken, *bridge.Error) {
 	avalue := fmt.Sprintf("ACCESS_TOKEN_%d", info.GetId())
 	rvalue := fmt.Sprintf("REFRESH_TOKEN_%d", info.GetId())
 	if !scope.IncludeOfflineAccess(info.GetScope()) {
@@ -220,7 +220,7 @@ func (s *TestStore) FindUserIdBySubject(sub string) (int64, *bridge.Error) {
 	return -1, bridge.NewError(bridge.ErrFailed)
 }
 
-func (s *TestStore) RefreshAccessToken(info bridge.AuthInfoInterface, old bridge.OAuthTokenInterface) (bridge.OAuthTokenInterface, *bridge.Error) {
+func (s *TestStore) RefreshAccessToken(info bridge.AuthInfo, old bridge.OAuthToken) (bridge.OAuthToken, *bridge.Error) {
 	oldToken := old.GetAccessToken()
 	token, _ := s.accessTokenes[oldToken]
 	token.accessToken = token.accessToken + ":R"
