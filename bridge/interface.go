@@ -59,8 +59,8 @@ type (
 
 	AuthorizerInterface interface {
 		RenderErrorPage(authErrType int)
-		RedirectToLogin(req *authorization.Request)
-		ShowConsentScreen(locale, display string, req *authorization.Request)
+		RedirectToLogin(req *authorization.Request) error
+		ShowConsentScreen(locale, display string, client ClientInterface, req *authorization.Request) error
 		ChooseLocale(locales string) (string, error)
 		ConfirmLoginSession() (bool, error)
 		RequestIsFromLogin() (bool, error)

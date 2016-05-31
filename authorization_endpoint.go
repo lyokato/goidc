@@ -285,7 +285,11 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 			return false
 		}
 		if !isLoginSession {
-			a.ai.RedirectToLogin(req)
+			err = a.ai.RedirectToLogin(req)
+			if err != nil {
+				rh.Error(ruri, "server_error", "", state)
+				return false
+			}
 			return false
 		}
 	}
@@ -347,7 +351,11 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 		case prompt.NoConsentPromptPolicyForceConsent:
 		}
 	}
-	a.ai.ShowConsentScreen(locale, display, req)
+	err = a.ai.ShowConsentScreen(locale, display, clnt, req)
+	if err != nil {
+		rh.Error(ruri, "server_error", "", state)
+		return false
+	}
 	return true
 }
 
