@@ -47,7 +47,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 			},
 			"'client_id' not found in request."))
 
-		callbacks.RenderErrorPage(authorization.ErrMissingClientId)
+		callbacks.ShowErrorScreen(authorization.ErrMissingClientId)
 		return false
 	}
 
@@ -61,7 +61,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 			},
 			"'redirect_uri' not found in request."))
 
-		callbacks.RenderErrorPage(authorization.ErrMissingRedirectURI)
+		callbacks.ShowErrorScreen(authorization.ErrMissingRedirectURI)
 		return false
 	}
 
@@ -77,7 +77,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				},
 				"client associated with the client_id not found"))
 
-			callbacks.RenderErrorPage(authorization.ErrMissingClientId)
+			callbacks.ShowErrorScreen(authorization.ErrMissingClientId)
 			return false
 
 		} else if serr.Type() == bridge.ErrUnsupported {
@@ -89,7 +89,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				},
 				"this method returns 'unsupported' error"))
 
-			callbacks.RenderErrorPage(authorization.ErrServerError)
+			callbacks.ShowErrorScreen(authorization.ErrServerError)
 			return false
 
 		} else if serr.Type() == bridge.ErrServerError {
@@ -102,7 +102,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				},
 				"this method returns ServerError"))
 
-			callbacks.RenderErrorPage(authorization.ErrServerError)
+			callbacks.ShowErrorScreen(authorization.ErrServerError)
 			return false
 		}
 	} else {
@@ -115,7 +115,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				},
 				"this method returns (nil, nil)."))
 
-			callbacks.RenderErrorPage(authorization.ErrServerError)
+			callbacks.ShowErrorScreen(authorization.ErrServerError)
 			return false
 		}
 	}
@@ -131,7 +131,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 			},
 			"this 'redirect_uri' is not allowed for this client."))
 
-		callbacks.RenderErrorPage(authorization.ErrInvalidRedirectURI)
+		callbacks.ShowErrorScreen(authorization.ErrInvalidRedirectURI)
 		return false
 	}
 
@@ -578,13 +578,13 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				map[string]string{},
 				"this is non-signed-in-session, so, show login page."))
 
-			err = callbacks.ShowLoginPage(req)
+			err = callbacks.ShowLoginScreen(req)
 			if err != nil {
 
 				a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
 					log.InterfaceError,
 					map[string]string{
-						"method": "ShowLoginPage",
+						"method": "ShowLoginScreen",
 					},
 					err.Error()))
 
@@ -621,7 +621,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				},
 				"force-login is required by 'prompt'"))
 
-			callbacks.ShowLoginPage(req)
+			callbacks.ShowLoginScreen(req)
 			return false
 		}
 	}
@@ -647,7 +647,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 					"max_age": mas,
 				},
 				"'auth_time' is over 'max_age', so, show login page."))
-			callbacks.ShowLoginPage(req)
+			callbacks.ShowLoginScreen(req)
 			return false
 		}
 	}
@@ -703,8 +703,35 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 	return true
 }
 
+func (a *AuthorizationEndpoint) CancelRequest(w http.ResponseWriter, r *http.Request,
+	callbacks bridge.AuthorizationCallbacks) bool {
+	req, err := callbacks.Continue()
+	if err != nil {
+		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+			log.InterfaceError,
+			map[string]string{
+				"method": "Continue",
+			},
+			err.Error()))
+		return false
+	}
+	rh := authorization.ResponseHandlerForMode(req.ResponseMode, w, r)
+	rh.Error(req.RedirectURI, "access_denied", "", req.State)
+	return true
+}
+
 func (a *AuthorizationEndpoint) CompleteRequest(w http.ResponseWriter, r *http.Request,
-	req *authorization.Request, callbacks bridge.AuthorizationCallbacks) bool {
+	callbacks bridge.AuthorizationCallbacks) bool {
+	req, err := callbacks.Continue()
+	if err != nil {
+		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+			log.InterfaceError,
+			map[string]string{
+				"method": "Continue",
+			},
+			err.Error()))
+		return false
+	}
 	rh := authorization.ResponseHandlerForMode(req.ResponseMode, w, r)
 	uid, err := callbacks.GetLoginUserId()
 	if err != nil {

@@ -58,8 +58,8 @@ type (
 	}
 
 	AuthorizationCallbacks interface {
-		RenderErrorPage(authErrType int)
-		ShowLoginPage(req *authorization.Request) error
+		ShowErrorScreen(authErrType int)
+		ShowLoginScreen(req *authorization.Request) error
 		ShowConsentScreen(locale, display string, client Client, req *authorization.Request) error
 		ChooseLocale(locales string) (string, error)
 		ConfirmLoginSession() (bool, error)
@@ -67,6 +67,7 @@ type (
 		GetAuthTime() (int64, error)
 		GetLoginUserId() (int64, error)
 		CreateAuthorizationCode() (string, error)
+		Continue() (*authorization.Request, error)
 	}
 
 	DataInterface interface {
