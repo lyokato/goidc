@@ -391,7 +391,7 @@ func (a *AuthorizationEndpoint) complete(
 func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
 	rh authorization.ResponseHandler,
 	info bridge.AuthInfoInterface, req *authorization.Request) bool {
-	code, err := a.ai.CreateUniqueCode()
+	code, err := a.ai.CreateAuthorizationCode()
 	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
@@ -479,7 +479,7 @@ func (a *AuthorizationEndpoint) completeHybridFlowRequest(
 	rh authorization.ResponseHandler,
 	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 
-	code, err := a.ai.CreateUniqueCode()
+	code, err := a.ai.CreateAuthorizationCode()
 
 	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)

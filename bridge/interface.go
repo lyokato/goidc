@@ -66,7 +66,7 @@ type (
 		RequestIsFromLogin() (bool, error)
 		GetAuthTime() (int64, error)
 		GetLoginUserId() (int64, error)
-		CreateUniqueCode() (string, error)
+		CreateAuthorizationCode() (string, error)
 	}
 
 	DataInterface interface {
