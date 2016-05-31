@@ -58,16 +58,15 @@ type (
 	}
 
 	AuthorizerInterface interface {
-		RenderErrorPage(locale string, authErrType int)
-		ChooseLocale(locales string) string
-		Redirect(url string)
+		RenderErrorPage(authErrType int)
 		RedirectToLogin(req *authorization.Request)
-		ConfirmLoginSession(locale string) bool
-		RequestIsFromLogin() bool
-		GetAuthTime() (int64, *Error)
-		GetLoginUserId() int64
 		ShowConsentScreen(locale, display string, req *authorization.Request)
-		CreateUniqueCode() (string, *Error)
+		ChooseLocale(locales string) (string, error)
+		ConfirmLoginSession() (bool, error)
+		RequestIsFromLogin() (bool, error)
+		GetAuthTime() (int64, error)
+		GetLoginUserId() (int64, error)
+		CreateUniqueCode() (string, error)
 	}
 
 	DataInterface interface {

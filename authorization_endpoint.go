@@ -32,37 +32,34 @@ func NewAuthorizationEndpoint(sdi bridge.DataInterface,
 
 func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Request) bool {
 
-	locales := r.FormValue("ui_locales")
-	locale := a.ai.ChooseLocale(locales)
-
 	cid := r.FormValue("client_id")
 	if cid == "" {
-		a.ai.RenderErrorPage(locale, authorization.ErrMissingClientId)
+		a.ai.RenderErrorPage(authorization.ErrMissingClientId)
 		return false
 	}
 
 	ruri := r.FormValue("redirect_uri")
 	if ruri == "" {
-		a.ai.RenderErrorPage(locale, authorization.ErrMissingRedirectURI)
+		a.ai.RenderErrorPage(authorization.ErrMissingRedirectURI)
 		return false
 	}
 
 	clnt, serr := a.sdi.FindClientById(cid)
 	if serr != nil {
 		if serr.Type() == bridge.ErrFailed {
-			a.ai.RenderErrorPage(locale, authorization.ErrMissingClientId)
+			a.ai.RenderErrorPage(authorization.ErrMissingClientId)
 			return false
 		} else if serr.Type() == bridge.ErrUnsupported {
-			a.ai.RenderErrorPage(locale, authorization.ErrServerError)
+			a.ai.RenderErrorPage(authorization.ErrServerError)
 			return false
 		} else if serr.Type() == bridge.ErrServerError {
-			a.ai.RenderErrorPage(locale, authorization.ErrServerError)
+			a.ai.RenderErrorPage(authorization.ErrServerError)
 			return false
 		}
 	}
 
 	if !clnt.CanUseRedirectURI(ruri) {
-		a.ai.RenderErrorPage(locale, authorization.ErrInvalidRedirectURI)
+		a.ai.RenderErrorPage(authorization.ErrInvalidRedirectURI)
 		return false
 	}
 
@@ -252,6 +249,13 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 		return false
 	}
 
+	locales := r.FormValue("ui_locales")
+	locale, err := a.ai.ChooseLocale(locales)
+	if err != nil {
+		rh.Error(ruri, "server_error", "", state)
+		return false
+	}
+
 	req := &authorization.Request{
 		Flow:         f,
 		ClientId:     cid,
@@ -275,19 +279,31 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 			state)
 		return false
 	} else {
-		if !a.ai.ConfirmLoginSession(locale) {
+		isLoginSession, err := a.ai.ConfirmLoginSession()
+		if err != nil {
+			rh.Error(ruri, "server_error", "", state)
+			return false
+		}
+		if !isLoginSession {
 			a.ai.RedirectToLogin(req)
 			return false
 		}
 	}
 
-	if prompt.IncludeLogin(req.Prompt) && a.ai.RequestIsFromLogin() {
-		a.ai.RedirectToLogin(req)
-		return false
+	if prompt.IncludeLogin(req.Prompt) {
+		isFromLogin, err := a.ai.RequestIsFromLogin()
+		if err != nil {
+			rh.Error(ruri, "server_error", "", state)
+			return false
+		}
+		if !isFromLogin {
+			a.ai.RedirectToLogin(req)
+			return false
+		}
 	}
 
-	authTime, serr := a.ai.GetAuthTime()
-	if serr != nil {
+	authTime, err := a.ai.GetAuthTime()
+	if err != nil {
 		rh.Error(ruri, "server_error", "", state)
 		return false
 	}
@@ -304,7 +320,12 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 		policy := clnt.GetNoConsentPromptPolicy()
 		switch policy {
 		case prompt.NoConsentPromptPolicyOmitConsentIfCan:
-			info, serr := a.sdi.FindAuthInfoByUserIdAndClientId(a.ai.GetLoginUserId(), req.ClientId)
+			uid, err := a.ai.GetLoginUserId()
+			if err != nil {
+				rh.Error(ruri, "server_error", "", state)
+				return false
+			}
+			info, serr := a.sdi.FindAuthInfoByUserIdAndClientId(uid, req.ClientId)
 			if serr != nil {
 				if serr.Type() == bridge.ErrUnsupported {
 					rh.Error(ruri, "server_error", "", state)
@@ -332,7 +353,12 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter, r *http.Req
 
 func (a *AuthorizationEndpoint) CompleteRequest(w http.ResponseWriter, r *http.Request, req *authorization.Request) bool {
 	rh := authorization.ResponseHandlerForMode(req.ResponseMode, w, r)
-	info, serr := a.sdi.CreateOrUpdateAuthInfo(a.ai.GetLoginUserId(), req.ClientId, req.Scope)
+	uid, err := a.ai.GetLoginUserId()
+	if err != nil {
+		rh.Error(req.RedirectURI, "server_error", "", req.State)
+		return false
+	}
+	info, serr := a.sdi.CreateOrUpdateAuthInfo(uid, req.ClientId, req.Scope)
 	if serr != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
@@ -357,17 +383,17 @@ func (a *AuthorizationEndpoint) complete(
 func (a *AuthorizationEndpoint) completeAuthorizationCodeFlowRequest(
 	rh authorization.ResponseHandler,
 	info bridge.AuthInfoInterface, req *authorization.Request) bool {
-	code, serr := a.ai.CreateUniqueCode()
-	if serr != nil {
+	code, err := a.ai.CreateUniqueCode()
+	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
-	authTime, serr := a.ai.GetAuthTime()
-	if serr != nil {
+	authTime, err := a.ai.GetAuthTime()
+	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
-	serr = a.sdi.CreateAuthSession(info,
+	serr := a.sdi.CreateAuthSession(info,
 		req.ToSession(code, int64(a.policy.AuthSessionExpiresIn), authTime))
 	if serr != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
@@ -412,8 +438,8 @@ func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 		params["rexpires_in"] = fmt.Sprintf("%d", t.GetAccessTokenExpiresIn())
 	}
 
-	authTime, serr := a.ai.GetAuthTime()
-	if serr != nil {
+	authTime, err := a.ai.GetAuthTime()
+	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
@@ -445,20 +471,20 @@ func (a *AuthorizationEndpoint) completeHybridFlowRequest(
 	rh authorization.ResponseHandler,
 	info bridge.AuthInfoInterface, req *authorization.Request) bool {
 
-	code, serr := a.ai.CreateUniqueCode()
+	code, err := a.ai.CreateUniqueCode()
 
-	if serr != nil {
+	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 
-	authTime, serr := a.ai.GetAuthTime()
-	if serr != nil {
+	authTime, err := a.ai.GetAuthTime()
+	if err != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
 		return false
 	}
 
-	serr = a.sdi.CreateAuthSession(info,
+	serr := a.sdi.CreateAuthSession(info,
 		req.ToSession(code, int64(a.policy.AuthSessionExpiresIn), authTime))
 	if serr != nil {
 		rh.Error(req.RedirectURI, "server_error", "", req.State)
