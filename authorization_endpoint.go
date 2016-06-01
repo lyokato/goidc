@@ -578,7 +578,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				map[string]string{},
 				"this is non-signed-in-session, so, show login page."))
 
-			err = callbacks.ShowLoginScreen(req)
+			err = callbacks.ShowLoginScreen(locale, display, req)
 			if err != nil {
 
 				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
@@ -621,7 +621,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				},
 				"force-login is required by 'prompt'"))
 
-			callbacks.ShowLoginScreen(req)
+			callbacks.ShowLoginScreen(locale, display, req)
 			return false
 		}
 	}
@@ -647,7 +647,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 					"max_age": mas,
 				},
 				"'auth_time' is over 'max_age', so, show login page."))
-			callbacks.ShowLoginScreen(req)
+			callbacks.ShowLoginScreen(locale, display, req)
 			return false
 		}
 	}
