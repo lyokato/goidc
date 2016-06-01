@@ -187,10 +187,9 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
 			log.MissingParam,
 			map[string]string{
-				"param":   "response_mode",
-				"default": defaultRM,
+				"response_mode": defaultRM,
 			},
-			"'response_mode' not found so, set default for this flow."))
+			"'response_mode' not found, so, set default for this flow."))
 
 		rmode = defaultRM
 	} else {
@@ -204,7 +203,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 						"response_mode": rmode,
 						"default":       defaultRM,
 					},
-					"this 'response_mode' is invalid, so set default"))
+					"this 'response_mode' is invalid, so, set default"))
 
 				rmode = defaultRM
 
@@ -402,10 +401,10 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 					map[string]string{
 						"scope": "offline_access",
 					},
-					"'offline_access' shouldt be set with other scope other than openid."))
+					"'offline_access' should be set with other scope except for 'openid'."))
 
 				rh.Error(ruri, "invalid_request",
-					"when you request 'offline_access' scope, you should set scope other than 'openid'",
+					"when you request 'offline_access' scope, you should set other scope except for 'openid'",
 					state)
 				return false
 			}
