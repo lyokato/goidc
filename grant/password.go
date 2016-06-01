@@ -2,6 +2,7 @@ package grant
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/flow"
@@ -14,8 +15,8 @@ const TypePassword = "password"
 func Password() *GrantHandler {
 	return &GrantHandler{
 		TypePassword,
-		func(r *http.Request, c bridge.Client,
-			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+		func(r *http.Request, c bridge.Client, sdi bridge.DataInterface,
+			logger log.Logger, requestedTime time.Time) (*Response, *oer.OAuthError) {
 
 			username := r.FormValue("username")
 			if username == "" {

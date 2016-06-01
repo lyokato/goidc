@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/lyokato/goidc/bridge"
+	"github.com/lyokato/goidc/io"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
 	"github.com/lyokato/goidc/scope"
@@ -18,6 +18,7 @@ type ResourceProtector struct {
 	logger                log.Logger
 	errorURIBuilder       oer.OAuthErrorURIBuilder
 	tokenAcceptanceMethod CredentialAcceptanceMethod
+	currentTime           io.TimeBuilder
 }
 
 func NewResourceProtector(realm string) *ResourceProtector {
@@ -25,6 +26,7 @@ func NewResourceProtector(realm string) *ResourceProtector {
 		realm:                 realm,
 		logger:                log.NewDefaultLogger(),
 		tokenAcceptanceMethod: FromHeader,
+		currentTime:           io.NowBuilder(),
 	}
 }
 
@@ -34,6 +36,10 @@ func (rp *ResourceProtector) AcceptAccessToken(meth CredentialAcceptanceMethod) 
 
 func (rp *ResourceProtector) SetLogger(l log.Logger) {
 	rp.logger = l
+}
+
+func (rp *ResourceProtector) SetTimeBuilder(builder io.TimeBuilder) {
+	rp.currentTime = builder
 }
 
 func (rp *ResourceProtector) SetErrorURI(uri string) {
@@ -162,7 +168,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		}
 	}
 
-	if at.GetRefreshedAt()+at.GetAccessTokenExpiresIn() < time.Now().Unix() {
+	if at.GetRefreshedAt()+at.GetAccessTokenExpiresIn() < rp.currentTime().Unix() {
 		rp.unauthorize(w, oer.NewOAuthError(oer.ErrInvalidToken,
 			"your access_token is expired"))
 		return false

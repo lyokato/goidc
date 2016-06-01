@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/lyokato/goidc/bridge"
 	log "github.com/lyokato/goidc/log"
@@ -12,7 +13,7 @@ import (
 
 type (
 	GrantHandlerFunc func(r *http.Request, c bridge.Client,
-		sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError)
+		sdi bridge.DataInterface, logger log.Logger, requestedTime time.Time) (*Response, *oer.OAuthError)
 
 	GrantHandler struct {
 		Type string

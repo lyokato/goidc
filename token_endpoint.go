@@ -8,6 +8,7 @@ import (
 	"github.com/lyokato/goidc/assertion"
 	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/grant"
+	"github.com/lyokato/goidc/io"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
 )
@@ -35,6 +36,7 @@ type TokenEndpoint struct {
 	errorURIBuilder              oer.OAuthErrorURIBuilder
 	clientSecretAcceptanceMethod CredentialAcceptanceMethod
 	acceptClientAssertion        bool
+	currentTime                  io.TimeBuilder
 }
 
 func (te *TokenEndpoint) AcceptClientSecret(
@@ -48,6 +50,10 @@ func (te *TokenEndpoint) AcceptClientAssertion(accept bool) {
 
 func (te *TokenEndpoint) SetLogger(l log.Logger) {
 	te.logger = l
+}
+
+func (te *TokenEndpoint) SetTimeBuilder(builder io.TimeBuilder) {
+	te.currentTime = builder
 }
 
 func (te *TokenEndpoint) SetErrorURI(uri string) {
@@ -65,6 +71,7 @@ func NewTokenEndpoint(realm string) *TokenEndpoint {
 		handlers:                     make(map[string]grant.GrantHandlerFunc),
 		clientSecretAcceptanceMethod: FromHeader,
 		acceptClientAssertion:        false,
+		currentTime:                  io.NowBuilder(),
 	}
 }
 
@@ -333,7 +340,7 @@ func (te *TokenEndpoint) validateClientBySecret(w http.ResponseWriter,
 func (te *TokenEndpoint) executeGrantHandler(w http.ResponseWriter,
 	r *http.Request, sdi bridge.DataInterface,
 	client bridge.Client, gt string, h grant.GrantHandlerFunc) {
-	res, oerr := h(r, client, sdi, te.logger)
+	res, oerr := h(r, client, sdi, te.logger, te.currentTime())
 	if oerr != nil {
 		te.fail(w, oerr)
 		return

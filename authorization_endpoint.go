@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/lyokato/goidc/authorization"
 	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/flow"
 	"github.com/lyokato/goidc/id_token"
+	"github.com/lyokato/goidc/io"
 	"github.com/lyokato/goidc/log"
 	"github.com/lyokato/goidc/prompt"
 	"github.com/lyokato/goidc/response_mode"
@@ -17,21 +17,27 @@ import (
 )
 
 type AuthorizationEndpoint struct {
-	di     bridge.DataInterface
-	policy *authorization.Policy
-	logger log.Logger
+	di          bridge.DataInterface
+	policy      *authorization.Policy
+	logger      log.Logger
+	currentTime io.TimeBuilder
 }
 
 func NewAuthorizationEndpoint(di bridge.DataInterface, policy *authorization.Policy) *AuthorizationEndpoint {
 	return &AuthorizationEndpoint{
-		di:     di,
-		policy: policy,
-		logger: log.NewDefaultLogger(),
+		di:          di,
+		policy:      policy,
+		logger:      log.NewDefaultLogger(),
+		currentTime: io.NowBuilder(),
 	}
 }
 
 func (a *AuthorizationEndpoint) SetLogger(l log.Logger) {
 	a.logger = l
+}
+
+func (a *AuthorizationEndpoint) SetTimeBuilder(builder io.TimeBuilder) {
+	a.currentTime = builder
 }
 
 func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
@@ -638,7 +644,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 	}
 
 	if req.MaxAge > 0 {
-		age := time.Now().Unix() - authTime
+		age := a.currentTime().Unix() - authTime
 		if req.MaxAge < age {
 			a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
 				log.LoginRequired,
@@ -681,7 +687,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 					return false
 				}
 				if info.IsActive() && scope.Same(info.GetScope(), req.Scope) &&
-					info.GetAuthorizedAt()+int64(a.policy.ConsentOmissionPeriod) > time.Now().Unix() {
+					info.GetAuthorizedAt()+int64(a.policy.ConsentOmissionPeriod) > a.currentTime().Unix() {
 					return a.complete(callbacks, r, rh, info, req)
 				}
 			}
@@ -867,6 +873,7 @@ func (a *AuthorizationEndpoint) completeImplicitFlowRequest(
 			int64(a.policy.IdTokenExpiresIn), // expiresIn,
 			authTime, // authTime
 			at,       // access token
+			a.currentTime(),
 		)
 		if err != nil {
 			rh.Error(req.RedirectURI, "server_error", "", req.State)
@@ -958,6 +965,7 @@ func (a *AuthorizationEndpoint) completeHybridFlowRequest(
 			authTime, // authTime
 			at,       // access_token
 			code,     // code
+			a.currentTime(),
 		)
 		if err != nil {
 			rh.Error(req.RedirectURI, "server_error", "", req.State)

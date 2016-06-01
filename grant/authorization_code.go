@@ -3,6 +3,7 @@ package grant
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/lyokato/goidc/id_token"
 
@@ -19,8 +20,8 @@ const TypeAuthorizationCode = "authorization_code"
 func AuthorizationCode() *GrantHandler {
 	return &GrantHandler{
 		TypeAuthorizationCode,
-		func(r *http.Request, c bridge.Client,
-			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+		func(r *http.Request, c bridge.Client, sdi bridge.DataInterface,
+			logger log.Logger, requestedTime time.Time) (*Response, *oer.OAuthError) {
 
 			uri := r.FormValue("redirect_uri")
 			if uri == "" {
@@ -331,6 +332,7 @@ func AuthorizationCode() *GrantHandler {
 					sess.GetNonce(),
 					sess.GetIdTokenExpiresIn(),
 					sess.GetAuthTime(),
+					requestedTime,
 				)
 
 				if err != nil {

@@ -15,8 +15,8 @@ const TypeRefreshToken = "refresh_token"
 func RefreshToken() *GrantHandler {
 	return &GrantHandler{
 		TypeRefreshToken,
-		func(r *http.Request, c bridge.Client,
-			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+		func(r *http.Request, c bridge.Client, sdi bridge.DataInterface,
+			logger log.Logger, requestedTime time.Time) (*Response, *oer.OAuthError) {
 
 			rt := r.FormValue("refresh_token")
 			if rt == "" {
@@ -84,7 +84,7 @@ func RefreshToken() *GrantHandler {
 				}
 			}
 
-			if old.GetRefreshTokenExpiresIn()+old.GetCreatedAt() < time.Now().Unix() {
+			if old.GetRefreshTokenExpiresIn()+old.GetCreatedAt() < requestedTime.Unix() {
 
 				logger.Info(log.TokenEndpointLog(TypeRefreshToken,
 					log.RefreshTokenConditionMismatch,

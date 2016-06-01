@@ -3,6 +3,7 @@ package grant
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 
@@ -22,8 +23,8 @@ const TypeJWT = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 func JWT() *GrantHandler {
 	return &GrantHandler{
 		TypeJWT,
-		func(r *http.Request, c bridge.Client,
-			sdi bridge.DataInterface, logger log.Logger) (*Response, *oer.OAuthError) {
+		func(r *http.Request, c bridge.Client, sdi bridge.DataInterface,
+			logger log.Logger, requestedTime time.Time) (*Response, *oer.OAuthError) {
 
 			a := r.FormValue("assertion")
 			if a == "" {

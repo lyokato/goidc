@@ -29,10 +29,10 @@ func Hash(alg string, token string) (string, error) {
 
 func Gen(alg string, key interface{}, keyId,
 	issuer, clientId, subject, nonce string,
-	expiresIn, authTime int64) (string, error) {
+	expiresIn, authTime int64, now time.Time) (string, error) {
 
-	exp := time.Now().Unix() + expiresIn
-	iat := time.Now().Unix()
+	exp := now.Unix() + expiresIn
+	iat := now.Unix()
 
 	return rawGen(alg, key, keyId,
 		issuer, clientId, subject,
@@ -42,10 +42,10 @@ func Gen(alg string, key interface{}, keyId,
 
 func GenForImplicit(alg string, key interface{}, keyId,
 	issuer, clientId, subject, nonce string,
-	expiresIn, authTime int64, accessToken string) (string, error) {
+	expiresIn, authTime int64, accessToken string, now time.Time) (string, error) {
 
-	exp := time.Now().Unix() + expiresIn
-	iat := time.Now().Unix()
+	exp := now.Unix() + expiresIn
+	iat := now.Unix()
 
 	atHash := ""
 	var err error
@@ -62,10 +62,10 @@ func GenForImplicit(alg string, key interface{}, keyId,
 
 func GenForHybrid(alg string, key interface{}, keyId,
 	issuer, clientId, subject, nonce string,
-	expiresIn, authTime int64, accessToken, code string) (string, error) {
+	expiresIn, authTime int64, accessToken, code string, now time.Time) (string, error) {
 
-	exp := time.Now().Unix() + expiresIn
-	iat := time.Now().Unix()
+	exp := now.Unix() + expiresIn
+	iat := now.Unix()
 	atHash := ""
 	var err error
 	if accessToken != "" {
