@@ -533,7 +533,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 		Display:      display,
 		Prompt:       prmpt,
 		MaxAge:       int64(ma),
-		UILocales:    locales,
+		UILocale:     locale,
 		CodeVerifier: verifier,
 		IDTokenHint:  r.FormValue("id_token_hint"),
 		LoginHint:    r.FormValue("login_hint"),
@@ -577,7 +577,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				map[string]string{},
 				"this is non-signed-in-session, so, show login page."))
 
-			err = callbacks.ShowLoginScreen(locale, display, req)
+			err = callbacks.ShowLoginScreen(req)
 			if err != nil {
 
 				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
@@ -620,7 +620,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				},
 				"force-login is required by 'prompt'"))
 
-			callbacks.ShowLoginScreen(locale, display, req)
+			callbacks.ShowLoginScreen(req)
 			return false
 		}
 	}
@@ -646,7 +646,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 					"max_age": mas,
 				},
 				"'auth_time' is over 'max_age', so, show login page."))
-			callbacks.ShowLoginScreen(locale, display, req)
+			callbacks.ShowLoginScreen(req)
 			return false
 		}
 	}
@@ -688,7 +688,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 		case prompt.NoConsentPromptPolicyForceConsent:
 		}
 	}
-	err = callbacks.ShowConsentScreen(locale, display, clnt, req)
+	err = callbacks.ShowConsentScreen(clnt, req)
 	if err != nil {
 		a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
 			log.InterfaceError,

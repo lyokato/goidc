@@ -59,8 +59,8 @@ type (
 
 	AuthorizationCallbacks interface {
 		ShowErrorScreen(authErrType int)
-		ShowLoginScreen(locale, display string, req *authorization.Request) error
-		ShowConsentScreen(locale, display string, client Client, req *authorization.Request) error
+		ShowLoginScreen(req *authorization.Request) error
+		ShowConsentScreen(client Client, req *authorization.Request) error
 		ChooseLocale(locales string) (string, error)
 		ConfirmLoginSession() (bool, error)
 		RequestIsFromLogin() (bool, error)
