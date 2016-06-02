@@ -16,6 +16,15 @@ const (
 	NoConsentPromptPolicyOmitConsentIfCan
 )
 
+type NonePromptPolicy int
+
+const (
+	NonePromptPolicyForbidden NonePromptPolicy = iota
+	NonePromptPolicyAllowWithLoginSession
+	NonePromptPolicyAllowIfLoginHintMatched
+	NonePromptPolicyAllowIfIdTokenHintMatched
+)
+
 func Split(prompts string) []string {
 	return strings.Split(prompts, " ")
 }
