@@ -20,6 +20,7 @@ type (
 		CanUseRedirectURI(uri string) bool
 		GetAssertionKey(alg, kid string) interface{}
 		GetNoConsentPromptPolicy() prompt.NoConsentPromptPolicy
+		GetNonePromptPolicy() prompt.NonePromptPolicy
 	}
 
 	AuthInfo interface {
@@ -68,6 +69,7 @@ type (
 		GetLoginUserId() (int64, error)
 		CreateAuthorizationCode() (string, error)
 		Continue() (*authorization.Request, error)
+		LoginUserIsMatchedToSubject(sub string) (bool, error)
 	}
 
 	DataInterface interface {

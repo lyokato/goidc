@@ -67,7 +67,7 @@ type (
 		Prompt       string     `json:"prompt"`
 		MaxAge       int64      `json:"max_age"`
 		UILocale     string     `json:"ui_locale"`
-		IDTokenHint  string     `json:"id_token_hint"`
+		IdTokenHint  string     `json:"id_token_hint"`
 		LoginHint    string     `json:"login_hint"`
 	}
 

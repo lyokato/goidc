@@ -86,6 +86,10 @@ func (c *TestClient) GetNoConsentPromptPolicy() prompt.NoConsentPromptPolicy {
 	return prompt.NoConsentPromptPolicyForceConsent
 }
 
+func (c *TestClient) GetNonePromptPolicy() prompt.NonePromptPolicy {
+	return prompt.NonePromptPolicyForbidden
+}
+
 func (c *TestClient) GetAssertionKey(alg, kid string) interface{} {
 	return []byte(c.secret)
 }

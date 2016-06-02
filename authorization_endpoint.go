@@ -1,10 +1,12 @@
 package goidc
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/lyokato/goidc/authorization"
 	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/flow"
@@ -541,23 +543,286 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 		MaxAge:       int64(ma),
 		UILocale:     locale,
 		CodeVerifier: verifier,
-		IDTokenHint:  r.FormValue("id_token_hint"),
+		IdTokenHint:  r.FormValue("id_token_hint"),
 		LoginHint:    r.FormValue("login_hint"),
 	}
 
 	if req.Prompt == prompt.None {
 
-		a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
-			log.InvalidPrompt,
-			map[string]string{
-				"prompt": "none",
-			},
-			"this 'prompt' not supported"))
+		policy := clnt.GetNonePromptPolicy()
 
-		rh.Error(ruri, "interaction_required",
-			"not allowed to use 'prompt:none'",
-			state)
-		return false
+		switch policy {
+
+		case prompt.NonePromptPolicyForbidden:
+
+			a.logger.Debug(log.AuthorizationEndpointLog(r.URL.Path,
+				log.InvalidPrompt,
+				map[string]string{
+					"prompt": "none",
+				},
+				"this 'prompt' not supported"))
+
+			rh.Error(ruri, "interaction_required",
+				"not allowed to use 'prompt:none'",
+				state)
+			return false
+
+		case prompt.NonePromptPolicyAllowWithLoginSession:
+
+			isLoginSession, err := callbacks.ConfirmLoginSession()
+
+			if err != nil {
+
+				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
+					log.InterfaceError,
+					map[string]string{
+						"method": "ConfirmLoginSession",
+					},
+					err.Error()))
+
+				rh.Error(ruri, "server_error", "", state)
+				return false
+			}
+
+			if !isLoginSession {
+				rh.Error(ruri, "login_required", "", state)
+				return false
+			}
+
+			uid, err := callbacks.GetLoginUserId()
+
+			if err != nil {
+				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
+					log.InterfaceError,
+					map[string]string{
+						"method": "GetLoginUserId",
+					},
+					err.Error()))
+				rh.Error(ruri, "server_error", "", state)
+				return false
+			}
+
+			info, serr := a.di.FindAuthInfoByUserIdAndClientId(uid, req.ClientId)
+			if serr != nil {
+				if serr.Type() == bridge.ErrUnsupported {
+					rh.Error(ruri, "server_error", "", state)
+					return false
+				} else if serr.Type() == bridge.ErrServerError {
+					rh.Error(ruri, "server_error", "", state)
+					return false
+				} else {
+					// not found auth info
+					rh.Error(ruri, "consent_required", "", state)
+					return false
+				}
+			} else {
+				if info == nil {
+					rh.Error(ruri, "server_error", "", state)
+					return false
+				}
+				if info.IsActive() && scope.Same(info.GetScope(), req.Scope) &&
+					info.GetAuthorizedAt()+int64(a.policy.ConsentOmissionPeriod) > a.currentTime().Unix() {
+					return a.complete(callbacks, r, rh, info, req)
+				} else {
+					rh.Error(ruri, "consent_required", "", state)
+					return false
+				}
+			}
+		case prompt.NonePromptPolicyAllowIfLoginHintMatched:
+
+			if req.LoginHint == "" {
+				rh.Error(ruri, "invalid_request",
+					"in case you pass 'none' for 'prompt', 'login_hint' is required.",
+					state)
+				return false
+			}
+
+			isLoginSession, err := callbacks.ConfirmLoginSession()
+
+			if err != nil {
+
+				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
+					log.InterfaceError,
+					map[string]string{
+						"method": "ConfirmLoginSession",
+					},
+					err.Error()))
+
+				rh.Error(ruri, "server_error", "", state)
+				return false
+			}
+
+			if !isLoginSession {
+				rh.Error(ruri, "login_required", "", state)
+				return false
+			}
+
+			matched, err := callbacks.LoginUserIsMatchedToSubject(req.LoginHint)
+			if err != nil {
+				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
+					log.InterfaceError,
+					map[string]string{
+						"method": "LoginUserIsMatchedToHint",
+					},
+					err.Error()))
+				rh.Error(ruri, "server_error", "", state)
+				return false
+			}
+
+			if !matched {
+				rh.Error(ruri, "invalid_request",
+					"'login_hint' doesn't match to current login user",
+					state)
+				return false
+			}
+
+			uid, err := callbacks.GetLoginUserId()
+
+			if err != nil {
+				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
+					log.InterfaceError,
+					map[string]string{
+						"method": "GetLoginUserId",
+					},
+					err.Error()))
+				rh.Error(ruri, "server_error", "", state)
+				return false
+			}
+
+			info, serr := a.di.FindAuthInfoByUserIdAndClientId(uid, req.ClientId)
+			if serr != nil {
+				if serr.Type() == bridge.ErrUnsupported {
+					rh.Error(ruri, "server_error", "", state)
+					return false
+				} else if serr.Type() == bridge.ErrServerError {
+					rh.Error(ruri, "server_error", "", state)
+					return false
+				} else {
+					// not found auth info
+					rh.Error(ruri, "consent_required", "", state)
+					return false
+				}
+			} else {
+				if info == nil {
+					rh.Error(ruri, "server_error", "", state)
+					return false
+				}
+				if info.IsActive() && scope.Same(info.GetScope(), req.Scope) &&
+					info.GetAuthorizedAt()+int64(a.policy.ConsentOmissionPeriod) > a.currentTime().Unix() {
+					return a.complete(callbacks, r, rh, info, req)
+				} else {
+					rh.Error(ruri, "consent_required", "", state)
+					return false
+				}
+			}
+		case prompt.NonePromptPolicyAllowIfIdTokenHintMatched:
+
+			if req.IdTokenHint == "" {
+				rh.Error(ruri, "invalid_request",
+					"in case you pass 'none' for 'prompt', 'id_token_hint' is required.",
+					state)
+				return false
+			}
+
+			t, jwt_err := jwt.Parse(req.IdTokenHint, func(t *jwt.Token) (interface{}, error) {
+				return clnt.GetIdTokenKey(), nil
+			})
+
+			if jwt_err != nil {
+				rh.Error(ruri, "invalid_request", "'id_token_hint' is invalid.",
+					state)
+				return false
+			}
+
+			if !t.Valid {
+				rh.Error(ruri, "invalid_request", "'id_token_hint' is invalid.",
+					state)
+			}
+			exp_exists := false
+			switch num := t.Claims["exp"].(type) {
+			case json.Number:
+				if _, err = num.Int64(); err == nil {
+					exp_exists = true
+				}
+			case float64:
+				exp_exists = true
+			}
+
+			if !exp_exists {
+				rh.Error(ruri, "invalid_request",
+					"'exp' not found in 'id_token_hint'.",
+					state)
+				return false
+			}
+			sub := ""
+			if found, ok := t.Claims["sub"].(string); ok {
+				sub = found
+			} else {
+				rh.Error(ruri, "invalid_request",
+					"'sub' not found in 'id_token_hint'.",
+					state)
+				return false
+			}
+
+			matched, err := callbacks.LoginUserIsMatchedToSubject(sub)
+			if err != nil {
+				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
+					log.InterfaceError,
+					map[string]string{
+						"method": "LoginUserIsMatchedToHint",
+					},
+					err.Error()))
+				rh.Error(ruri, "server_error", "", state)
+				return false
+			}
+
+			if !matched {
+				rh.Error(ruri, "invalid_request",
+					"'id_token_hint' doesn't match to current login user",
+					state)
+				return false
+			}
+
+			uid, err := callbacks.GetLoginUserId()
+
+			if err != nil {
+				a.logger.Error(log.AuthorizationEndpointLog(r.URL.Path,
+					log.InterfaceError,
+					map[string]string{
+						"method": "GetLoginUserId",
+					},
+					err.Error()))
+				rh.Error(ruri, "server_error", "", state)
+				return false
+			}
+
+			info, serr := a.di.FindAuthInfoByUserIdAndClientId(uid, req.ClientId)
+			if serr != nil {
+				if serr.Type() == bridge.ErrUnsupported {
+					rh.Error(ruri, "server_error", "", state)
+					return false
+				} else if serr.Type() == bridge.ErrServerError {
+					rh.Error(ruri, "server_error", "", state)
+					return false
+				} else {
+					// not found auth info
+					rh.Error(ruri, "consent_required", "", state)
+					return false
+				}
+			} else {
+				if info == nil {
+					rh.Error(ruri, "server_error", "", state)
+					return false
+				}
+				if info.IsActive() && scope.Same(info.GetScope(), req.Scope) &&
+					info.GetAuthorizedAt()+int64(a.policy.ConsentOmissionPeriod) > a.currentTime().Unix() {
+					return a.complete(callbacks, r, rh, info, req)
+				} else {
+					rh.Error(ruri, "consent_required", "", state)
+					return false
+				}
+			}
+		}
 
 	} else {
 
