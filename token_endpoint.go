@@ -162,7 +162,8 @@ func (te *TokenEndpoint) validateClientByAssertion(w http.ResponseWriter,
 	t, jwt_err := jwt.Parse(ca, func(t *jwt.Token) (interface{}, error) {
 
 		cid := ""
-		if found, ok := t.Claims["sub"].(string); ok {
+		claims := t.Claims.(jwt.MapClaims)
+		if found, ok := claims["sub"].(string); ok {
 			cid = found
 		} else {
 

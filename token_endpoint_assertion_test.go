@@ -35,11 +35,14 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	})
 
 	key := client.GetAssertionKey("", "")
-	token := jwt.New(jwt.SigningMethodHS256)
-	token.Claims["aud"] = "http://example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	token.Claims["sub"] = "client_id_01"
-	token.Claims["exp"] = time.Now().Unix() + 60*60*24
+	//token := jwt.New(jwt.SigningMethodHS256)
+	claims := jwt.MapClaims{
+		"aud": "http://example.org/",
+		"iss": "http://client.example.org/",
+		"sub": "client_id_01",
+		"exp": time.Now().Unix() + 60*60*24,
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	assertion, err := token.SignedString(key)
 	if err != nil {
@@ -76,15 +79,15 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 			"sub": th.NewStrMatcher("0"),
 			"aud": th.NewStrMatcher("client_id_01"),
 		})
-
 	// with valid nbf
 	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
-	token.Claims["aud"] = "http://example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	token.Claims["sub"] = "client_id_01"
-	token.Claims["exp"] = time.Now().Unix() + 60*60*24
-	token.Claims["nbf"] = time.Now().Unix() - 60*60*24
+	claims = token.Claims.(jwt.MapClaims)
+	claims["aud"] = "http://example.org/"
+	claims["iss"] = "http://client.example.org/"
+	claims["sub"] = "client_id_01"
+	claims["exp"] = time.Now().Unix() + 60*60*24
+	claims["nbf"] = time.Now().Unix() - 60*60*24
 
 	assertion, err = token.SignedString(key)
 	if err != nil {
@@ -133,9 +136,10 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
 	//token.Claims["aud"] = "http://unknown.example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	token.Claims["sub"] = "client_id_01"
-	token.Claims["exp"] = time.Now().Unix() + 60*60*24
+	claims = token.Claims.(jwt.MapClaims)
+	claims["iss"] = "http://client.example.org/"
+	claims["sub"] = "client_id_01"
+	claims["exp"] = time.Now().Unix() + 60*60*24
 
 	assertion, err = token.SignedString(key)
 	if err != nil {
@@ -167,10 +171,11 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	// INVALID aud
 	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
-	token.Claims["aud"] = "http://unknown.example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	token.Claims["sub"] = "client_id_01"
-	token.Claims["exp"] = time.Now().Unix() + 60*60*24
+	claims = token.Claims.(jwt.MapClaims)
+	claims["aud"] = "http://unknown.example.org/"
+	claims["iss"] = "http://client.example.org/"
+	claims["sub"] = "client_id_01"
+	claims["exp"] = time.Now().Unix() + 60*60*24
 
 	assertion, err = token.SignedString(key)
 	if err != nil {
@@ -202,9 +207,10 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	// exp NOT FOUND
 	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
-	token.Claims["aud"] = "http://example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	token.Claims["sub"] = "client_id_01"
+	claims = token.Claims.(jwt.MapClaims)
+	claims["aud"] = "http://example.org/"
+	claims["iss"] = "http://client.example.org/"
+	claims["sub"] = "client_id_01"
 
 	assertion, err = token.SignedString(key)
 	if err != nil {
@@ -235,10 +241,11 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 
 	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
-	token.Claims["aud"] = "http://example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	token.Claims["sub"] = "client_id_01"
-	token.Claims["exp"] = time.Now().Unix() - 60*60*24
+	claims = token.Claims.(jwt.MapClaims)
+	claims["aud"] = "http://example.org/"
+	claims["iss"] = "http://client.example.org/"
+	claims["sub"] = "client_id_01"
+	claims["exp"] = time.Now().Unix() - 60*60*24
 
 	assertion, err = token.SignedString(key)
 	if err != nil {
@@ -270,10 +277,11 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	// include nbf, but it's future
 	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
-	token.Claims["aud"] = "http://example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	token.Claims["sub"] = "client_id_01"
-	token.Claims["nbf"] = time.Now().Unix() + 60*60*24
+	claims = token.Claims.(jwt.MapClaims)
+	claims["aud"] = "http://example.org/"
+	claims["iss"] = "http://client.example.org/"
+	claims["sub"] = "client_id_01"
+	claims["nbf"] = time.Now().Unix() + 60*60*24
 
 	assertion, err = token.SignedString(key)
 	if err != nil {
@@ -305,10 +313,11 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	// sub not found
 	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
-	token.Claims["aud"] = "http://unknown.example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	//token.Claims["sub"] = "client_id_01"
-	token.Claims["exp"] = time.Now().Unix() + 60*60*24
+	claims = token.Claims.(jwt.MapClaims)
+	claims["aud"] = "http://unknown.example.org/"
+	claims["iss"] = "http://client.example.org/"
+	//claims["sub"] = "client_id_01"
+	claims["exp"] = time.Now().Unix() + 60*60*24
 
 	assertion, err = token.SignedString(key)
 	if err != nil {
@@ -340,10 +349,11 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	// invalid sub
 	key = client.GetAssertionKey("", "")
 	token = jwt.New(jwt.SigningMethodHS256)
-	token.Claims["aud"] = "http://unknown.example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	token.Claims["sub"] = "unknown_client_id"
-	token.Claims["exp"] = time.Now().Unix() + 60*60*24
+	claims = token.Claims.(jwt.MapClaims)
+	claims["aud"] = "http://unknown.example.org/"
+	claims["iss"] = "http://client.example.org/"
+	claims["sub"] = "unknown_client_id"
+	claims["exp"] = time.Now().Unix() + 60*60*24
 
 	assertion, err = token.SignedString(key)
 	if err != nil {
@@ -374,10 +384,11 @@ func TestTokenEndpointClientAssertion(t *testing.T) {
 	// invalid key
 	key = []byte("foobarbuz")
 	token = jwt.New(jwt.SigningMethodHS256)
-	token.Claims["aud"] = "http://example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	token.Claims["sub"] = "client_id_01"
-	token.Claims["exp"] = time.Now().Unix() + 60*60*24
+	claims = token.Claims.(jwt.MapClaims)
+	claims["aud"] = "http://example.org/"
+	claims["iss"] = "http://client.example.org/"
+	claims["sub"] = "client_id_01"
+	claims["exp"] = time.Now().Unix() + 60*60*24
 
 	assertion, err = token.SignedString(key)
 	if err != nil {

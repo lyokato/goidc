@@ -739,7 +739,8 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 					state)
 			}
 			exp_exists := false
-			switch num := t.Claims["exp"].(type) {
+			claims := t.Claims.(jwt.MapClaims)
+			switch num := claims["exp"].(type) {
 			case json.Number:
 				if _, err = num.Int64(); err == nil {
 					exp_exists = true
@@ -755,7 +756,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				return false
 			}
 			sub := ""
-			if found, ok := t.Claims["sub"].(string); ok {
+			if found, ok := claims["sub"].(string); ok {
 				sub = found
 			} else {
 				rh.Error(ruri, "invalid_request",

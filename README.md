@@ -1,5 +1,5 @@
 # goidc
-Golang OpenID Connect Provider Framework
+Golang OpenID Connect Provider Framework (NOT STABLE YET)
 
 [![wercker status](https://app.wercker.com/status/1d1b23bfc5d6c80972e4b7aa66e8e6e4/m "wercker status")](https://app.wercker.com/project/bykey/1d1b23bfc5d6c80972e4b7aa66e8e6e4)
 
@@ -22,9 +22,9 @@ func main() {
     endpoint.Support(grant.AuthorizationCode())
     endpoint.Support(grant.RefreshToken())
 
-    sdi := my_data_interface.New()
+    di := my_data_interface.New()
 
-    http.HandleFunc("/token", endpoint.Handler(sdi))
+    http.HandleFunc("/token", endpoint.Handler(di))
     http.ListenAndServe(":8080", nil)
 }
 ```
@@ -37,23 +37,20 @@ func main() {
 **goidc**'s **TokenEndpoint** provides you a golang's **http.HandlerFunc** with it's **Handler** method.
 So, it's easy to combine with your favorite Web Application Framework.
 
-For instance, if you like [gin](https://github.com/gin-gonic/gin)
+For instance, if you'd like to use [gin](https://github.com/gin-gonic/gin)
 
 ```go
 g := gin.Default()
-g.POST("/token", gin.WrapF(endpoint.Handler(sdi)))
+g.POST("/token", gin.WrapF(endpoint.Handler(di)))
 ```
 
 ## DataInterface
 
-### ClientInterface
-### AuthInfoInterface
-### OAuthTokenInterface
 
 ## ProtectedResource Endpoint
 
 goidc provids ResourceProtector which supports
-to check AccessToken validity on your API.
+to check AccessToken validity on your API endpoint.
 
 it has **Validate** method
 
@@ -73,20 +70,20 @@ func main() {
     realm := "api.example.org"
     rp := goidc.NewResourceProtector(realm)
 
-    sdi := my_data_interface.New()
+    di := my_data_interface.New()
 
     r := gin.Default()  
 
     r.Use(func(c *gin.Context){
 
-        if rp.Validate(c.Writer, c.Request, sdi) {
+        if rp.Validate(c.Writer, c.Request, di) {
             c.Next()
         } else {
             c.Abort()
         }
     })
 
-    r.GET("/user_info", my_controller.GetUserInfo)
+    r.GET("/userinfo", my_controller.GetUserInfo)
     r.Run()
 }
 ```
@@ -108,28 +105,52 @@ func GetUserInfo(c *gin.Context) {
 }
 ```
 
-As you see, if validation is succeeded,
-ResourceProtector put three values into HTTP header
+So, it means, you can use ResourceProtector to check access token,
+and if validation is succeeded, ResourceProtector put three values into HTTP header, 
+and pass the request to handler matched to request url's path.
+
+There are three headers
 
 - X-OAUTH-USER-ID: user_id associated with the access_token
 - X-OAUTH-CLIENT-ID: client_id associated with the access_token
 - X-OAUTH-SCOPE: scope value associated with the access_token
 
+And if token is invalid, ResourceProtector automatically returns error to client in proper manner.
+
 ### SCOPE VALIDATION
 
 However, in this flow, ResourceProtector put the scope into header,
-but not to confirm this scope matches the condition to access associated API endpoint(path).
+but doesn't confirm this scope matches the condition to access associated API endpoint(path).
 You need to check it in your handler.
+
+```go
+package my_controller
+
+func GetUserInfo(c *gin.Context) {
+
+  client_id := c.Request.Header("X-OAUTH-CLIENT-ID")
+  scopes := c.Request.Header("X-OAUTH-SCOPE")
+
+  if !scopeIncludes(scopes, "profile") {
+      // return error 
+  }
+
+  uid_string := c.Request.Header("X-OAUTH-USER-ID")
+  user_id, err := strconv.Atoi(uid_string)
+
+  ...
+}
+```
 
 If you hope farther automated validation, There is **ValidateWithScopes** methods.
 
 ```go
 pathScopeMap := map[string][]string {
-  "/user_info", []string{"profile", "email"},
+  "/userinfo", []string{"profile", "email"},
   "/picture", []string{"picture"},
 }
 
-if rp.ValidateWithScopes(c.Writer, c.Request, sdi, pathScopeMap) {
+if rp.ValidateWithScopes(c.Writer, c.Request, di, pathScopeMap) {
     c.Next()
 } else {
     c.Abort()
@@ -190,4 +211,42 @@ And it returns response like this.
         }
     ]
 }
+```
+
+## AuthorizationEndpoint
+
+goidc also support features for AuthorizationEndpoint.
+This is also **gin** example.
+Prepare AuthorizationEndpoit with **goidc.NewAuthorizationEndpoint**, 
+And call **HandleRequest**, **CompleteRequest**, **CancelRequest**,
+with object which implements **AuthorizationCallbacks** interface
+
+```go 
+policy := authorization.DefaultPolicy()
+policy.MaxMaxAge = 60
+policy.MinMaxAge = 60
+policy.IdTokenExpiresIn = 3600
+policy.ConsentOmissionPeriod = 3600
+policy.AuthSessionExpiresIn = 60
+
+di := my_data_interface.New()
+ai := goidc.NewAuthorizationEndpoint(di, policy)
+
+r.GET("/authorize", func(c *gin.Context) {
+  ai.HandleRequest(c.Writer, c.Request,
+    my_authorization_callbaskc.New(c))
+})
+r.POST("/authorize", func(c *gin.Context) {
+  ai.HandleRequest(c.Writer, c.Request,
+    my_authorization_callbaskc.New(c))
+})
+r.POST("/authorized", func(c *gin.Context) {
+  ai.CompleteRequest(c.Writer, c.Request,
+    my_authorization_callbaskc.New(c))
+})
+
+r.POST("/unauthorized", func(c *gin.Context) {
+  ai.CancelRequest(c.Writer, c.Request,
+    my_authorization_callbaskc.New(c))
+})
 ```
