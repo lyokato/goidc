@@ -93,24 +93,25 @@ func rawGen(alg string, key interface{}, keyId,
 	}
 
 	token := jwt.New(meth)
-	token.Claims["iss"] = issuer
-	token.Claims["aud"] = clientId
-	token.Claims["sub"] = subject
-	token.Claims["exp"] = expiredAt
+	claims := token.Claims.(jwt.MapClaims)
+	claims["iss"] = issuer
+	claims["aud"] = clientId
+	claims["sub"] = subject
+	claims["exp"] = expiredAt
 	if nonce != "" {
-		token.Claims["nonce"] = nonce
+		claims["nonce"] = nonce
 	}
 	if issuedAt >= 0 {
-		token.Claims["iat"] = issuedAt
+		claims["iat"] = issuedAt
 	}
 	if authTime >= 0 {
-		token.Claims["auth_time"] = authTime
+		claims["auth_time"] = authTime
 	}
 	if atHash != "" {
-		token.Claims["at_hash"] = atHash
+		claims["at_hash"] = atHash
 	}
 	if cHash != "" {
-		token.Claims["c_hash"] = cHash
+		claims["c_hash"] = cHash
 	}
 	if keyId != "" {
 		token.Header["kid"] = keyId

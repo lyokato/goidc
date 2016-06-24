@@ -155,7 +155,8 @@ oqxJsRC0l1ybcs6o0QIDAQAB
 	}
 
 	for k, matcher := range idTokenValues {
-		rv, exists := idt.Claims[k]
+		claims := idt.Claims.(jwt.MapClaims)
+		rv, exists := claims[k]
 		if !exists {
 			t.Errorf("IDToken:Calim:%s not found: ", k)
 			continue

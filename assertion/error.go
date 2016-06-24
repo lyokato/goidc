@@ -116,7 +116,9 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 	iat_exists := false
 	jti := ""
 	var er error
-	switch num := t.Claims["exp"].(type) {
+
+	claims := t.Claims.(jwt.MapClaims)
+	switch num := claims["exp"].(type) {
 	case json.Number:
 		if exp, er = num.Int64(); er == nil {
 			exp_exists = true
@@ -137,7 +139,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 			"'exp' parameter not found in assertion")
 	}
 
-	switch num := t.Claims["iat"].(type) {
+	switch num := claims["iat"].(type) {
 	case json.Number:
 		if iat, er = num.Int64(); er == nil {
 			iat_exists = true
@@ -150,7 +152,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 		iat = -1
 	}
 
-	if found, ok := t.Claims["jti"].(string); ok {
+	if found, ok := claims["jti"].(string); ok {
 		jti = found
 	}
 
@@ -203,7 +205,7 @@ func HandleAssertionError(a string, t *jwt.Token, jwt_err error,
 		}
 	}
 
-	aud, ok := t.Claims["aud"].(string)
+	aud, ok := claims["aud"].(string)
 	if !ok {
 
 		logger.Debug(log.TokenEndpointLog(gt,

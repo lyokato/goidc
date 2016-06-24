@@ -63,7 +63,8 @@ func JWT() *GrantHandler {
 			if oerr != nil {
 				return nil, oerr
 			}
-			sub, ok := t.Claims["sub"].(string)
+			claims := t.Claims.(jwt.MapClaims)
+			sub, ok := claims["sub"].(string)
 			if !ok {
 
 				logger.Debug(log.TokenEndpointLog(TypeJWT,

@@ -22,10 +22,12 @@ func TestTokenEndpointJWT(t *testing.T) {
 
 	key := client.GetAssertionKey("", "")
 	token := jwt.New(jwt.SigningMethodHS256)
-	token.Claims["aud"] = "http://example.org/"
-	token.Claims["iss"] = "http://client.example.org/"
-	token.Claims["sub"] = "user01"
-	token.Claims["exp"] = time.Now().Unix() + 60*60*24
+	claims := token.Claims.(jwt.MapClaims)
+	claims["aud"] = "http://example.org/"
+	claims["iss"] = "http://client.example.org/"
+	claims["sub"] = "user01"
+	claims["exp"] = time.Now().Unix() + 60*60*24
+	token.Claims = claims
 	assertion, err := token.SignedString(key)
 	if err != nil {
 		t.Errorf("failed to sign jwt, %s", err)
