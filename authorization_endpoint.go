@@ -154,7 +154,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 			map[string]string{
 				"param": "response_type",
 			},
-			"'redirect_uri' not found in request."))
+			"'response_type' not found in request."))
 
 		authorization.ResponseHandlerForMode(rmode, w, r).Error(
 			ruri, "invalid_request", "missing 'response_type'", state)
