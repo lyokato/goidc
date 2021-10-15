@@ -24,7 +24,7 @@ func main() {
 
     di := my_data_interface.New()
 
-    http.HandleFunc("/token", endpoint.Handler(di))
+    http.HandlerFunc("/token", endpoint.Handler(di))
     http.ListenAndServe(":8080", nil)
 }
 ```
@@ -186,7 +186,7 @@ oqxJsRC0l1ybcs6o0QIDAQAB
     // or path of PEM file
     je.AddFromFile("my_pub_key_2", pemFilePath)
 
-    http.HandleFunc("/cert", je.Handler())
+    http.HandlerFunc("/cert", je.Handler())
     http.ListenAndServe(":8080", nil)
 }
 ```
