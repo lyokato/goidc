@@ -315,7 +315,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 				"'max_age' is not an integer value."))
 
 			rh.Error(ruri, "invalid_request",
-				fmt.Sprintf("'max_age' should be integer", mas),
+				fmt.Sprintf("'max_age' should be integer: '%s'", mas),
 				state)
 			return false
 		}
