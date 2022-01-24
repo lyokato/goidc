@@ -228,6 +228,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 					ruri, "invalid_request",
 					fmt.Sprintf("unknown 'response_mode': '%s'", rmode),
 					state)
+				return false
 			}
 		}
 	}
@@ -259,6 +260,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 					ruri, "invalid_request",
 					fmt.Sprintf("'response_mode:%s' isn't allowed for 'response_type:%s'", rmode, rt),
 					state)
+				return false
 			}
 		}
 	}
@@ -737,6 +739,7 @@ func (a *AuthorizationEndpoint) HandleRequest(w http.ResponseWriter,
 			if !t.Valid {
 				rh.Error(ruri, "invalid_request", "'id_token_hint' is invalid.",
 					state)
+				return false
 			}
 			exp_exists := false
 			claims := t.Claims.(jwt.MapClaims)
