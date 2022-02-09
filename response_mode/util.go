@@ -13,9 +13,9 @@ func Validate(mode string) bool {
 func securityLevelForMode(mode string) int {
 	switch mode {
 	case Query:
-		return 1
-	case Fragment:
 		return 0
+	case Fragment:
+		return 1
 	case FormPost:
 		return 2
 	}
