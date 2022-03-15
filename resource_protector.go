@@ -168,6 +168,15 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	}
 
 	if at.GetRefreshedAt()+at.GetAccessTokenExpiresIn() < rp.currentTime().Unix() {
+		rp.logger.Info(log.TokenEndpointLog(r.URL.Path,
+			log.NoEnabledAuthInfo,
+			map[string]string{
+				"access_token":            rt,
+				"refreshed_at":            fmt.Sprintf("%d", at.GetRefreshedAt()),
+				"access_token_expires_in": fmt.Sprintf("%d", at.GetAccessTokenExpiresIn()),
+				"current_time":            fmt.Sprintf("%d", rp.currentTime().Unix()),
+			}, "your access_token is expired."))
+
 		rp.unauthorize(w, oer.NewOAuthError(oer.ErrInvalidToken,
 			"your access_token is expired"))
 		return false
