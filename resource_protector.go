@@ -186,7 +186,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		if err.Type() == bridge.ErrFailed {
 
-			rp.logger.Debug(log.TokenEndpointLog(r.URL.Path,
+			rp.logger.Info(log.TokenEndpointLog(r.URL.Path,
 				log.NoEnabledAuthInfo,
 				map[string]string{
 					"method":       "FindActiveAuthInfoById",
