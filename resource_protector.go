@@ -118,7 +118,6 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	}
 
 	at, err := sdi.FindOAuthTokenByAccessToken(rt)
-
 	if err != nil {
 		if err.Type() == bridge.ErrFailed {
 
@@ -137,7 +136,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path,
 				log.InterfaceUnsupported,
-				map[string]string{"method": "FindAccessTokenByAccessToken"},
+				map[string]string{"method": "FindOAuthTokenByAccessToken"},
 				"the method returns 'unsupported' error."))
 
 			w.WriteHeader(http.StatusInternalServerError)
@@ -148,7 +147,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 			rp.logger.Warn(log.ProtectedResourceLog(r.URL.Path,
 				log.InterfaceServerError,
 				map[string]string{
-					"method":       "FindAccessTokenByAccessToken",
+					"method":       "FindOAuthTokenByAccessToken",
 					"access_token": rt,
 				},
 				"interface returned ServerError."))
@@ -160,7 +159,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		if at == nil {
 
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path, log.InterfaceError,
-				map[string]string{"method": "FindAccessTokenByAccessToken"},
+				map[string]string{"method": "FindOAuthTokenByAccessToken"},
 				"the method returns (nil, nil)."))
 
 			w.WriteHeader(http.StatusInternalServerError)
