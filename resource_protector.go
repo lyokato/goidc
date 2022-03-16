@@ -118,7 +118,6 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	}
 
 	at, err := sdi.FindOAuthTokenByAccessToken(rt)
-
 	if err != nil {
 		if err.Type() == bridge.ErrFailed {
 
@@ -137,7 +136,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path,
 				log.InterfaceUnsupported,
-				map[string]string{"method": "FindAccessTokenByAccessToken"},
+				map[string]string{"method": "FindOAuthTokenByAccessToken"},
 				"the method returns 'unsupported' error."))
 
 			w.WriteHeader(http.StatusInternalServerError)
@@ -148,7 +147,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 			rp.logger.Warn(log.ProtectedResourceLog(r.URL.Path,
 				log.InterfaceServerError,
 				map[string]string{
-					"method":       "FindAccessTokenByAccessToken",
+					"method":       "FindOAuthTokenByAccessToken",
 					"access_token": rt,
 				},
 				"interface returned ServerError."))
@@ -160,7 +159,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 		if at == nil {
 
 			rp.logger.Error(log.ProtectedResourceLog(r.URL.Path, log.InterfaceError,
-				map[string]string{"method": "FindAccessTokenByAccessToken"},
+				map[string]string{"method": "FindOAuthTokenByAccessToken"},
 				"the method returns (nil, nil)."))
 
 			w.WriteHeader(http.StatusInternalServerError)
@@ -169,6 +168,15 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	}
 
 	if at.GetRefreshedAt()+at.GetAccessTokenExpiresIn() < rp.currentTime().Unix() {
+		rp.logger.Info(log.TokenEndpointLog(r.URL.Path,
+			log.NoEnabledAuthInfo,
+			map[string]string{
+				"access_token":            rt,
+				"refreshed_at":            fmt.Sprintf("%d", at.GetRefreshedAt()),
+				"access_token_expires_in": fmt.Sprintf("%d", at.GetAccessTokenExpiresIn()),
+				"current_time":            fmt.Sprintf("%d", rp.currentTime().Unix()),
+			}, "your access_token is expired."))
+
 		rp.unauthorize(w, oer.NewOAuthError(oer.ErrInvalidToken,
 			"your access_token is expired"))
 		return false
@@ -178,7 +186,7 @@ func (rp *ResourceProtector) Validate(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		if err.Type() == bridge.ErrFailed {
 
-			rp.logger.Debug(log.TokenEndpointLog(r.URL.Path,
+			rp.logger.Info(log.TokenEndpointLog(r.URL.Path,
 				log.NoEnabledAuthInfo,
 				map[string]string{
 					"method":       "FindActiveAuthInfoById",
