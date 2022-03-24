@@ -32,14 +32,27 @@ type (
 	}
 )
 
-func (t ResponseParamType) Connector() string {
+func (t ResponseParamType) Connector(uri string) string {
+	u, _ := url.Parse(uri)
 	switch t {
 	case ParamTypeQuery:
-		return "?"
+		if len(u.RawQuery) == 0 {
+			return "?"
+		} else {
+			return "&"
+		}
 	case ParamTypeFragment:
-		return "#"
+		if len(u.Fragment) == 0 {
+			return "#"
+		} else {
+			return "&"
+		}
 	default:
-		return "?"
+		if len(u.RawQuery) == 0 {
+			return "?"
+		} else {
+			return "&"
+		}
 	}
 }
 
@@ -69,7 +82,7 @@ func (h *RedirectResponseHandler) Success(uri string, params map[string]string) 
 	for k, v := range params {
 		values.Add(k, v)
 	}
-	u := fmt.Sprintf("%s%s%s", uri, h.pt.Connector(), values.Encode())
+	u := fmt.Sprintf("%s%s%s", uri, h.pt.Connector(uri), values.Encode())
 	http.Redirect(h.w, h.r, u, http.StatusFound)
 }
 
@@ -82,7 +95,7 @@ func (h *RedirectResponseHandler) Error(uri, typ, desc, state string) {
 	if state != "" {
 		params.Add("state", state)
 	}
-	u := fmt.Sprintf("%s%s%s", uri, h.pt.Connector(), params.Encode())
+	u := fmt.Sprintf("%s%s%s", uri, h.pt.Connector(uri), params.Encode())
 	http.Redirect(h.w, h.r, u, http.StatusFound)
 }
 
