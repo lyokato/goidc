@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/lyokato/goidc/authorization"
 	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/flow"

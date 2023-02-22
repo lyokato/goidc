@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/golang-jwt/jwt"
 	"github.com/lyokato/goidc/basic_auth"
 	"github.com/lyokato/goidc/grant"
 	th "github.com/lyokato/goidc/test_helper"

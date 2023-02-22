@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/golang-jwt/jwt"
 	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/log"
 	oer "github.com/lyokato/goidc/oauth_error"
