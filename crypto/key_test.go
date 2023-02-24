@@ -38,6 +38,31 @@ oqxJsRC0l1ybcs6o0QIDAQAB
 	}
 }
 
+func TestLoadPublicKeyFromJWK(t *testing.T) {
+	jwkString := `{
+    "keys": [
+        {
+            "e": "AQAB",
+            "kid": "my_key_version",
+            "kty": "RSA",
+            "n": "sxclFH1RsjAmxu2CMIKOF3ahI4YYCGSeCq-1SsCHOxfsdA6AZ4juroVOh1cTD4m8UgyBkCB6MT_RyTxhdV5RLexDMHsG-UXJLt96_tkAhE0ZkDMOvHmVGanbYMtSRQhbBVHDMHFXH06l1NNFBHrx_URQR6KsSbEQtJdcm3LOqNE"
+        }
+    ]
+}`
+	pk, err := LoadPublicKeyFromJWK(jwkString, "my_key_version")
+	if err != nil {
+		t.Error("LoadPublicKeyFromJWK should not fail")
+	}
+	expected_E := 65537
+	if pk.E != expected_E {
+		t.Errorf("JWK:\n - got: %v\n - want: %v\n", pk.E, expected_E)
+	}
+	expected_N := "125761562406782462307976315837545894753596483913155629630845400922907150365823375233335966135888915653473579854535859095871067725653279636082966210229051847528843249278196841298129937769379799128054212839147877967083771260968564646064234593247897648494467957173841524414818545360053846191075030561605257439441"
+	if pk.N.String() != expected_N {
+		t.Errorf("JWK:\n - got: %v\n - want: %v\n", pk.N.String(), expected_N)
+	}
+}
+
 func TestLoadPrivateKey(t *testing.T) {
 
 	_, err := LoadPrivateKeyFromText("INVALID_PEM")
