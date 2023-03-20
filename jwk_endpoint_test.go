@@ -34,9 +34,9 @@ oqxJsRC0l1ybcs6o0QIDAQAB
 	expected := `{
     "keys": [
         {
+            "e": "AQAB",
             "kid": "my_key_id",
             "kty": "RSA",
-            "e": "AQAB",
             "n": "sxclFH1RsjAmxu2CMIKOF3ahI4YYCGSeCq-1SsCHOxfsdA6AZ4juroVOh1cTD4m8UgyBkCB6MT_RyTxhdV5RLexDMHsG-UXJLt96_tkAhE0ZkDMOvHmVGanbYMtSRQhbBVHDMHFXH06l1NNFBHrx_URQR6KsSbEQtJdcm3LOqNE"
         }
     ]

@@ -15,11 +15,11 @@ import (
 func PublicKeysJWK(keys map[string]*rsa.PublicKey) ([]byte, error) {
 	set := &jwk.Set{}
 	for kid, key := range keys {
-		rk, err := jwk.NewRsaPublicKey(key)
+		rk, err := jwk.New(key)
 		if err != nil {
 			return nil, err
 		}
-		rk.KeyID = kid
+		rk.Set(jwk.KeyIDKey, kid)
 		set.Keys = append(set.Keys, rk)
 	}
 	body, err := json.MarshalIndent(set, "", "    ")
@@ -38,11 +38,12 @@ func LoadPublicKeyFromJWK(jwkString, kid string) (*rsa.PublicKey, error) {
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("indicated key id not found")
 	} else {
-		pk, ok := keys[0].(*jwk.RsaPublicKey)
+		pk, ok := keys[0].(*jwk.RSAPublicKey)
 		if !ok {
 			return nil, errors.New("indicated key is not a public key")
 		}
-		return pk.PublicKey()
+		rsaKey, err := pk.Materialize()
+		return rsaKey.(*rsa.PublicKey), err
 	}
 }
 
