@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/lyokato/goidc/assertion"
 	"github.com/lyokato/goidc/bridge"
 	"github.com/lyokato/goidc/grant"
